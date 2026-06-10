@@ -14,12 +14,24 @@ export default {
     },
     {
       name: "assessment-index",
-      cwd: ".",
+      cwd: "./frontend",
       script: "npm",
       args: "run dev",
       exec_mode: "fork",
       interpreter: "none",
       env: { PORT: 2001 },
+    },
+    {
+      name: "assessment-backend",
+      cwd: "./backend",
+      script: "/Users/eko/maven/bin/mvn",
+      args: "spring-boot:run",
+      exec_mode: "fork",
+      interpreter: "none",
+      env: { PORT: 2002, LC_ALL: "C", LANG: "C" },
+      watch: ["src/main/java/**/*.java", "src/main/resources/**/*.yml", "src/main/resources/**/*.yaml"],
+      watch_delay: 2000,
+      ignore_watch: ["node_modules", "target", ".postgres"],
     },
   ]
 };
