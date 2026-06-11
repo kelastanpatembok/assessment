@@ -11,6 +11,8 @@
   let loading = $state(false);
   let filterRole = $state('');
 
+  let editUser = $state<{ authUserId: string; name: string; email: string; schoolId: string } | null>(null);
+
   const roleLabel: Record<string, string> = {
     superadmin: 'Superadmin',
     gurubk: 'Guru BK',
@@ -21,6 +23,15 @@
   let filtered = $derived(
     filterRole ? data.users.filter((u: any) => u.role === filterRole) : data.users
   );
+
+  function openEdit(user: any) {
+    editUser = {
+      authUserId: user.authUserId,
+      name: user.name,
+      email: user.email ?? '',
+      schoolId: user.school?.id ? String(user.school.id) : '',
+    };
+  }
 </script>
 
 <svelte:head><title>Pengguna</title></svelte:head>
@@ -63,10 +74,13 @@
               <td class="py-3"><Badge variant="secondary">{roleLabel[user.role] ?? user.role}</Badge></td>
               <td class="text-muted-foreground py-3">{user.school?.name ?? '-'}</td>
               <td class="py-3">
-                <form method="POST" action="?/delete" use:enhance>
-                  <input type="hidden" name="id" value={user.authUserId} />
-                  <button type="submit" class="text-destructive text-xs hover:underline">Hapus</button>
-                </form>
+                <div class="flex items-center gap-3">
+                  <button class="text-primary text-xs hover:underline" onclick={() => openEdit(user)}>Edit</button>
+                  <form method="POST" action="?/delete" use:enhance>
+                    <input type="hidden" name="id" value={user.authUserId} />
+                    <button type="submit" class="text-destructive text-xs hover:underline">Hapus</button>
+                  </form>
+                </div>
               </td>
             </tr>
           {:else}
@@ -77,6 +91,52 @@
     </CardContent>
   </Card>
 </div>
+
+{#if editUser}
+  <div class="bg-background/80 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+    <Card class="w-full max-w-md">
+      <CardHeader><CardTitle>Edit Pengguna</CardTitle></CardHeader>
+      <CardContent>
+        <form
+          method="POST"
+          action="?/update"
+          use:enhance={() => {
+            loading = true;
+            return async ({ update }) => { loading = false; editUser = null; await update(); };
+          }}
+          class="flex flex-col gap-4"
+        >
+          <input type="hidden" name="id" value={editUser.authUserId} />
+          <div class="flex flex-col gap-2">
+            <Label for="edit-name">Nama Lengkap</Label>
+            <Input id="edit-name" name="name" value={editUser.name} required />
+          </div>
+          <div class="flex flex-col gap-2">
+            <Label for="edit-email">Email</Label>
+            <Input id="edit-email" name="email" type="email" value={editUser.email} />
+          </div>
+          <div class="flex flex-col gap-2">
+            <Label for="edit-school">Sekolah</Label>
+            <select id="edit-school" name="schoolId" class="border-input bg-background flex h-10 w-full rounded-lg border px-3 text-sm">
+              <option value="">Tanpa sekolah</option>
+              {#each data.schools as s}
+                <option value={s.id} selected={editUser.schoolId === String(s.id)}>{s.name}</option>
+              {/each}
+            </select>
+          </div>
+          <div class="flex flex-col gap-2">
+            <Label for="edit-password">Password</Label>
+            <Input id="edit-password" name="password" type="password" placeholder="Kosongkan untuk menggunakan password lama" />
+          </div>
+          <div class="flex justify-end gap-2">
+            <Button type="button" variant="outline" onclick={() => (editUser = null)}>Batal</Button>
+            <Button type="submit" disabled={loading}>{loading ? 'Menyimpan...' : 'Simpan'}</Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  </div>
+{/if}
 
 {#if showModal}
   <div class="bg-background/80 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">

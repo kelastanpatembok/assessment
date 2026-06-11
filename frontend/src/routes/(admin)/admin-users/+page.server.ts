@@ -30,6 +30,21 @@ export const actions: Actions = {
     if (result?.error) return fail(400, { error: result.error });
     return { success: true };
   },
+  update: async ({ request, locals }) => {
+    const api = createApiClient(locals.token);
+    const data = await request.formData();
+    const id = data.get('id') as string;
+    const password = data.get('password') as string;
+    const body: Record<string, unknown> = {
+      name: data.get('name'),
+      email: data.get('email'),
+      schoolId: data.get('schoolId') ? Number(data.get('schoolId')) : null,
+    };
+    if (password && password.trim()) body.password = password;
+    const result = await api.put(`/users/${id}`, body);
+    if (result?.error) return fail(400, { error: result.error });
+    return { success: true };
+  },
   delete: async ({ request, locals }) => {
     const api = createApiClient(locals.token);
     const data = await request.formData();

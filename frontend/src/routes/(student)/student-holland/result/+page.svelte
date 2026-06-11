@@ -11,12 +11,12 @@
   };
 
   let dimensions = $derived([
-    { key: 'R', label: 'Realistic',      value: r?.rScore ?? 0 },
-    { key: 'I', label: 'Investigative',  value: r?.iScore ?? 0 },
-    { key: 'A', label: 'Artistic',       value: r?.aScore ?? 0 },
-    { key: 'S', label: 'Social',         value: r?.sScore ?? 0 },
-    { key: 'E', label: 'Enterprising',   value: r?.eScore ?? 0 },
-    { key: 'C', label: 'Conventional',   value: r?.cScore ?? 0 },
+    { key: 'R', label: 'Realistic',      value: r?.rscore ?? 0 },
+    { key: 'I', label: 'Investigative',  value: r?.iscore ?? 0 },
+    { key: 'A', label: 'Artistic',       value: r?.ascore ?? 0 },
+    { key: 'S', label: 'Social',         value: r?.sscore ?? 0 },
+    { key: 'E', label: 'Enterprising',   value: r?.escore ?? 0 },
+    { key: 'C', label: 'Conventional',   value: r?.cscore ?? 0 },
   ].sort((a, b) => b.value - a.value));
 
   let hollandCode = $derived(r?.hollandCode ?? dimensions.slice(0, 3).map(d => d.key).join(''));

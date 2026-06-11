@@ -58,9 +58,9 @@
               <td class="text-muted-foreground py-3">{(r.completedAt ?? r.createdAt) ? new Date(r.completedAt ?? r.createdAt).toLocaleDateString('id-ID') : '-'}</td>
               <td class="py-3">
                 {#if activeTab === 'disc'}
-                  D:{r.dMost ?? 0} I:{r.iMost ?? 0} S:{r.sMost ?? 0} C:{r.cMost ?? 0}
+                  D:{r.dmost ?? 0} I:{r.imost ?? 0} S:{r.smost ?? 0} C:{r.cmost ?? 0}
                 {:else if activeTab === 'holland'}
-                  {r.hollandCode ?? 'R:' + (r.rScore ?? 0) + ' I:' + (r.iScore ?? 0) + ' A:' + (r.aScore ?? 0)}
+                  {r.hollandCode ?? 'R:' + (r.rscore ?? 0) + ' I:' + (r.iscore ?? 0) + ' A:' + (r.ascore ?? 0)}
                 {:else if activeTab === 'cfit'}
                   RS: {r.totalScore ?? '-'} IQ: {r.iqScore ?? '-'}
                 {:else if activeTab === 'ist'}

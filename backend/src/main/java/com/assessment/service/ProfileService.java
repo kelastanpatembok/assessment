@@ -1,5 +1,6 @@
 package com.assessment.service;
 
+import com.assessment.client.AuthClient;
 import com.assessment.exception.ResourceNotFoundException;
 import com.assessment.model.AssessmentUser;
 import com.assessment.model.School;
@@ -17,6 +18,7 @@ public class ProfileService {
 
     private final AssessmentUserRepository userRepository;
     private final SchoolRepository schoolRepository;
+    private final AuthClient authClient;
 
     @Transactional
     public AssessmentUser provisionProfile(String authUserId, String name, String email,
@@ -45,6 +47,24 @@ public class ProfileService {
         School school = schoolRepository.findById(schoolId)
                 .orElseThrow(() -> new ResourceNotFoundException("School not found: " + schoolId));
         user.setSchool(school);
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public AssessmentUser updateUser(String authUserId, String name, String email, Long schoolId, String password) {
+        AssessmentUser user = getProfile(authUserId);
+        if (name != null && !name.isBlank()) user.setName(name);
+        if (email != null && !email.isBlank()) user.setEmail(email);
+        if (schoolId != null) {
+            School school = schoolRepository.findById(schoolId)
+                    .orElseThrow(() -> new ResourceNotFoundException("School not found: " + schoolId));
+            user.setSchool(school);
+        } else {
+            user.setSchool(null);
+        }
+        if (password != null && !password.isBlank()) {
+            authClient.changePassword(authUserId, password);
+        }
         return userRepository.save(user);
     }
 

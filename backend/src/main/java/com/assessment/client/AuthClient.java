@@ -53,4 +53,20 @@ public class AuthClient {
 
     public record AuthRegisterResponse(String token, UserInfo user, long expiresIn) {}
     public record UserInfo(String id, String username, String email, String name, String role, String platformId) {}
+
+    public void changePassword(String authUserId, String newPassword) {
+        try {
+            String uri = UriComponentsBuilder.fromPath("/auth/change-password")
+                    .queryParam("userId", authUserId)
+                    .queryParam("newPassword", newPassword)
+                    .toUriString();
+            restClient.put()
+                    .uri(uri)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (Exception ex) {
+            log.error("Auth changePassword failed for userId={}: {}", authUserId, ex.getMessage());
+            throw new RuntimeException("Failed to change password in auth service: " + ex.getMessage(), ex);
+        }
+    }
 }

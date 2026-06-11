@@ -24,6 +24,8 @@ public class UserController {
     record CreateUserRequest(String username, String email, String password, String name,
                               String role, Long schoolId) {}
 
+    record UpdateUserRequest(String name, String email, Long schoolId, String password) {}
+
     @GetMapping
     @PreAuthorize("hasRole('SUPERADMIN')")
     public ResponseEntity<List<AssessmentUser>> listAll() {
@@ -45,6 +47,13 @@ public class UserController {
             default -> throw new IllegalArgumentException("Use /students for siswa role");
         };
         return ResponseEntity.ok(user);
+    }
+
+    @PutMapping("/{authUserId}")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public ResponseEntity<AssessmentUser> update(@PathVariable String authUserId,
+                                                  @RequestBody UpdateUserRequest req) {
+        return ResponseEntity.ok(profileService.updateUser(authUserId, req.name(), req.email(), req.schoolId(), req.password()));
     }
 
     @DeleteMapping("/{authUserId}")
