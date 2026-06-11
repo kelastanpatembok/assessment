@@ -39,12 +39,12 @@
         <tbody>
           {#each data.assignments as a}
             <tr class="border-border border-b last:border-0">
-              <td class="py-3 font-medium">{a.schoolName}</td>
-              <td class="py-3">{a.categoryName}</td>
-              <td class="text-muted-foreground py-3">{a.startDate}</td>
-              <td class="text-muted-foreground py-3">{a.endDate}</td>
+              <td class="py-3 font-medium">{a.school?.name ?? '-'}</td>
+              <td class="py-3">{a.category?.name ?? '-'}</td>
+              <td class="text-muted-foreground py-3">{a.windowStart?.split('T')[0] ?? '-'}</td>
+              <td class="text-muted-foreground py-3">{a.windowEnd?.split('T')[0] ?? '-'}</td>
               <td class="py-3">
-                <Badge variant={a.status === 'aktif' ? 'default' : 'secondary'}>{a.status}</Badge>
+                <Badge variant={a.active ? 'default' : 'secondary'}>{a.active ? 'aktif' : 'pasif'}</Badge>
               </td>
               <td class="py-3">
                 <form method="POST" action="?/delete" use:enhance>
@@ -81,7 +81,7 @@
             <select id="schoolId" name="schoolId" class="border-input bg-background flex h-10 w-full rounded-lg border px-3 text-sm" required>
               <option value="">Pilih sekolah...</option>
               {#each data.schools as s}
-                <option value={s.id}>{s.schoolName}</option>
+                <option value={s.id}>{s.name}</option>
               {/each}
             </select>
           </div>

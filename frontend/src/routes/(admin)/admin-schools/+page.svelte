@@ -37,7 +37,7 @@
           {#each data.schools as school, i}
             <tr class="border-border border-b last:border-0">
               <td class="py-3">{i + 1}</td>
-              <td class="py-3 font-medium">{school.schoolName}</td>
+              <td class="py-3 font-medium">{school.name}</td>
               <td class="text-muted-foreground py-3">{school.address ?? '-'}</td>
               <td class="py-3">
                 <form method="POST" action="?/delete" use:enhance>

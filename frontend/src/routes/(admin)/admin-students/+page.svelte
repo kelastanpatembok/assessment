@@ -30,7 +30,7 @@
             <th class="pb-3 font-medium">Nama</th>
             <th class="pb-3 font-medium">Username</th>
             <th class="pb-3 font-medium">Sekolah</th>
-            <th class="pb-3 font-medium">Kategori</th>
+            <th class="pb-3 font-medium">Email</th>
             <th class="pb-3 font-medium">Aksi</th>
           </tr>
         </thead>
@@ -39,8 +39,8 @@
             <tr class="border-border border-b last:border-0">
               <td class="py-3 font-medium">{s.name}</td>
               <td class="py-3">{s.username}</td>
-              <td class="text-muted-foreground py-3">{s.schoolName ?? '-'}</td>
-              <td class="text-muted-foreground py-3">{s.categoryName ?? '-'}</td>
+              <td class="text-muted-foreground py-3">{s.school?.name ?? '-'}</td>
+              <td class="text-muted-foreground py-3">{s.email ?? '-'}</td>
               <td class="py-3">
                 <form method="POST" action="?/delete" use:enhance>
                   <input type="hidden" name="id" value={s.authUserId} />
@@ -92,7 +92,7 @@
             <select id="schoolId" name="schoolId" class="border-input bg-background flex h-10 w-full rounded-lg border px-3 text-sm" required>
               <option value="">Pilih sekolah...</option>
               {#each data.schools as s}
-                <option value={s.id}>{s.schoolName}</option>
+                <option value={s.id}>{s.name}</option>
               {/each}
             </select>
           </div>

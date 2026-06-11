@@ -1,5 +1,6 @@
 package com.assessment.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -19,6 +20,7 @@ public class FeeConfig {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", unique = true)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private TestCategory category;
 
     @Column(name = "student_fee", nullable = false, precision = 14, scale = 2)

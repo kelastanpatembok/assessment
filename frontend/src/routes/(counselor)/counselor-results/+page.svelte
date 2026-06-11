@@ -55,16 +55,16 @@
             <tr class="border-border border-b last:border-0">
               <td class="py-3 font-medium">{r.studentName}</td>
               <td class="text-muted-foreground py-3">{r.schoolName ?? '-'}</td>
-              <td class="text-muted-foreground py-3">{r.createdAt ? new Date(r.createdAt).toLocaleDateString('id-ID') : '-'}</td>
+              <td class="text-muted-foreground py-3">{(r.completedAt ?? r.createdAt) ? new Date(r.completedAt ?? r.createdAt).toLocaleDateString('id-ID') : '-'}</td>
               <td class="py-3">
                 {#if activeTab === 'disc'}
                   D:{r.dMost ?? 0} I:{r.iMost ?? 0} S:{r.sMost ?? 0} C:{r.cMost ?? 0}
                 {:else if activeTab === 'holland'}
-                  R:{r.totalR ?? 0} I:{r.totalI ?? 0} A:{r.totalA ?? 0}
+                  {r.hollandCode ?? 'R:' + (r.rScore ?? 0) + ' I:' + (r.iScore ?? 0) + ' A:' + (r.aScore ?? 0)}
                 {:else if activeTab === 'cfit'}
-                  RS: {r.rawScore ?? '-'}
+                  RS: {r.totalScore ?? '-'} IQ: {r.iqScore ?? '-'}
                 {:else if activeTab === 'ist'}
-                  IQ: {r.iqScore ?? '-'}
+                  IQ: {r.iqScore ?? '-'} ({r.iqCategory ?? '-'})
                 {:else}
                   Selesai
                 {/if}

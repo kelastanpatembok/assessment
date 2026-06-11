@@ -30,20 +30,20 @@
         class="flex flex-col gap-4"
       >
         <div class="flex flex-col gap-2">
-          <Label for="price">Harga Per Siswa (Rp)</Label>
-          <Input id="price" name="price" type="number" value={data.config?.price ?? 0} min="0" />
+          <Label for="studentFee">Harga Per Siswa (Rp)</Label>
+          <Input id="studentFee" name="studentFee" type="number" value={data.config?.studentFee ?? 0} min="0" />
         </div>
         <div class="flex flex-col gap-2">
-          <Label for="systemPct">Persentase Sistem (%)</Label>
-          <Input id="systemPct" name="systemPct" type="number" value={data.config?.systemPct ?? 0} min="0" max="100" step="0.01" />
+          <Label for="platformSharePct">Persentase Platform (%)</Label>
+          <Input id="platformSharePct" name="platformSharePct" type="number" value={data.config?.platformSharePct ?? 0} min="0" max="100" step="0.01" />
         </div>
         <div class="flex flex-col gap-2">
-          <Label for="affiliatorPct">Persentase Afiliator (%)</Label>
-          <Input id="affiliatorPct" name="affiliatorPct" type="number" value={data.config?.affiliatorPct ?? 0} min="0" max="100" step="0.01" />
+          <Label for="afiliatorSharePct">Persentase Afiliator (%)</Label>
+          <Input id="afiliatorSharePct" name="afiliatorSharePct" type="number" value={data.config?.afiliatorSharePct ?? 0} min="0" max="100" step="0.01" />
         </div>
         <div class="flex flex-col gap-2">
-          <Label for="counselorPct">Persentase Guru BK (%)</Label>
-          <Input id="counselorPct" name="counselorPct" type="number" value={data.config?.counselorPct ?? 0} min="0" max="100" step="0.01" />
+          <Label for="gurubkSharePct">Persentase Guru BK (%)</Label>
+          <Input id="gurubkSharePct" name="gurubkSharePct" type="number" value={data.config?.gurubkSharePct ?? 0} min="0" max="100" step="0.01" />
         </div>
         <Button type="submit" disabled={loading}>{loading ? 'Menyimpan...' : 'Simpan Konfigurasi'}</Button>
       </form>

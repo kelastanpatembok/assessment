@@ -3,7 +3,8 @@ import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const api = createApiClient(locals.token);
-  const config = await api.get('/fee-config').catch(() => null);
+  const configs = await api.get('/fees/config').catch(() => []);
+  const config = Array.isArray(configs) ? configs[0] ?? null : null;
   return { config };
 };
 
@@ -12,12 +13,12 @@ export const actions: Actions = {
     const api = createApiClient(locals.token);
     const data = await request.formData();
     const body = {
-      price: Number(data.get('price')),
-      systemPct: Number(data.get('systemPct')),
-      affiliatorPct: Number(data.get('affiliatorPct')),
-      counselorPct: Number(data.get('counselorPct')),
+      studentFee: Number(data.get('studentFee')),
+      afiliatorSharePct: Number(data.get('afiliatorSharePct')),
+      gurubkSharePct: Number(data.get('gurubkSharePct')),
+      platformSharePct: Number(data.get('platformSharePct')),
     };
-    await api.post('/fee-config', body);
+    await api.put('/fees/config', body);
     return { success: true };
   },
 };

@@ -61,7 +61,7 @@
               <td class="py-3">{user.username}</td>
               <td class="text-muted-foreground py-3">{user.email ?? '-'}</td>
               <td class="py-3"><Badge variant="secondary">{roleLabel[user.role] ?? user.role}</Badge></td>
-              <td class="text-muted-foreground py-3">{user.schoolName ?? '-'}</td>
+              <td class="text-muted-foreground py-3">{user.school?.name ?? '-'}</td>
               <td class="py-3">
                 <form method="POST" action="?/delete" use:enhance>
                   <input type="hidden" name="id" value={user.authUserId} />
@@ -122,7 +122,7 @@
             <select id="schoolId" name="schoolId" class="border-input bg-background flex h-10 w-full rounded-lg border px-3 text-sm">
               <option value="">Tanpa sekolah</option>
               {#each data.schools as s}
-                <option value={s.id}>{s.schoolName}</option>
+                <option value={s.id}>{s.name}</option>
               {/each}
             </select>
           </div>
