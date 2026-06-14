@@ -32,6 +32,16 @@ export const actions: Actions = {
     if (result?.error) return fail(400, { error: result.error });
     return { success: true };
   },
+  update: async ({ request, locals }) => {
+    const api = createApiClient(locals.token);
+    const data = await request.formData();
+    const id = data.get('id') as string;
+    const body: Record<string, unknown> = { name: data.get('name'), email: data.get('email') };
+    const schoolId = data.get('schoolId');
+    if (schoolId) body.schoolId = schoolId;
+    await api.put(`/students/${id}`, body);
+    return { success: true };
+  },
   delete: async ({ request, locals }) => {
     const api = createApiClient(locals.token);
     const data = await request.formData();

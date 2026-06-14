@@ -5,8 +5,11 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
 
+  const TEST_OPTIONS = ['disc', 'holland', 'papi', 'cfit', 'ist'];
+
   let { data, form } = $props();
   let showModal = $state(false);
+  let editTarget = $state<{ id: number; name: string; slug: string; price: number; tests: string[] } | null>(null);
   let loading = $state(false);
 </script>
 
@@ -41,7 +44,12 @@
               <td class="py-3 font-medium">{cat.name}</td>
               <td class="text-muted-foreground py-3">{cat.slug ?? '-'}</td>
               <td class="py-3">Rp {(cat.price ?? 0).toLocaleString('id-ID')}</td>
-              <td class="py-3">
+              <td class="flex gap-3 py-3">
+                <button
+                  type="button"
+                  class="text-xs text-blue-600 hover:underline"
+                  onclick={() => (editTarget = { id: cat.id, name: cat.name, slug: cat.slug ?? '', price: cat.price ?? 0, tests: cat.tests ?? [] })}
+                >Edit</button>
                 <form method="POST" action="?/delete" use:enhance>
                   <input type="hidden" name="id" value={cat.id} />
                   <button type="submit" class="text-destructive text-xs hover:underline">Hapus</button>
@@ -83,8 +91,67 @@
             <Label for="price">Harga (Rp)</Label>
             <Input id="price" name="price" type="number" placeholder="0" min="0" />
           </div>
+          <div class="flex flex-col gap-2">
+            <Label>Tes yang Termasuk</Label>
+            <div class="flex flex-wrap gap-3">
+              {#each TEST_OPTIONS as t}
+                <label class="flex items-center gap-1.5 text-sm capitalize">
+                  <input type="checkbox" name="tests" value={t} class="size-4" />
+                  {t.toUpperCase()}
+                </label>
+              {/each}
+            </div>
+          </div>
           <div class="flex justify-end gap-2">
             <Button type="button" variant="outline" onclick={() => (showModal = false)}>Batal</Button>
+            <Button type="submit" disabled={loading}>{loading ? 'Menyimpan...' : 'Simpan'}</Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  </div>
+{/if}
+
+{#if editTarget}
+  <div class="bg-background/80 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+    <Card class="w-full max-w-md">
+      <CardHeader><CardTitle>Edit Kategori</CardTitle></CardHeader>
+      <CardContent>
+        <form
+          method="POST"
+          action="?/update"
+          use:enhance={() => {
+            loading = true;
+            return async ({ update }) => { loading = false; editTarget = null; await update(); };
+          }}
+          class="flex flex-col gap-4"
+        >
+          <input type="hidden" name="id" value={editTarget.id} />
+          <div class="flex flex-col gap-2">
+            <Label for="editName">Nama Kategori</Label>
+            <Input id="editName" name="name" value={editTarget.name} required />
+          </div>
+          <div class="flex flex-col gap-2">
+            <Label for="editSlug">Slug</Label>
+            <Input id="editSlug" name="slug" value={editTarget.slug} />
+          </div>
+          <div class="flex flex-col gap-2">
+            <Label for="editPrice">Harga (Rp)</Label>
+            <Input id="editPrice" name="price" type="number" value={editTarget.price} min="0" />
+          </div>
+          <div class="flex flex-col gap-2">
+            <Label>Tes yang Termasuk</Label>
+            <div class="flex flex-wrap gap-3">
+              {#each TEST_OPTIONS as t}
+                <label class="flex items-center gap-1.5 text-sm capitalize">
+                  <input type="checkbox" name="tests" value={t} checked={editTarget.tests.includes(t)} class="size-4" />
+                  {t.toUpperCase()}
+                </label>
+              {/each}
+            </div>
+          </div>
+          <div class="flex justify-end gap-2">
+            <Button type="button" variant="outline" onclick={() => (editTarget = null)}>Batal</Button>
             <Button type="submit" disabled={loading}>{loading ? 'Menyimpan...' : 'Simpan'}</Button>
           </div>
         </form>

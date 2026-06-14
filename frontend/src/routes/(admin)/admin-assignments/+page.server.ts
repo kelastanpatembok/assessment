@@ -31,6 +31,19 @@ export const actions: Actions = {
     await api.post('/test-assignments', body);
     return { success: true };
   },
+  update: async ({ request, locals }) => {
+    const api = createApiClient(locals.token);
+    const data = await request.formData();
+    const id = data.get('id') as string;
+    const body = {
+      startDate: data.get('startDate'),
+      endDate: data.get('endDate'),
+      active: data.get('active') === 'on',
+      certificateEnabled: data.get('certificateEnabled') === 'on',
+    };
+    await api.put(`/test-assignments/${id}`, body);
+    return { success: true };
+  },
   delete: async ({ request, locals }) => {
     const api = createApiClient(locals.token);
     const data = await request.formData();

@@ -8,6 +8,7 @@
 
   let { data, form } = $props();
   let showModal = $state(false);
+  let editTarget = $state<{ id: number; startDate: string; endDate: string; active: boolean; certificateEnabled: boolean } | null>(null);
   let loading = $state(false);
 </script>
 
@@ -46,7 +47,18 @@
               <td class="py-3">
                 <Badge variant={a.active ? 'default' : 'secondary'}>{a.active ? 'aktif' : 'pasif'}</Badge>
               </td>
-              <td class="py-3">
+              <td class="flex gap-3 py-3">
+                <button
+                  type="button"
+                  class="text-xs text-blue-600 hover:underline"
+                  onclick={() => (editTarget = {
+                    id: a.id,
+                    startDate: a.windowStart?.split('T')[0] ?? '',
+                    endDate: a.windowEnd?.split('T')[0] ?? '',
+                    active: a.active,
+                    certificateEnabled: a.certificateEnabled ?? false,
+                  })}
+                >Edit</button>
                 <form method="POST" action="?/delete" use:enhance>
                   <input type="hidden" name="id" value={a.id} />
                   <button type="submit" class="text-destructive text-xs hover:underline">Hapus</button>
@@ -110,6 +122,49 @@
           </div>
           <div class="flex justify-end gap-2">
             <Button type="button" variant="outline" onclick={() => (showModal = false)}>Batal</Button>
+            <Button type="submit" disabled={loading}>{loading ? 'Menyimpan...' : 'Simpan'}</Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  </div>
+{/if}
+
+{#if editTarget}
+  <div class="bg-background/80 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+    <Card class="w-full max-w-md">
+      <CardHeader><CardTitle>Edit Penugasan</CardTitle></CardHeader>
+      <CardContent>
+        <form
+          method="POST"
+          action="?/update"
+          use:enhance={() => {
+            loading = true;
+            return async ({ update }) => { loading = false; editTarget = null; await update(); };
+          }}
+          class="flex flex-col gap-4"
+        >
+          <input type="hidden" name="id" value={editTarget.id} />
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-2">
+              <Label for="editStartDate">Tanggal Mulai</Label>
+              <Input id="editStartDate" name="startDate" type="date" value={editTarget.startDate} required />
+            </div>
+            <div class="flex flex-col gap-2">
+              <Label for="editEndDate">Tanggal Selesai</Label>
+              <Input id="editEndDate" name="endDate" type="date" value={editTarget.endDate} required />
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="editActive" name="active" checked={editTarget.active} class="size-4" />
+            <Label for="editActive">Aktif</Label>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="editCertEnabled" name="certificateEnabled" checked={editTarget.certificateEnabled} class="size-4" />
+            <Label for="editCertEnabled">Aktifkan sertifikat</Label>
+          </div>
+          <div class="flex justify-end gap-2">
+            <Button type="button" variant="outline" onclick={() => (editTarget = null)}>Batal</Button>
             <Button type="submit" disabled={loading}>{loading ? 'Menyimpan...' : 'Simpan'}</Button>
           </div>
         </form>

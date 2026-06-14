@@ -101,6 +101,11 @@ public class TestAssignmentService {
     }
 
     @Transactional
+    public TestAssignment save(TestAssignment assignment) {
+        return testAssignmentRepository.save(assignment);
+    }
+
+    @Transactional
     public void deactivate(Long id) {
         TestAssignment assignment = getById(id);
         assignment.setActive(false);

@@ -21,6 +21,9 @@ public class TestAssignmentController {
                                    String startDate, String endDate,
                                    boolean certificateEnabled) {}
 
+    record UpdateAssignmentRequest(String startDate, String endDate,
+                                   Boolean active, Boolean certificateEnabled) {}
+
     @GetMapping({"/assignments", "/test-assignments"})
     @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK')")
     public ResponseEntity<List<TestAssignment>> listAll() {
@@ -56,6 +59,16 @@ public class TestAssignmentController {
     @PreAuthorize("hasRole('SISWA')")
     public ResponseEntity<List<TestAssignment>> my() {
         return ResponseEntity.ok(testAssignmentService.getForStudent(CurrentUser.userId()));
+    }
+
+    @PutMapping({"/assignments/{id}", "/test-assignments/{id}"})
+    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK')")
+    public ResponseEntity<TestAssignment> update(@PathVariable Long id, @RequestBody UpdateAssignmentRequest req) {
+        TestAssignment assignment = testAssignmentService.getById(id);
+        if (req.startDate() != null) assignment.setWindowStart(LocalDateTime.parse(req.startDate() + "T00:00:00"));
+        if (req.endDate() != null) assignment.setWindowEnd(LocalDateTime.parse(req.endDate() + "T23:59:59"));
+        if (req.active() != null) assignment.setActive(req.active());
+        return ResponseEntity.ok(testAssignmentService.save(assignment));
     }
 
     @DeleteMapping({"/assignments/{id}", "/test-assignments/{id}"})

@@ -7,6 +7,7 @@
 
   let { data, form } = $props();
   let showModal = $state(false);
+  let editTarget = $state<{ id: string; name: string; email: string; schoolId: string } | null>(null);
   let loading = $state(false);
 </script>
 
@@ -41,7 +42,12 @@
               <td class="py-3">{s.username}</td>
               <td class="text-muted-foreground py-3">{s.school?.name ?? '-'}</td>
               <td class="text-muted-foreground py-3">{s.email ?? '-'}</td>
-              <td class="py-3">
+              <td class="flex gap-3 py-3">
+                <button
+                  type="button"
+                  class="text-xs text-blue-600 hover:underline"
+                  onclick={() => (editTarget = { id: s.authUserId, name: s.name, email: s.email ?? '', schoolId: String(s.school?.id ?? '') })}
+                >Edit</button>
                 <form method="POST" action="?/delete" use:enhance>
                   <input type="hidden" name="id" value={s.authUserId} />
                   <button type="submit" class="text-destructive text-xs hover:underline">Hapus</button>
@@ -107,6 +113,48 @@
           </div>
           <div class="flex justify-end gap-2">
             <Button type="button" variant="outline" onclick={() => (showModal = false)}>Batal</Button>
+            <Button type="submit" disabled={loading}>{loading ? 'Menyimpan...' : 'Simpan'}</Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  </div>
+{/if}
+
+{#if editTarget}
+  <div class="bg-background/80 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+    <Card class="w-full max-w-md">
+      <CardHeader><CardTitle>Edit Siswa</CardTitle></CardHeader>
+      <CardContent>
+        <form
+          method="POST"
+          action="?/update"
+          use:enhance={() => {
+            loading = true;
+            return async ({ update }) => { loading = false; editTarget = null; await update(); };
+          }}
+          class="flex flex-col gap-4"
+        >
+          <input type="hidden" name="id" value={editTarget.id} />
+          <div class="flex flex-col gap-2">
+            <Label for="editName">Nama Lengkap</Label>
+            <Input id="editName" name="name" value={editTarget.name} required />
+          </div>
+          <div class="flex flex-col gap-2">
+            <Label for="editEmail">Email</Label>
+            <Input id="editEmail" name="email" type="email" value={editTarget.email} />
+          </div>
+          <div class="flex flex-col gap-2">
+            <Label for="editSchoolId">Sekolah</Label>
+            <select id="editSchoolId" name="schoolId" class="border-input bg-background flex h-10 w-full rounded-lg border px-3 text-sm">
+              <option value="">Pilih sekolah...</option>
+              {#each data.schools as s}
+                <option value={s.id} selected={String(s.id) === editTarget.schoolId}>{s.name}</option>
+              {/each}
+            </select>
+          </div>
+          <div class="flex justify-end gap-2">
+            <Button type="button" variant="outline" onclick={() => (editTarget = null)}>Batal</Button>
             <Button type="submit" disabled={loading}>{loading ? 'Menyimpan...' : 'Simpan'}</Button>
           </div>
         </form>

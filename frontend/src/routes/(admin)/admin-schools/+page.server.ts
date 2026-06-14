@@ -20,6 +20,16 @@ export const actions: Actions = {
     await api.post('/schools', { name, address, city, province });
     return { success: true };
   },
+  update: async ({ request, locals }) => {
+    const api = createApiClient(locals.token);
+    const data = await request.formData();
+    const id = data.get('id') as string;
+    const name = data.get('schoolName') as string;
+    const address = data.get('address') as string;
+    if (!name) return fail(400, { error: 'Nama sekolah wajib diisi' });
+    await api.put(`/schools/${id}`, { name, address });
+    return { success: true };
+  },
   delete: async ({ request, locals }) => {
     const api = createApiClient(locals.token);
     const data = await request.formData();
