@@ -1,5 +1,7 @@
+import { PUBLIC_API_URL } from '$env/static/public';
+
 export function createApiClient(token: string | null) {
-  const base = 'http://localhost:2002/api';
+  const base = PUBLIC_API_URL;
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 

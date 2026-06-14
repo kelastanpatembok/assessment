@@ -1,4 +1,5 @@
 import { redirect, fail } from '@sveltejs/kit';
+import { PUBLIC_AUTH_URL } from '$env/static/public';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -16,7 +17,7 @@ export const actions: Actions = {
       return fail(400, { error: 'Username dan password wajib diisi' });
     }
 
-    const res = await fetch('http://localhost:2000/api/auth/login', {
+    const res = await fetch(`${PUBLIC_AUTH_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
