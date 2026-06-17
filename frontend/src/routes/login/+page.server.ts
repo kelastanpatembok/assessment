@@ -17,11 +17,18 @@ export const actions: Actions = {
       return fail(400, { error: 'Username dan password wajib diisi' });
     }
 
-    const res = await fetch(`${PUBLIC_AUTH_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
+    let res;
+    try {
+      console.log('Fetching', `${PUBLIC_AUTH_URL}/auth/login`);
+      res = await fetch(`${PUBLIC_AUTH_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+    } catch (e) {
+      console.error('Fetch error:', e);
+      return fail(500, { error: 'Terjadi kesalahan sistem' });
+    }
 
     if (!res.ok) {
       return fail(401, { error: 'Kredensial tidak valid' });
