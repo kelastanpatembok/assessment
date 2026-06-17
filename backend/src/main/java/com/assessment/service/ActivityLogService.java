@@ -8,6 +8,7 @@ import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -26,6 +27,37 @@ public class ActivityLogService {
                 .authUserId(authUserId)
                 .testType(testType)
                 .eventType(eventType)
+                .metadata(metadataJson)
+                .build();
+        activityLogRepository.save(log);
+    }
+
+    @Transactional
+    @SneakyThrows
+    public void logCredentialGeneration(
+        String adminUsername,
+        String schoolName,
+        String testCategory,
+        int count
+    ) {
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("adminUsername", adminUsername);
+        metadata.put("schoolName", schoolName);
+        metadata.put("testCategory", testCategory);
+        metadata.put("count", count);
+        metadata.put("description", String.format(
+            "Generated %d student credentials for %s - %s (by %s)",
+            count,
+            schoolName,
+            testCategory,
+            adminUsername
+        ));
+
+        String metadataJson = objectMapper.writeValueAsString(metadata);
+        ActivityLog log = ActivityLog.builder()
+                .authUserId("system") // system-level operation, not tied to a user
+                .testType("CREDENTIAL_GENERATION")
+                .eventType("GENERATE")
                 .metadata(metadataJson)
                 .build();
         activityLogRepository.save(log);

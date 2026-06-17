@@ -1,7 +1,38 @@
-import { c as coalesce_to_error, g as get_status, a as get_message, w as with_request_store, p as parse, o as options, s as set_private_env, b as set_public_env, d as get_hooks, n as noop, h as has_resolution_suffix, e as has_data_suffix, f as base, i as strip_resolution_suffix, j as strip_data_suffix, T as TRAILING_SLASH_PARAM, I as INVALIDATED_PARAM, k as decode_pathname, l as add_data_suffix, m as add_resolution_suffix, q as find_route, r as normalize_path, t as disable_search, u as public_env, v as validate_layout_server_exports, x as validate_layout_exports, y as validate_page_server_exports, z as validate_page_exports, A as noop_span, B as resolve, C as read_implementation, D as get_relative_path, E as set_read_implementation, F as override, G as assets, H as reset, J as app_dir, K as create_remote_key, L as hash, M as text_encoder, N as compact, O as once, P as normalize_error, Q as make_trackable, R as parse_remote_arg, S as stringify, U as stringify$1, V as split_remote_key, W as base64_encode } from './chunks/internal2-BaeAYGUQ.js';
+import { c as coalesce_to_error, g as get_status, a as get_message, w as with_request_store, p as parse, o as options, b as get_hooks, n as noop, h as has_resolution_suffix, d as has_data_suffix, s as strip_resolution_suffix, e as strip_data_suffix, T as TRAILING_SLASH_PARAM, I as INVALIDATED_PARAM, f as decode_pathname, i as add_data_suffix, j as add_resolution_suffix, k as find_route, l as normalize_path, m as disable_search, v as validate_layout_server_exports, q as validate_layout_exports, r as validate_page_server_exports, t as validate_page_exports, u as noop_span, x as resolve, y as read_implementation, z as get_relative_path, A as set_read_implementation, B as create_remote_key, C as hash, D as text_encoder, E as compact, F as once, G as normalize_error, H as make_trackable, J as parse_remote_arg, K as stringify, L as stringify$1, M as split_remote_key, N as base64_encode } from './chunks/internal2-DrRkwNAm.js';
 import { j as json, t as text, i as isRedirect, e as error } from './chunks/index-BQZSrJq2.js';
 import { H as HttpError, S as SvelteKitError, R as Redirect, A as ActionFailure } from './chunks/index-DBqjc0Yf.js';
-import { u as uneval, w as writable, r as readable } from './chunks/dev-DBdtSqNh.js';
+import { u as uneval, w as writable, r as readable } from './chunks/dev-Ye9HvMQi.js';
+
+//#region node_modules/@sveltejs/kit/src/runtime/app/paths/internal/server.js
+var base = "";
+var assets = base;
+var app_dir = "_app";
+var initial = {
+	base,
+	assets
+};
+/**
+* @param {{ base: string, assets: string }} paths
+*/
+function override(paths) {
+	base = paths.base;
+	assets = paths.assets;
+}
+function reset() {
+	base = initial.base;
+	assets = initial.assets;
+}
+/**
+* `$env/dynamic/public`
+* @type {Record<string, string>}
+*/
+var public_env = {};
+/** @type {(environment: Record<string, string>) => void} */
+function set_private_env(environment) {}
+/** @type {(environment: Record<string, string>) => void} */
+function set_public_env(environment) {
+	public_env = environment;
+}
 
 /**
  * @template {{ tracing: { enabled: boolean, root: import('@opentelemetry/api').Span, current: import('@opentelemetry/api').Span } }} T

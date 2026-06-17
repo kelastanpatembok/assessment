@@ -29,6 +29,12 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("CONFLICT", ex.getMessage()));
     }
 
+    @ExceptionHandler(CredentialCreationException.class)
+    public ResponseEntity<ErrorResponse> handleCredentialCreation(CredentialCreationException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("CREDENTIAL_CREATION_FAILED", ex.getMessage()));
+    }
+
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> handleBadRequest(BadRequestException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
