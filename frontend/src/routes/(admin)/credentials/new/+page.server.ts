@@ -4,13 +4,22 @@ import type { PageServerLoad } from './$types';
 export const load: PageServerLoad = async ({ locals }) => {
   const api = createApiClient(locals.token);
 
-  const today = new Date().toISOString().split('T')[0];
+  const [schoolsRaw, categoriesRaw] = await Promise.allSettled([
+    api.get('/schools'),
+    api.get('/test-categories')
+  ]);
 
-  const assignments = await api
-    .get(`/test-assignments?status=aktif&endDate>=${today}`)
-    .catch(() => []);
+  const schools = schoolsRaw.status === 'fulfilled' && Array.isArray(schoolsRaw.value) 
+    ? schoolsRaw.value.map((s: any) => ({ id: s.id, name: s.name })) 
+    : [];
+
+  const categories = categoriesRaw.status === 'fulfilled' && Array.isArray(categoriesRaw.value)
+    ? categoriesRaw.value.map((c: any) => ({ id: c.id, name: c.name, slug: c.slug }))
+    : [];
 
   return {
-    assignments: Array.isArray(assignments) ? assignments : [],
+    schools,
+    categories,
+    token: locals.token,
   };
 };

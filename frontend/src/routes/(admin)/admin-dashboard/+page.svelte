@@ -34,7 +34,16 @@
     </CardHeader>
     <CardContent>
       <div class="flex flex-wrap gap-2">
-        <a href="/admin-schools" class="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm hover:opacity-90">Kelola Sekolah</a>
+        <a href="/credentials/new" class="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm hover:opacity-90 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="8.5" cy="7" r="4"></circle>
+            <path d="M20 8v6"></path>
+            <path d="M23 11h-6"></path>
+          </svg>
+          Generate Student Credentials
+        </a>
+        <a href="/admin-schools" class="bg-secondary text-secondary-foreground rounded-lg px-4 py-2 text-sm hover:opacity-90">Kelola Sekolah</a>
         <a href="/admin-users" class="bg-secondary text-secondary-foreground rounded-lg px-4 py-2 text-sm hover:opacity-90">Kelola Pengguna</a>
         <a href="/admin-assignments" class="bg-secondary text-secondary-foreground rounded-lg px-4 py-2 text-sm hover:opacity-90">Kelola Penugasan</a>
       </div>

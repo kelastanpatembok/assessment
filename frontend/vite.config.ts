@@ -20,6 +20,11 @@ export default defineConfig(({ mode }) => {
 			})
 		],
 		server: { port },
-		preview: { port }
+		preview: { port },
+		// Make sure environment variables with PUBLIC_ prefix are available
+		define: {
+			'process.env.PUBLIC_API_URL': JSON.stringify(process.env.PUBLIC_API_URL || env.PUBLIC_API_URL),
+			'process.env.PUBLIC_AUTH_URL': JSON.stringify(process.env.PUBLIC_AUTH_URL || env.PUBLIC_AUTH_URL)
+		}
 	};
 });

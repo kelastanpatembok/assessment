@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import { cn } from '$lib/utils';
+	import { downloadCSV } from '$lib/utils/csvExport';
+	import type { Credential as CSVCredential } from '$lib/utils/csvExport';
 
 	/**
 	 * Credential interface matching the response DTO from backend
@@ -62,57 +64,36 @@
 
 	// ==================== Export Functions ====================
 	/**
-	 * Generate CSV content with RFC 4180 compliance
-	 * Headers: username, password, school_name, test_category, created_date
+	 * Derive a code from a display name
+	 * Takes first 10 alphanumeric characters and converts to uppercase
 	 */
-	function generateCSV(): string {
-		const headers = ['username', 'password', 'school_name', 'test_category', 'created_date'];
-		const rows = credentials.map((cred) => [
-			escapeCSV(cred.username),
-			escapeCSV(cred.password),
-			escapeCSV(schoolName),
-			escapeCSV(testCategory),
-			escapeCSV(new Date(cred.createdAt).toISOString().split('T')[0])
-		]);
-
-		return [headers, ...rows].map((row) => row.join(',')).join('\n');
+	function deriveCode(name: string): string {
+		return name
+			.replace(/[^a-zA-Z0-9]/g, '')
+			.substring(0, 10)
+			.toUpperCase();
 	}
 
 	/**
-	 * Escape CSV field values according to RFC 4180
-	 * - Wrap in quotes if contains comma, quote, or newline
-	 * - Double internal quotes
+	 * Handle CSV export by calling the csvExport utility
+	 * Derives school and test codes from the display names
 	 */
-	function escapeCSV(value: string): string {
-		if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-			return `"${value.replace(/"/g, '""')}"`;
-		}
-		return value;
-	}
-
-	/**
-	 * Download CSV file
-	 */
-	function downloadCSV() {
-		const csv = generateCSV();
-		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-		const link = document.createElement('a');
-		const url = URL.createObjectURL(blob);
-
-		// Generate filename: credentials_{schoolCode}_{testCode}_{timestamp}.csv
-		const now = new Date();
-		const timestamp = now.toISOString().replace(/[-:T.]/g, '').substring(0, 14); // YYYYMMDDHHmmss
-		const filename = `credentials_${timestamp}.csv`;
-
-		link.setAttribute('href', url);
-		link.setAttribute('download', filename);
-		link.style.visibility = 'hidden';
-
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
-
-		// TODO: Show success toast notification when toast component is available
+	function handleExportCSV() {
+		// Derive codes from school/test names for filename
+		const schoolCode = deriveCode(schoolName);
+		const testCode = deriveCode(testCategory);
+		
+		// Convert credentials to CSV format expected by utility
+		const csvCredentials: CSVCredential[] = credentials.map(c => ({
+			username: c.username,
+			password: c.password,
+			schoolName,
+			testCategory,
+			createdAt: c.createdAt
+		}));
+		
+		// Call utility function to handle CSV generation and download
+		downloadCSV(csvCredentials, schoolName, testCategory, schoolCode, testCode);
 	}
 
 	/**
@@ -131,7 +112,7 @@
 		sessionStorage.setItem('printCredentials', JSON.stringify(printData));
 
 		// Open new window to print view
-		const printWindow = window.open('/admin/credentials/print', 'credentialsPrint', 'width=1000,height=800');
+		const printWindow = window.open('/credentials/print', 'credentialsPrint', 'width=1000,height=800');
 
 		if (printWindow) {
 			printWindow.focus();
@@ -201,7 +182,7 @@
 
 		<div class="flex gap-2">
 			<Button
-				onclick={downloadCSV}
+				onclick={handleExportCSV}
 				variant="outline"
 				class="flex items-center gap-2"
 			>

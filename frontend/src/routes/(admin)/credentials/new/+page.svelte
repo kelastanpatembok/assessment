@@ -1,6 +1,13 @@
 <script lang="ts">
   import { createApiClient } from '$lib/api/index';
-  import { TestAssignmentSelector, ProgressIndicator } from '$lib/components/wizard';
+  import {
+    StepIndicator,
+    AssignmentCreationForm,
+    UsernamePatternConfig,
+    CredentialDisplay,
+    ProgressIndicator,
+  } from '$lib/components/wizard';
+  import { PUBLIC_API_URL } from '$env/static/public';
 
   // ==================== TypeScript Interfaces ====================
 
@@ -49,8 +56,15 @@
 
   // ==================== Wizard State (Svelte 5 Runes) ====================
 
-  let currentStep = $state(1); // 1 = select assignment, 2 = configure, 3 = display
-  let selectedAssignment = $state<TestAssignment | null>(null);
+  let currentStep = $state(1); // 1 = create assignment, 2 = configure, 3 = display
+  let assignmentForm = $state({
+    schoolId: null as number | null,
+    categoryId: null as number | null, 
+    startDate: '',
+    endDate: ''
+  });
+  let createdAssignment = $state<TestAssignment | null>(null);
+  let assignmentErrors = $state<{ [key: string]: string }>({});
   let usernamePattern = $state<UsernamePattern>({
     schoolCode: '',
     testCode: '',
@@ -66,36 +80,28 @@
   let { data } = $props();
   let token: string | null = $state(null);
 
-  // Initialize API client when component mounts
+  // Initialize token from page data
   $effect(() => {
-    // Token would be set via server-side auth context or props
-    // This can be accessed from locals.token in the page load
+    if (data?.token) {
+      token = data.token;
+    }
   });
 
   // ==================== Step Navigation Logic ====================
 
   /**
    * Handles progression to next step with validation
-   * - Step 1: Requires assignment selection
+   * - Step 1: Requires assignment form validation and creates assignment
    * - Step 2: Requires pattern validation and student count
    * - Step 3: Display phase (no progression)
    */
   function handleStepNext() {
     switch (currentStep) {
       case 1:
-        if (!selectedAssignment) {
-          error = 'Pilih penugasan tes untuk melanjutkan';
-          return;
-        }
-        error = null;
-        currentStep = 2;
-        // Pre-fill pattern with defaults from assignment
-        if (!usernamePattern.schoolCode) {
-          usernamePattern.schoolCode = deriveSchoolCode(selectedAssignment.school.name);
-        }
-        if (!usernamePattern.testCode) {
-          usernamePattern.testCode = selectedAssignment.category.slug.substring(0, 10).toUpperCase();
-        }
+        // Validate and create assignment
+        if (!validateAssignmentForm()) return;
+        
+        handleCreateAssignment();
         break;
 
       case 2:
@@ -184,6 +190,72 @@
   }
 
   /**
+   * Validates assignment form before creation
+   */
+  function validateAssignmentForm(): boolean {
+    assignmentErrors = {};
+    
+    if (!assignmentForm.schoolId) {
+      assignmentErrors.schoolId = 'Pilih sekolah';
+    }
+    if (!assignmentForm.categoryId) {
+      assignmentErrors.categoryId = 'Pilih kategori tes';
+    }
+    if (!assignmentForm.startDate) {
+      assignmentErrors.startDate = 'Tanggal mulai diperlukan';
+    }
+    if (!assignmentForm.endDate) {
+      assignmentErrors.endDate = 'Tanggal berakhir diperlukan';
+    }
+    if (assignmentForm.startDate && assignmentForm.endDate && assignmentForm.startDate >= assignmentForm.endDate) {
+      assignmentErrors.endDate = 'Tanggal berakhir harus setelah tanggal mulai';
+    }
+    
+    return Object.keys(assignmentErrors).length === 0;
+  }
+
+  /**
+   * Creates a new test assignment and moves to step 2
+   */
+  async function handleCreateAssignment() {
+    isGenerating = true;
+    error = null;
+    
+    try {
+      const api = createApiClient(token);
+      
+      const response = await api.post('/test-assignments', {
+        schoolId: assignmentForm.schoolId,
+        categoryId: assignmentForm.categoryId,
+        windowStart: assignmentForm.startDate + 'T00:00:00',
+        windowEnd: assignmentForm.endDate + 'T23:59:59',
+        active: true
+      });
+      
+      createdAssignment = {
+        id: response.id,
+        schoolId: assignmentForm.schoolId!,
+        categoryId: assignmentForm.categoryId!,
+        school: data.schools.find(s => s.id === assignmentForm.schoolId)!,
+        category: data.categories.find(c => c.id === assignmentForm.categoryId)!,
+        status: 'aktif',
+        startDate: assignmentForm.startDate,
+        endDate: assignmentForm.endDate
+      };
+      
+      // Auto-derive username pattern from created assignment
+      usernamePattern.schoolCode = deriveSchoolCode(createdAssignment.school.name);
+      usernamePattern.testCode = createdAssignment.category.slug.substring(0, 10).toUpperCase();
+      
+      currentStep = 2;
+    } catch (e) {
+      error = e instanceof Error ? e.message : 'Gagal membuat penugasan tes';
+    } finally {
+      isGenerating = false;
+    }
+  }
+
+  /**
    * Generates preview usernames based on current pattern and count
    * Shows first and last username format
    */
@@ -210,7 +282,7 @@
    * Handles success and error responses with retry capability
    */
   async function handleGenerate() {
-    if (!selectedAssignment) return;
+    if (!createdAssignment) return;
 
     isGenerating = true;
     error = null;
@@ -220,21 +292,55 @@
       // In task 5.8, token will be available from page context
       const api = createApiClient(token);
 
-      const response = await api.post('/api/credentials/bulk-generate', {
-        testAssignmentId: selectedAssignment.id,
+      console.log('Generating credentials with data:', {
+        testAssignmentId: createdAssignment.id,
         schoolCode: usernamePattern.schoolCode,
         testCode: usernamePattern.testCode,
         count: studentCount,
       });
 
+      const response = await api.post('/credentials/bulk-generate', {
+        testAssignmentId: createdAssignment.id,
+        schoolCode: usernamePattern.schoolCode,
+        testCode: usernamePattern.testCode,
+        count: studentCount,
+      });
+
+      console.log('API response:', response);
+
       if (response && response.credentials) {
         generatedCredentials = response.credentials;
         currentStep = 3;
       } else {
-        error = 'Respons server tidak valid';
+        // Show what the actual response contains for debugging
+        console.error('Invalid response structure:', response);
+        error = `Respons server tidak valid. Expected 'credentials' field but got: ${JSON.stringify(response, null, 2)}`;
       }
     } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : 'Terjadi kesalahan saat membuat kredensial';
+      // Show more details about the actual error
+      console.error('Credential generation failed:', e);
+      
+      let errorMessage = 'Terjadi kesalahan saat membuat kredensial';
+      
+      if (e instanceof Error) {
+        errorMessage = e.message;
+        
+        // Check for common error scenarios
+        if (e.message.includes('401') || e.message.includes('Unauthorized')) {
+          errorMessage = 'Sesi telah berakhir. Silakan login ulang.';
+        } else if (e.message.includes('403') || e.message.includes('Forbidden')) {
+          errorMessage = 'Anda tidak memiliki izin untuk membuat kredensial.';
+        } else if (e.message.includes('404') || e.message.includes('Not Found')) {
+          errorMessage = 'Endpoint tidak ditemukan. Periksa konfigurasi server.';
+        } else if (e.message.includes('500')) {
+          errorMessage = 'Terjadi kesalahan server internal. Hubungi administrator.';
+        } else if (e.message.includes('network') || e.message.includes('fetch')) {
+          errorMessage = 'Tidak dapat terhubung ke server. Periksa koneksi internet.';
+        }
+      } else {
+        errorMessage = `Kesalahan tidak dikenal: ${JSON.stringify(e)}`;
+      }
+      
       error = errorMessage;
       currentStep = 2; // Return to config step on error
     } finally {
@@ -276,18 +382,18 @@
     </a>
   </div>
 
-  <!-- Step Indicator - to be implemented in task 5.3 -->
-  <div class="bg-muted rounded-lg p-3 text-center text-sm">
-    <p>Langkah {currentStep} dari 3</p>
-  </div>
+  <!-- Step Indicator -->
+  <StepIndicator step={currentStep} />
 
-  <!-- Step 1: Test Assignment Selection -->
+  <!-- Step 1: Create Test Assignment -->
   {#if currentStep === 1}
     <div class="bg-card border-border rounded-xl border p-6 shadow-sm">
-      <h3 class="mb-4 text-lg font-semibold">Pilih Penugasan Tes</h3>
-      <TestAssignmentSelector 
-        assignments={data.assignments}
-        bind:selected={selectedAssignment}
+      <h3 class="mb-4 text-lg font-semibold">Buat Penugasan Tes</h3>
+      <AssignmentCreationForm 
+        schools={data.schools}
+        categories={data.categories}
+        bind:form={assignmentForm}
+        errors={assignmentErrors}
       />
     </div>
   {/if}
@@ -296,26 +402,24 @@
   {#if currentStep === 2}
     <div class="bg-card border-border rounded-xl border p-6 shadow-sm">
       <h3 class="mb-4 text-lg font-semibold">Konfigurasi Pola Username</h3>
-      <!-- UsernamePatternConfig component will be implemented in task 5.5 -->
-      <p class="text-muted-foreground text-sm mb-4">
-        Pola username saat ini: <code>{usernamePattern.preview || 'Belum dikonfigurasi'}</code>
-      </p>
-      <p class="text-muted-foreground text-sm">
-        Jumlah siswa: {studentCount}
-      </p>
+      {#if createdAssignment}
+        <UsernamePatternConfig
+          bind:pattern={usernamePattern}
+          bind:count={studentCount}
+          assignment={createdAssignment}
+        />
+      {/if}
     </div>
   {/if}
 
   <!-- Step 3: Display Generated Credentials -->
   {#if currentStep === 3}
     <div class="bg-card border-border rounded-xl border p-6 shadow-sm">
-      <h3 class="mb-4 text-lg font-semibold">Kredensial yang Dihasilkan</h3>
-      <!-- CredentialDisplay component will be implemented in task 5.6 -->
-      {#if generatedCredentials.length > 0}
-        <p class="text-muted-foreground text-sm">
-          Berhasil membuat {generatedCredentials.length} kredensial
-        </p>
-      {/if}
+      <CredentialDisplay
+        credentials={generatedCredentials}
+        schoolName={createdAssignment?.school.name || ''}
+        testCategory={createdAssignment?.category.name || ''}
+      />
     </div>
   {/if}
 
@@ -323,9 +427,29 @@
   {#if error}
     <div class="bg-destructive/10 border-destructive rounded-lg border p-4">
       <p class="text-destructive font-medium mb-2">{error}</p>
+      
+      <!-- Development debugging info -->
+      {#if import.meta.env.DEV}
+        <details class="mt-2">
+          <summary class="text-sm cursor-pointer text-destructive/80 hover:text-destructive">
+            Debug Info (Development Only)
+          </summary>
+          <div class="mt-2 p-3 bg-destructive/5 rounded text-xs font-mono">
+            <div><strong>Current Step:</strong> {currentStep}</div>
+            <div><strong>Token Present:</strong> {!!token}</div>
+            <div><strong>API URL:</strong> {PUBLIC_API_URL || 'Not configured'}</div>
+            {#if createdAssignment}
+              <div><strong>Assignment ID:</strong> {createdAssignment.id}</div>
+            {/if}
+            <div><strong>Pattern:</strong> {JSON.stringify(usernamePattern, null, 2)}</div>
+            <div><strong>Student Count:</strong> {studentCount}</div>
+          </div>
+        </details>
+      {/if}
+      
       <button
         onclick={handleRetry}
-        class="text-destructive hover:underline text-sm font-medium"
+        class="text-destructive hover:underline text-sm font-medium mt-2 block"
       >
         Coba Lagi
       </button>
@@ -334,7 +458,7 @@
 
   <!-- Progress Indicator - displays during credential generation -->
   {#if isGenerating}
-    <ProgressIndicator current={0} total={studentCount} isActive={true} />
+    <ProgressIndicator current={generatedCredentials.length} total={studentCount} isActive={true} />
   {/if}
 
   <!-- Navigation Buttons -->
@@ -355,7 +479,7 @@
         disabled={isGenerating}
         class="px-6 py-2 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground rounded-lg font-medium transition-colors ml-auto"
       >
-        {currentStep === 2 ? 'Buat Kredensial' : 'Selanjutnya'}
+        {currentStep === 1 ? 'Buat Penugasan' : currentStep === 2 ? 'Buat Kredensial' : 'Selanjutnya'}
       </button>
     {/if}
   </div>

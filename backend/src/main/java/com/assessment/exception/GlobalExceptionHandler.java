@@ -29,6 +29,18 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("CONFLICT", ex.getMessage()));
     }
 
+    @ExceptionHandler(CredentialGenerationException.class)
+    public ResponseEntity<ErrorResponse> handleCredentialGeneration(CredentialGenerationException ex) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(new ErrorResponse("CREDENTIAL_GENERATION_FAILED", ex.getMessage()));
+    }
+
+    @ExceptionHandler(UsernameGenerationException.class)
+    public ResponseEntity<ErrorResponse> handleUsernameGeneration(UsernameGenerationException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("USERNAME_GENERATION_FAILED", ex.getMessage()));
+    }
+
     @ExceptionHandler(CredentialCreationException.class)
     public ResponseEntity<ErrorResponse> handleCredentialCreation(CredentialCreationException ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
