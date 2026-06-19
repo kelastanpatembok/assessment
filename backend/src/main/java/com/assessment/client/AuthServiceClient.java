@@ -41,7 +41,7 @@ public class AuthServiceClient {
      * @param username the username for the new user
      * @param password the password for the new user
      * @param role the role to assign (typically "siswa" for students)
-     * @return AuthRegisterResponse containing userId and token
+ * @return AuthRegisterResponse containing token and nested user payload
      * @throws RuntimeException if auth service is unavailable or registration fails
      */
     public AuthRegisterResponse registerUser(String username, String password, String role) {
@@ -50,10 +50,11 @@ public class AuthServiceClient {
             
             String uri = UriComponentsBuilder.fromPath("/auth/register")
                     .queryParam("username", username)
-                    .queryParam("password", password)
-                    .queryParam("role", role)
                     .queryParam("email", username + "@generated.local")
+                    .queryParam("password", password)
                     .queryParam("name", "Student " + username)
+                    .queryParam("platformId", "assessment")
+                    .queryParam("role", role)
                     .toUriString();
 
             AuthRegisterResponse response = restClient.post()
@@ -98,7 +99,7 @@ public class AuthServiceClient {
             log.debug("Checking username existence for {} usernames", usernames.size());
             
             CheckUsernameResponse response = restClient.post()
-                    .uri("/users/check-existence")
+                    .uri("/auth/users/check-existence")
                     .body(new CheckUsernameRequest(usernames))
                     .retrieve()
                     .body(CheckUsernameResponse.class);
@@ -164,9 +165,22 @@ public class AuthServiceClient {
      * Response from auth service user registration endpoint.
      */
     public record AuthRegisterResponse(
-            String userId,
             String token,
+            UserInfo user,
             long expiresIn
+    ) {
+        public String userId() {
+            return user != null ? user.id() : null;
+        }
+    }
+
+    public record UserInfo(
+            String id,
+            String username,
+            String email,
+            String name,
+            String role,
+            String platformId
     ) {}
 
     /**

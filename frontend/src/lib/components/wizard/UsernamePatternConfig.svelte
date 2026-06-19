@@ -27,7 +27,7 @@
 	const MIN_COUNT = 1;
 	const MAX_COUNT = 500;
 
-	let { pattern, count, assignment }: Props = $props();
+	let { pattern = $bindable(), count = $bindable(), assignment }: Props = $props();
 
 	// Validation functions
 	const isValidCode = (code: string): boolean => {

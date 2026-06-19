@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Validates: Requirements 1, 6, 12
  * 
  * Responsibilities:
- * - Expose POST /api/credentials/bulk-generate endpoint
+ * - Expose POST /credentials/bulk-generate endpoint under the global /api context path
  * - Enforce SUPERADMIN role requirement
  * - Extract admin username from JWT authentication
  * - Validate request using @Valid annotations
@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/credentials")
+@RequestMapping("/credentials")
 @PreAuthorize("hasRole('SUPERADMIN')")
 @RequiredArgsConstructor
 public class CredentialController {

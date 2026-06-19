@@ -56,7 +56,7 @@ public class ActivityLogService {
         String metadataJson = objectMapper.writeValueAsString(metadata);
         ActivityLog log = ActivityLog.builder()
                 .authUserId("system") // system-level operation, not tied to a user
-                .testType("CREDENTIAL_GENERATION")
+                .testType("credential")
                 .eventType("GENERATE")
                 .metadata(metadataJson)
                 .build();

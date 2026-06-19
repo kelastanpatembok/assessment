@@ -8,6 +8,7 @@
     { href: '/admin-schools', label: 'Sekolah' },
     { href: '/admin-users', label: 'Pengguna' },
     { href: '/admin-students', label: 'Siswa' },
+    { href: '/assignment-modules', label: 'Modul Penugasan' },
     { href: '/admin-categories', label: 'Kategori Tes' },
     { href: '/admin-assignments', label: 'Penugasan' },
     { href: '/admin-fees', label: 'Biaya' },
@@ -33,7 +34,9 @@
             <a
               href={link.href}
               class="hover:bg-accent hover:text-accent-foreground flex items-center rounded-lg px-3 py-2 text-sm transition-colors
-                {$page.url.pathname === link.href ? 'bg-accent text-accent-foreground font-medium' : 'text-muted-foreground'}"
+                {$page.url.pathname === link.href || (link.href === '/assignment-modules' && $page.url.pathname.startsWith('/assignment-modules/'))
+                  ? 'bg-accent text-accent-foreground font-medium'
+                  : 'text-muted-foreground'}"
             >
               {link.label}
             </a>

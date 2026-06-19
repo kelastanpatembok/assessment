@@ -73,7 +73,9 @@
   let studentCount = $state<number>(1);
   let generatedCredentials = $state<Credential[]>([]);
   let isGenerating = $state(false);
+  let progressCurrent = $state(0);
   let error = $state<string | null>(null);
+  let progressTimer: ReturnType<typeof setInterval> | null = null;
 
   // ==================== Lifecycle & Props ====================
 
@@ -190,6 +192,17 @@
   }
 
   /**
+   * Derives a valid test code from a category slug.
+   * Keeps only alphanumeric characters and underscores.
+   */
+  function deriveTestCode(categorySlug: string): string {
+    return (categorySlug.match(/[A-Za-z0-9_]/g) || [])
+      .slice(0, 10)
+      .join('')
+      .toUpperCase();
+  }
+
+  /**
    * Validates assignment form before creation
    */
   function validateAssignmentForm(): boolean {
@@ -245,7 +258,7 @@
       
       // Auto-derive username pattern from created assignment
       usernamePattern.schoolCode = deriveSchoolCode(createdAssignment.school.name);
-      usernamePattern.testCode = createdAssignment.category.slug.substring(0, 10).toUpperCase();
+      usernamePattern.testCode = deriveTestCode(createdAssignment.category.slug);
       
       currentStep = 2;
     } catch (e) {
@@ -286,6 +299,18 @@
 
     isGenerating = true;
     error = null;
+    progressCurrent = 0;
+
+    if (progressTimer) {
+      clearInterval(progressTimer);
+    }
+
+    // The backend returns the whole batch at once, so keep the UI moving while the request is in flight.
+    progressTimer = setInterval(() => {
+      if (progressCurrent < Math.max(studentCount - 1, 0)) {
+        progressCurrent += 1;
+      }
+    }, 600);
 
     try {
       // Create API client for this request
@@ -309,6 +334,7 @@
       console.log('API response:', response);
 
       if (response && response.credentials) {
+        progressCurrent = response.credentials.length;
         generatedCredentials = response.credentials;
         currentStep = 3;
       } else {
@@ -344,6 +370,10 @@
       error = errorMessage;
       currentStep = 2; // Return to config step on error
     } finally {
+      if (progressTimer) {
+        clearInterval(progressTimer);
+        progressTimer = null;
+      }
       isGenerating = false;
     }
   }
@@ -458,7 +488,7 @@
 
   <!-- Progress Indicator - displays during credential generation -->
   {#if isGenerating}
-    <ProgressIndicator current={generatedCredentials.length} total={studentCount} isActive={true} />
+    <ProgressIndicator current={progressCurrent} total={studentCount} isActive={true} />
   {/if}
 
   <!-- Navigation Buttons -->

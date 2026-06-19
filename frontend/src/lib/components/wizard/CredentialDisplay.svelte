@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import { cn } from '$lib/utils';
-	import { downloadCSV } from '$lib/utils/csvExport';
-	import type { Credential as CSVCredential } from '$lib/utils/csvExport';
 
 	/**
 	 * Credential interface matching the response DTO from backend
@@ -32,9 +30,23 @@
 	let showPasswords = $state(false);
 	let copiedIndex = $state<number | null>(null);
 	let copyTimeout: NodeJS.Timeout | null = null;
+	let currentPage = $state(1);
+
+	const PAGE_SIZE = 10;
 
 	// ==================== Computed Properties ====================
 	let credentialCount = $derived(credentials.length);
+	let totalPages = $derived(Math.max(1, Math.ceil(credentialCount / PAGE_SIZE)));
+	let paginatedCredentials = $derived.by(() => {
+		const start = (currentPage - 1) * PAGE_SIZE;
+		return credentials.slice(start, start + PAGE_SIZE);
+	});
+
+	$effect(() => {
+		if (currentPage > totalPages) {
+			currentPage = totalPages;
+		}
+	});
 
 	// ==================== Copy to Clipboard ====================
 	/**
@@ -62,40 +74,6 @@
 		}
 	}
 
-	// ==================== Export Functions ====================
-	/**
-	 * Derive a code from a display name
-	 * Takes first 10 alphanumeric characters and converts to uppercase
-	 */
-	function deriveCode(name: string): string {
-		return name
-			.replace(/[^a-zA-Z0-9]/g, '')
-			.substring(0, 10)
-			.toUpperCase();
-	}
-
-	/**
-	 * Handle CSV export by calling the csvExport utility
-	 * Derives school and test codes from the display names
-	 */
-	function handleExportCSV() {
-		// Derive codes from school/test names for filename
-		const schoolCode = deriveCode(schoolName);
-		const testCode = deriveCode(testCategory);
-		
-		// Convert credentials to CSV format expected by utility
-		const csvCredentials: CSVCredential[] = credentials.map(c => ({
-			username: c.username,
-			password: c.password,
-			schoolName,
-			testCategory,
-			createdAt: c.createdAt
-		}));
-		
-		// Call utility function to handle CSV generation and download
-		downloadCSV(csvCredentials, schoolName, testCategory, schoolCode, testCode);
-	}
-
 	/**
 	 * Open print-optimized view in new window
 	 * Data passed via sessionStorage for print view to retrieve
@@ -120,6 +98,10 @@
 			console.error('Failed to open print window');
 			// TODO: Show error toast notification when toast component is available
 		}
+	}
+
+	function goToPage(page: number) {
+		currentPage = Math.min(Math.max(page, 1), totalPages);
 	}
 
 	// ==================== Cleanup ====================
@@ -182,28 +164,6 @@
 
 		<div class="flex gap-2">
 			<Button
-				onclick={handleExportCSV}
-				variant="outline"
-				class="flex items-center gap-2"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					class="h-4 w-4"
-				>
-					<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-					<polyline points="7 10 12 15 17 10"></polyline>
-					<line x1="12" y1="15" x2="12" y2="3"></line>
-				</svg>
-				Export as CSV
-			</Button>
-
-			<Button
 				onclick={openPrintView}
 				variant="outline"
 				class="flex items-center gap-2"
@@ -245,10 +205,10 @@
 						</tr>
 					</thead>
 					<tbody>
-						{#each credentials as credential, index (credential.authUserId)}
+						{#each paginatedCredentials as credential, index (credential.authUserId)}
 							<tr class="border-b border-border hover:bg-muted/50 transition-colors">
 								<td class="px-4 py-3 text-muted-foreground font-medium">
-									{index + 1}
+									{(currentPage - 1) * PAGE_SIZE + index + 1}
 								</td>
 								<td class="px-4 py-3">
 									<div class="font-mono text-sm">{credential.username}</div>
@@ -260,10 +220,10 @@
 								</td>
 								<td class="px-4 py-3">
 									<button
-										onclick={() => copyToClipboard(credential.password, index)}
+										onclick={() => copyToClipboard(credential.password, (currentPage - 1) * PAGE_SIZE + index)}
 										class={cn(
 											'inline-flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium transition-all',
-											copiedIndex === index
+											copiedIndex === (currentPage - 1) * PAGE_SIZE + index
 												? 'bg-green-100 text-green-700'
 												: 'bg-muted text-muted-foreground hover:bg-muted hover:text-foreground'
 										)}
@@ -279,14 +239,14 @@
 											stroke-linejoin="round"
 											class="h-4 w-4"
 										>
-											{#if copiedIndex === index}
+											{#if copiedIndex === (currentPage - 1) * PAGE_SIZE + index}
 												<polyline points="20 6 9 17 4 12"></polyline>
 											{:else}
 												<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
 												<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
 											{/if}
 										</svg>
-										{copiedIndex === index ? 'Copied!' : 'Copy'}
+										{copiedIndex === (currentPage - 1) * PAGE_SIZE + index ? 'Copied!' : 'Copy'}
 									</button>
 								</td>
 							</tr>
@@ -294,6 +254,31 @@
 					</tbody>
 				</table>
 			</div>
+
+			{#if totalPages > 1}
+				<div class="flex items-center justify-between gap-4 border-t border-border px-4 py-3">
+					<p class="text-sm text-muted-foreground">
+						Showing {(currentPage - 1) * PAGE_SIZE + 1}-{Math.min(currentPage * PAGE_SIZE, credentialCount)} of {credentialCount}
+					</p>
+					<div class="flex items-center gap-2">
+						<Button type="button" variant="outline" size="sm" onclick={() => goToPage(1)} disabled={currentPage === 1}>
+							First
+						</Button>
+						<Button type="button" variant="outline" size="sm" onclick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
+							Prev
+						</Button>
+						<span class="min-w-20 text-center text-sm text-muted-foreground">
+							Page {currentPage} / {totalPages}
+						</span>
+						<Button type="button" variant="outline" size="sm" onclick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
+							Next
+						</Button>
+						<Button type="button" variant="outline" size="sm" onclick={() => goToPage(totalPages)} disabled={currentPage === totalPages}>
+							Last
+						</Button>
+					</div>
+				</div>
+			{/if}
 		{/if}
 	</div>
 

@@ -129,15 +129,18 @@ public class CredentialService {
         
         log.info("Credentials created successfully: count={}", credentials.size());
         
-        // 5. Log activity
-        activityLogService.logCredentialGeneration(
-                adminUsername,
-                assignment.getSchool().getName(),
-                assignment.getCategory().getName(),
-                request.count()
-        );
-        
-        log.debug("Activity logged for credential generation");
+        // 5. Log activity without blocking successful credential generation.
+        try {
+            activityLogService.logCredentialGeneration(
+                    adminUsername,
+                    assignment.getSchool().getName(),
+                    assignment.getCategory().getName(),
+                    request.count()
+            );
+            log.debug("Activity logged for credential generation");
+        } catch (Exception ex) {
+            log.warn("Failed to write credential generation audit log: {}", ex.getMessage());
+        }
         
         // 6. Return response
         BulkCredentialResponse response = new BulkCredentialResponse(
