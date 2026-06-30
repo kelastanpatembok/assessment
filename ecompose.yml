@@ -1,0 +1,30 @@
+project: assessment
+
+shared_tools:
+  - git
+  - openssh-client
+  - curl
+  - jq
+  - ca-certificates
+
+services:
+  auth-backend:
+    path: auth/backend
+    runtimes:
+      - java@17
+      - maven
+      - mongodb@7
+
+  assessment-backend:
+    path: assessment/backend
+    runtimes:
+      - java@17
+      - maven
+      - postgresql@15
+
+  assessment-frontend:
+    path: assessment/frontend
+    runtimes:
+      - node@20
+      - npm
+      - pm2
