@@ -1,5 +1,18 @@
 project: assessment
 
+ct:
+  id: 101
+  hostname: assessment
+  template: local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst
+  storage: local-lvm
+  disk: 16
+  bridge: vmbr0
+  ip: dhcp
+  cores: 2
+  memory: 4096
+  swap: 1024
+  unprivileged: 1
+
 shared_tools:
   - git
   - openssh-client
