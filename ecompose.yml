@@ -13,6 +13,12 @@ ct:
   swap: 1024
   unprivileged: 1
 
+expose:
+  enabled: true
+  hostname: assessment.ktt.my.id
+  service: assessment-frontend
+  proxy_ct: proxy
+
 shared_tools:
   - git
   - openssh-client
