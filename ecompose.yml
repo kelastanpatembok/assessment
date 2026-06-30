@@ -3,7 +3,7 @@ project: assessment
 ct:
   id: 101
   hostname: assessment
-  template: local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst
+  template: local:vztmpl/debian-12-standard_12.12-1_amd64.tar.zst
   storage: local-lvm
   disk: 16
   bridge: vmbr0
