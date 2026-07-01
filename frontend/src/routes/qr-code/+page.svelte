@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { env } from '$env/dynamic/public';
 	import MapUsers from '$lib/components/map-users.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
@@ -23,7 +22,6 @@
 	let signupUrl = $state('');
 	let qrCodeUrl = $state('');
 	let copied = $state(false);
-	const authBaseUrl = env.PUBLIC_AUTH_URL || 'http://127.0.0.1:3001/api';
 
 	function buildSignupUrl() {
 		if (typeof window === 'undefined') return;
@@ -36,7 +34,7 @@
 		loadError = '';
 
 		try {
-			const response = await fetch(`${authBaseUrl}/users`);
+			const response = await fetch('/qr-code/users');
 			if (!response.ok) {
 				throw new Error(`HTTP ${response.status}`);
 			}
