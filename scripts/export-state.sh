@@ -54,6 +54,12 @@ parse_jdbc_url() {
   PGPORT="${PGPORT:-5432}"
 }
 
+build_pg_command_prefix() {
+  if [ "${PGHOST}" = "localhost" ] && [ "$(uname -s)" = "Linux" ] && [ -S /var/run/postgresql/.s.PGSQL.5432 ]; then
+    PGHOST="/var/run/postgresql"
+  fi
+}
+
 mongo_db_name() {
   printf '%s' "$1" | sed -E 's#^mongodb://[^/]+/([^?]+).*$#\1#'
 }
@@ -73,6 +79,7 @@ if [ -z "$DATABASE_URL_VALUE" ] || [ -z "$DATABASE_USERNAME_VALUE" ]; then
 fi
 
 parse_jdbc_url "$DATABASE_URL_VALUE"
+build_pg_command_prefix
 POSTGRES_USER="$DATABASE_USERNAME_VALUE"
 POSTGRES_PASSWORD="$DATABASE_PASSWORD_VALUE"
 
