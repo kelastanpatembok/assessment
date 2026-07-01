@@ -34,7 +34,9 @@
 		loadError = '';
 
 		try {
-			const response = await fetch('/qr-code/users');
+			const response = await fetch(`/qr-code/users?ts=${Date.now()}`, {
+				cache: 'no-store'
+			});
 			if (!response.ok) {
 				throw new Error(`HTTP ${response.status}`);
 			}
