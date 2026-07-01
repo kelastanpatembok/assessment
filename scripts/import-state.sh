@@ -14,6 +14,26 @@ need_cmd() {
   fi
 }
 
+maybe_add_postgres_bin() {
+  if command -v pg_restore >/dev/null 2>&1 && command -v psql >/dev/null 2>&1; then
+    return
+  fi
+
+  local candidates=(
+    "/Applications/Postgres.app/Contents/Versions/latest/bin"
+    "/opt/homebrew/opt/postgresql@15/bin"
+    "/usr/local/opt/postgresql@15/bin"
+  )
+
+  local candidate
+  for candidate in "${candidates[@]}"; do
+    if [ -x "${candidate}/pg_restore" ] && [ -x "${candidate}/psql" ]; then
+      export PATH="${candidate}:$PATH"
+      return
+    fi
+  done
+}
+
 load_env_file() {
   if [ ! -f "$1" ]; then
     echo "Missing env file: $1" >&2
@@ -57,6 +77,7 @@ resolve_snapshot_dir() {
   printf '%s\n' "$latest"
 }
 
+maybe_add_postgres_bin
 need_cmd psql
 need_cmd pg_restore
 need_cmd mongorestore

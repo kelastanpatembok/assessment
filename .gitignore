@@ -172,3 +172,5 @@ vite.config.ts.timestamp-*
 # Project data snapshots
 data-snapshots/*
 !data-snapshots/README.md
+!data-snapshots/*/
+!data-snapshots/*/**

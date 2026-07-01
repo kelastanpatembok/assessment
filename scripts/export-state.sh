@@ -14,6 +14,26 @@ need_cmd() {
   fi
 }
 
+maybe_add_postgres_bin() {
+  if command -v pg_dump >/dev/null 2>&1; then
+    return
+  fi
+
+  local candidates=(
+    "/Applications/Postgres.app/Contents/Versions/latest/bin"
+    "/opt/homebrew/opt/postgresql@15/bin"
+    "/usr/local/opt/postgresql@15/bin"
+  )
+
+  local candidate
+  for candidate in "${candidates[@]}"; do
+    if [ -x "${candidate}/pg_dump" ]; then
+      export PATH="${candidate}:$PATH"
+      return
+    fi
+  done
+}
+
 load_env_file() {
   if [ ! -f "$1" ]; then
     echo "Missing env file: $1" >&2
@@ -38,6 +58,7 @@ mongo_db_name() {
   printf '%s' "$1" | sed -E 's#^mongodb://[^/]+/([^?]+).*$#\1#'
 }
 
+maybe_add_postgres_bin
 need_cmd pg_dump
 need_cmd mongodump
 

@@ -1,0 +1,6 @@
+snapshot=20260701_084123
+created_at=2026-07-01T01:41:26Z
+postgres_database=assessment
+postgres_host=localhost
+postgres_port=5432
+mongo_database=auth_backend_assessment
