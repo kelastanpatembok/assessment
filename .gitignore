@@ -168,3 +168,7 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Project data snapshots
+data-snapshots/*
+!data-snapshots/README.md
