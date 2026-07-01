@@ -54,6 +54,60 @@ parse_jdbc_url() {
   PGPORT="${PGPORT:-5432}"
 }
 
+build_pg_command_prefix() {
+  if [ "${PGHOST}" = "localhost" ] && [ "$(uname -s)" = "Linux" ] && [ -S /var/run/postgresql/.s.PGSQL.5432 ]; then
+    PGHOST="/var/run/postgresql"
+  fi
+}
+
+run_postgres_restore() {
+  local sql_file="$1"
+  local dump_file="$2"
+
+  if [ "$(uname -s)" = "Linux" ] && [ "${PGHOST}" = "/var/run/postgresql" ] && [ "${POSTGRES_USER}" = "postgres" ] && [ "$(id -u)" = "0" ]; then
+    if [ -f "$sql_file" ]; then
+      runuser -u postgres -- psql \
+        --host="$PGHOST" \
+        --port="$PGPORT" \
+        --username="$POSTGRES_USER" \
+        --dbname="$PGDATABASE" \
+        -f "$sql_file"
+    else
+      runuser -u postgres -- pg_restore \
+        --host="$PGHOST" \
+        --port="$PGPORT" \
+        --username="$POSTGRES_USER" \
+        --dbname="$PGDATABASE" \
+        --clean \
+        --if-exists \
+        --no-owner \
+        --no-privileges \
+        "$dump_file"
+    fi
+    return
+  fi
+
+  if [ -f "$sql_file" ]; then
+    PGPASSWORD="${POSTGRES_PASSWORD}" psql \
+      --host="$PGHOST" \
+      --port="$PGPORT" \
+      --username="$POSTGRES_USER" \
+      --dbname="$PGDATABASE" \
+      -f "$sql_file"
+  else
+    PGPASSWORD="${POSTGRES_PASSWORD}" pg_restore \
+      --host="$PGHOST" \
+      --port="$PGPORT" \
+      --username="$POSTGRES_USER" \
+      --dbname="$PGDATABASE" \
+      --clean \
+      --if-exists \
+      --no-owner \
+      --no-privileges \
+      "$dump_file"
+  fi
+}
+
 resolve_snapshot_dir() {
   if [ -n "$SNAPSHOT_INPUT" ]; then
     if [ -d "$SNAPSHOT_INPUT" ]; then
@@ -107,6 +161,7 @@ if [ -z "$DATABASE_URL_VALUE" ] || [ -z "$DATABASE_USERNAME_VALUE" ]; then
 fi
 
 parse_jdbc_url "$DATABASE_URL_VALUE"
+build_pg_command_prefix
 POSTGRES_USER="$DATABASE_USERNAME_VALUE"
 POSTGRES_PASSWORD="$DATABASE_PASSWORD_VALUE"
 
@@ -132,25 +187,7 @@ if [ "$FORCE" != "1" ]; then
 fi
 
 echo "1. Restoring PostgreSQL"
-if [ -f "$POSTGRES_SQL" ]; then
-  PGPASSWORD="${POSTGRES_PASSWORD}" psql \
-    --host="$PGHOST" \
-    --port="$PGPORT" \
-    --username="$POSTGRES_USER" \
-    --dbname="$PGDATABASE" \
-    -f "$POSTGRES_SQL"
-else
-  PGPASSWORD="${POSTGRES_PASSWORD}" pg_restore \
-    --host="$PGHOST" \
-    --port="$PGPORT" \
-    --username="$POSTGRES_USER" \
-    --dbname="$PGDATABASE" \
-    --clean \
-    --if-exists \
-    --no-owner \
-    --no-privileges \
-    "$POSTGRES_DUMP"
-fi
+run_postgres_restore "$POSTGRES_SQL" "$POSTGRES_DUMP"
 
 echo "2. Restoring MongoDB"
 mongorestore \
