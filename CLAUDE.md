@@ -64,7 +64,7 @@ PM2 (`ecosystem.config.js` at workspace root) currently has apps for auth (2000)
 },
 ```
 
-Alternatively re-run `../../core/configure.sh` after creating `backend/pom.xml` — the orchestrator auto-discovers Spring Boot services by `pom.xml` and assigns the next port.
+Alternatively re-run `eco configure` from the project root after creating `backend/pom.xml` — the orchestrator auto-discovers Spring Boot services by `pom.xml` and assigns the next port.
 
 ---
 

@@ -1,5 +1,6 @@
 package com.assessment.controller;
 
+import com.assessment.exception.ConflictException;
 import com.assessment.exception.ResourceNotFoundException;
 import com.assessment.model.AssessmentUser;
 import com.assessment.model.PapiQuestion;
@@ -47,17 +48,25 @@ public class PapiController {
         AssessmentUser user = assessmentUserRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
         Long schoolId = user.getSchool() != null ? user.getSchool().getId() : null;
-        boolean canTake = schoolId != null && testAssignmentService.checkAccess(userId, schoolId, "papi");
+        boolean completed = papiResultRepository.findByAuthUserId(userId).isPresent();
+        boolean canTake = !completed && schoolId != null && testAssignmentService.checkAccess(userId, schoolId, "papi");
         Long assignmentId = canTake
                 ? testAssignmentService.getActiveAssignmentId(userId, schoolId, "papi")
                 : null;
-        return ResponseEntity.ok(Map.of("canTake", canTake, "assignmentId", assignmentId != null ? assignmentId : 0L));
+        return ResponseEntity.ok(Map.of(
+                "canTake", canTake,
+                "completed", completed,
+                "assignmentId", assignmentId != null ? assignmentId : 0L
+        ));
     }
 
     @PostMapping("/submit")
     @PreAuthorize("hasRole('SISWA')")
     public ResponseEntity<PapiResult> submit(@RequestBody SubmitRequest req) {
         String userId = CurrentUser.userId();
+        if (papiResultRepository.findByAuthUserId(userId).isPresent()) {
+            throw new ConflictException("Tes PAPI sudah pernah dikerjakan");
+        }
         AssessmentUser user = assessmentUserRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
         String studentName = user.getName();

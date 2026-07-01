@@ -16,7 +16,10 @@ export const load: PageServerLoad = async ({ locals }) => {
     if (result.status === 'rejected') return { available: false, completed: false };
     const v = result.value;
     if (!v || v.code) return { available: false, completed: false };
-    return { available: v?.canTake ?? false, completed: false };
+    return {
+      available: v?.canTake ?? false,
+      completed: v?.completed ?? false,
+    };
   }
 
   return {

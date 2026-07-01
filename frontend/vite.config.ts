@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import adapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
+import path from 'node:path';
 import { defineConfig, loadEnv } from 'vite';
 
 export default defineConfig(({ mode }) => {
@@ -21,6 +22,11 @@ export default defineConfig(({ mode }) => {
 		],
 		server: { port },
 		preview: { port },
+		resolve: {
+			alias: {
+				'leaflet/dist/leaflet.css': path.resolve(process.cwd(), 'node_modules/leaflet/dist/leaflet.css')
+			}
+		},
 		// Make sure environment variables with PUBLIC_ prefix are available
 		define: {
 			'process.env.PUBLIC_API_URL': JSON.stringify(process.env.PUBLIC_API_URL || env.PUBLIC_API_URL),
