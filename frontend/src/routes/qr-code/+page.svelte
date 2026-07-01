@@ -166,7 +166,7 @@
 					{#if !selectedProvince}
 						<div class="flex items-center justify-between rounded-lg border bg-slate-50 px-4 py-3">
 							<span class="text-sm font-medium text-slate-600">Total Pengguna</span>
-							<span class="text-2xl font-bold text-blue-600">{users.length}</span>
+							<span class="text-2xl font-bold text-emerald-600">{users.length}</span>
 						</div>
 
 						<div class="space-y-3">
@@ -185,7 +185,7 @@
 										onclick={() => (selectedProvince = province)}
 									>
 										<span class="text-sm text-slate-700">{province}</span>
-										<span class="rounded bg-red-100 px-2 py-1 text-xs font-semibold text-red-700">
+										<span class="rounded bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">
 											{count}
 										</span>
 									</button>
@@ -210,7 +210,9 @@
 							{#each provinceUsers as user}
 								<div class="rounded-lg border bg-slate-50 px-3 py-2">
 									<div class="font-semibold text-slate-800">{user.name}</div>
-									<div class="text-sm text-slate-600">{user.whatsappNumber || '-'}</div>
+									{#if user.whatsappNumber}
+										<div class="text-sm text-slate-600">{user.whatsappNumber}</div>
+									{/if}
 								</div>
 							{/each}
 

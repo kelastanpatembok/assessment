@@ -50,8 +50,8 @@
 
 			const marker = leaflet.circleMarker(coords, {
 				radius: Math.min(Math.max(count * 2, 8), 25),
-				fillColor: '#ef4444',
-				color: '#dc2626',
+				fillColor: '#22c55e',
+				color: '#15803d',
 				weight: 2,
 				opacity: 0.8,
 				fillOpacity: 0.7
@@ -144,12 +144,12 @@
 		0%,
 		100% {
 			opacity: 0.8;
-			filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0.4));
+			filter: drop-shadow(0 0 0 rgba(34, 197, 94, 0.35));
 		}
 
 		50% {
 			opacity: 1;
-			filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+			filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.55));
 		}
 	}
 </style>
