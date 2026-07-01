@@ -69,4 +69,34 @@ public class AuthClient {
             throw new RuntimeException("Failed to change password in auth service: " + ex.getMessage(), ex);
         }
     }
+
+    public void changePassword(String authUserId, String username, String newPassword) {
+        try {
+            changePassword(authUserId, newPassword);
+        } catch (RuntimeException ex) {
+            if (username == null || username.isBlank()) {
+                throw ex;
+            }
+
+            log.warn("Primary auth userId {} failed for username {}. Trying username lookup fallback.", authUserId, username);
+            UserInfo resolvedUser = getUserByUsername(username);
+            if (resolvedUser == null || resolvedUser.id() == null || resolvedUser.id().isBlank()) {
+                throw ex;
+            }
+
+            changePassword(resolvedUser.id(), newPassword);
+        }
+    }
+
+    public UserInfo getUserByUsername(String username) {
+        try {
+            return restClient.get()
+                    .uri("/users/username/{username}", username)
+                    .retrieve()
+                    .body(UserInfo.class);
+        } catch (Exception ex) {
+            log.error("Auth getUserByUsername failed for username={}: {}", username, ex.getMessage());
+            throw new RuntimeException("Failed to fetch user from auth service: " + ex.getMessage(), ex);
+        }
+    }
 }

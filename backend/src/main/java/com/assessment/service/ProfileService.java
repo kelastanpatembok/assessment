@@ -63,7 +63,7 @@ public class ProfileService {
             user.setSchool(null);
         }
         if (password != null && !password.isBlank()) {
-            authClient.changePassword(authUserId, password);
+            authClient.changePassword(authUserId, user.getUsername(), password);
         }
         return userRepository.save(user);
     }
