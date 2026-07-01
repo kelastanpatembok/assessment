@@ -6,6 +6,7 @@ SNAPSHOT_INPUT="${1:-}"
 POSTGRES_ENV="${ROOT_DIR}/backend/.env"
 AUTH_ENV="${ROOT_DIR}/../auth/backend/.env"
 FORCE="${ECO_FORCE_RESTORE:-0}"
+MONGO_DB_NAME=""
 
 need_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -171,6 +172,7 @@ if [ -z "$MONGODB_URI_VALUE" ]; then
   echo "MongoDB env is incomplete in ${AUTH_ENV}" >&2
   exit 1
 fi
+MONGO_DB_NAME="$(printf '%s' "$MONGODB_URI_VALUE" | sed -E 's#^mongodb://[^/]+/([^?]+).*$#\1#')"
 
 echo "Restore target"
 echo "  Snapshot   ${SNAPSHOT_DIR}"
@@ -190,10 +192,22 @@ echo "1. Restoring PostgreSQL"
 run_postgres_restore "$POSTGRES_SQL" "$POSTGRES_DUMP"
 
 echo "2. Restoring MongoDB"
+MONGO_SOURCE_DIR="${MONGO_DUMP_DIR}/${MONGO_DB_NAME}"
+if [ ! -d "$MONGO_SOURCE_DIR" ]; then
+  echo "Missing Mongo dump database dir: $MONGO_SOURCE_DIR" >&2
+  exit 1
+fi
+
 mongorestore \
   --uri="$MONGODB_URI_VALUE" \
   --drop \
-  "$MONGO_DUMP_DIR"
+  "$MONGO_SOURCE_DIR"
+
+MONGO_USER_COUNT="$(mongosh "$MONGODB_URI_VALUE" --quiet --eval 'db.users.countDocuments()' | tr -d '\r' | tail -n 1)"
+if [ -z "$MONGO_USER_COUNT" ] || [ "$MONGO_USER_COUNT" = "0" ]; then
+  echo "Mongo restore completed but users collection is empty." >&2
+  exit 1
+fi
 
 echo "Done."
 echo "Restored snapshot: ${SNAPSHOT_DIR}"
