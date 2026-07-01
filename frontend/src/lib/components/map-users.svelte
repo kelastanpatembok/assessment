@@ -24,6 +24,7 @@
 	let map: any = null;
 	let markers = new Map<string, any>();
 	let previousProvinces = new Set<string>();
+	let previousCounts: Record<string, number> = {};
 
 	function groupUsersByProvince(items: User[]) {
 		return items.reduce<Record<string, number>>((acc, user) => {
@@ -69,20 +70,25 @@
 				element?.classList.add('pulse-marker');
 			}
 
-			if (!previousProvinces.has(province)) {
+			const previousCount = previousCounts[province] || 0;
+			const isNewProvince = !previousProvinces.has(province);
+			const hasIncreased = count > previousCount;
+
+			if (isNewProvince || hasIncreased) {
 				let blinkCount = 0;
 				const blinkInterval = setInterval(() => {
 					blinkCount += 1;
 					if (blinkCount > 6) {
 						clearInterval(blinkInterval);
-						marker.setStyle({ opacity: 0.8, fillOpacity: 0.7 });
+						marker.setStyle({ opacity: 0.8, fillOpacity: 0.7, weight: 2 });
 						return;
 					}
 
 					const visible = blinkCount % 2 === 0;
 					marker.setStyle({
-						opacity: visible ? 0.8 : 0.2,
-						fillOpacity: visible ? 0.7 : 0.1
+						opacity: visible ? 0.95 : 0.35,
+						fillOpacity: visible ? 0.95 : 0.2,
+						weight: visible ? 4 : 2
 					});
 				}, 300);
 			}
@@ -91,6 +97,7 @@
 		}
 
 		previousProvinces = new Set(Object.keys(usersByProvince));
+		previousCounts = usersByProvince;
 	}
 
 	onMount(() => {
