@@ -83,11 +83,12 @@ need_cmd pg_restore
 need_cmd mongorestore
 
 SNAPSHOT_DIR="$(resolve_snapshot_dir)"
+POSTGRES_SQL="${SNAPSHOT_DIR}/postgres/assessment.sql"
 POSTGRES_DUMP="${SNAPSHOT_DIR}/postgres/assessment.dump"
 MONGO_DUMP_DIR="${SNAPSHOT_DIR}/mongo"
 
-if [ ! -f "$POSTGRES_DUMP" ]; then
-  echo "Missing PostgreSQL dump: $POSTGRES_DUMP" >&2
+if [ ! -f "$POSTGRES_SQL" ] && [ ! -f "$POSTGRES_DUMP" ]; then
+  echo "Missing PostgreSQL snapshot in ${SNAPSHOT_DIR}/postgres" >&2
   exit 1
 fi
 
@@ -131,16 +132,25 @@ if [ "$FORCE" != "1" ]; then
 fi
 
 echo "1. Restoring PostgreSQL"
-PGPASSWORD="${POSTGRES_PASSWORD}" pg_restore \
-  --host="$PGHOST" \
-  --port="$PGPORT" \
-  --username="$POSTGRES_USER" \
-  --dbname="$PGDATABASE" \
-  --clean \
-  --if-exists \
-  --no-owner \
-  --no-privileges \
-  "$POSTGRES_DUMP"
+if [ -f "$POSTGRES_SQL" ]; then
+  PGPASSWORD="${POSTGRES_PASSWORD}" psql \
+    --host="$PGHOST" \
+    --port="$PGPORT" \
+    --username="$POSTGRES_USER" \
+    --dbname="$PGDATABASE" \
+    -f "$POSTGRES_SQL"
+else
+  PGPASSWORD="${POSTGRES_PASSWORD}" pg_restore \
+    --host="$PGHOST" \
+    --port="$PGPORT" \
+    --username="$POSTGRES_USER" \
+    --dbname="$PGDATABASE" \
+    --clean \
+    --if-exists \
+    --no-owner \
+    --no-privileges \
+    "$POSTGRES_DUMP"
+fi
 
 echo "2. Restoring MongoDB"
 mongorestore \

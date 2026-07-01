@@ -93,10 +93,12 @@ PGPASSWORD="${POSTGRES_PASSWORD}" pg_dump \
   --host="$PGHOST" \
   --port="$PGPORT" \
   --username="$POSTGRES_USER" \
-  --format=custom \
+  --format=plain \
+  --clean \
+  --if-exists \
   --no-owner \
   --no-privileges \
-  --file="$SNAPSHOT_DIR/postgres/assessment.dump" \
+  --file="$SNAPSHOT_DIR/postgres/assessment.sql" \
   "$PGDATABASE"
 
 echo "2. MongoDB: ${MONGO_DB}"

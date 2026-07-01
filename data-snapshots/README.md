@@ -5,6 +5,7 @@ Contents are intentionally ignored by git except this file.
 Expected structure:
 
 - `data-snapshots/<snapshot>/postgres/assessment.dump`
+- `data-snapshots/<snapshot>/postgres/assessment.sql`
 - `data-snapshots/<snapshot>/mongo/<mongo-db>/*`
 - `data-snapshots/<snapshot>/manifest.txt`
 
