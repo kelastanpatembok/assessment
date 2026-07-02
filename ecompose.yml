@@ -19,6 +19,13 @@ expose:
   service: assessment-frontend
   proxy_ct: proxy
 
+deploy:
+  github:
+    enabled: true
+    branch: main
+    webhook_port: 8790
+    webhook_path: /__eco/github/deploy
+
 shared_tools:
   - git
   - openssh-client
