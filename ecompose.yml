@@ -23,6 +23,7 @@ deploy:
   github:
     enabled: true
     branch: main
+    debounce_ms: 15000
     webhook_port: 8790
     webhook_path: /__eco/github/deploy
 
