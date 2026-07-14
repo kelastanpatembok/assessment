@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import { dev } from '$app/environment';
   import { getContext, onMount, tick } from 'svelte';
   import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
@@ -98,9 +99,60 @@
     if (!q.options) return [];
     return Object.entries(q.options);
   }
+
+  // Dev-only helper: pressing "x" fills every question in the current subtest
+  // with a random answer and advances, so manual QA can blast through all 9
+  // subtests without answering each one by hand.
+  function devFillRandomAndAdvance() {
+    if (loading) return;
+    const st = subtests[activeSubtest];
+    if (st?.key === 'ME' && mePhase === 'menghafal') {
+      startMeMengerjakan();
+      return;
+    }
+    if (st) {
+      for (const q of st.questions) {
+        const name = `ist_${q.subtestCode ?? st.key}_${q.itemNo}`;
+        if (isImageMC(q)) {
+          const n = q.optionImages?.length ?? 0;
+          if (n === 0) continue;
+          const letter = optionLetter(Math.floor(Math.random() * n));
+          const radio = formEl?.querySelector<HTMLInputElement>(
+            `input[type="radio"][name="${name}"][value="${letter}"]`
+          );
+          if (radio) radio.checked = true;
+        } else {
+          const entries = optionEntries(q);
+          if (entries.length > 0) {
+            const [randKey] = entries[Math.floor(Math.random() * entries.length)];
+            const radio = formEl?.querySelector<HTMLInputElement>(
+              `input[type="radio"][name="${name}"][value="${randKey}"]`
+            );
+            if (radio) radio.checked = true;
+          } else {
+            const input = formEl?.querySelector<HTMLInputElement>(`input[type="text"][name="${name}"]`);
+            if (input) input.value = String(Math.floor(Math.random() * 100));
+          }
+        }
+      }
+    }
+    if (activeSubtest < total - 1) {
+      goToSubtest(activeSubtest + 1);
+    } else {
+      tick().then(() => formEl?.requestSubmit());
+    }
+  }
+
+  function handleDevKeydown(e: KeyboardEvent) {
+    if (!dev) return;
+    if (e.key.toLowerCase() !== 'x') return;
+    e.preventDefault();
+    devFillRandomAndAdvance();
+  }
 </script>
 
 <svelte:head><title>Tes IQ IST</title></svelte:head>
+<svelte:window onkeydown={handleDevKeydown} />
 
 <div class="flex max-w-3xl flex-col gap-6">
   <div>
@@ -108,6 +160,11 @@
     <p class="text-muted-foreground mt-1 text-sm">
       Tes kecerdasan 9 subtes. Kerjakan setiap subtes dengan cermat.
     </p>
+    {#if dev}
+      <p class="mt-1 text-xs text-amber-600">
+        Dev mode: tekan <kbd class="rounded border px-1">X</kbd> untuk mengisi subtes ini secara acak dan lanjut otomatis.
+      </p>
+    {/if}
   </div>
 
   {#if data.unavailable}
