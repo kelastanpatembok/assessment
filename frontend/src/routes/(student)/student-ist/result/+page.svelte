@@ -36,6 +36,12 @@
 <svelte:head><title>Hasil IQ IST</title></svelte:head>
 
 <div class="flex max-w-2xl flex-col gap-6">
+  <nav aria-label="Breadcrumb" class="text-muted-foreground flex items-center gap-1.5 text-sm">
+    <a href="/student-dashboard" class="hover:text-foreground hover:underline">Dashboard</a>
+    <span aria-hidden="true">/</span>
+    <span class="text-foreground">Hasil Tes IQ IST</span>
+  </nav>
+
   <div>
     <h2 class="text-2xl font-bold">Hasil Tes IQ IST</h2>
     <p class="text-muted-foreground mt-1 text-sm">
@@ -93,6 +99,4 @@
       </table>
     </CardContent>
   </Card>
-
-  <a href="/student-dashboard" class="text-primary text-sm hover:underline">← Kembali ke Dashboard</a>
 </div>
