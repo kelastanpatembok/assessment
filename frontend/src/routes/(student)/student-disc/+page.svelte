@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import { dev } from '$app/environment';
   import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Progress } from '$lib/components/ui/progress/index.js';
@@ -7,6 +8,7 @@
   let { data, form } = $props();
   let loading = $state(false);
   let currentBlock = $state(0);
+  let formEl: HTMLFormElement | undefined = $state();
 
   type Statement = { id: number; blockNo: number; itemNo: number; category: string; statement: string };
 
@@ -37,13 +39,51 @@
   let currentBlockAnswered = $derived(
     selections[currentBlockNo]?.most !== undefined && selections[currentBlockNo]?.least !== undefined
   );
+
+  // Dev-only helper: pressing "x" picks a random most/least pair on the
+  // current block and advances, so manual QA (and later, browser-driven
+  // integration tests) can blast through all 24 blocks without clicking
+  // through every radio by hand. Gated on $app/environment's `dev` flag,
+  // so it's compiled out of production builds entirely.
+  function devFillRandomAndAdvance() {
+    if (loading || blocks.length === 0) return;
+    const blockNo = currentBlockNo;
+    const items = blocks[currentBlock] as Statement[];
+    if (!blockNo || !items?.length) return;
+
+    const mostIdx = Math.floor(Math.random() * items.length);
+    let leastIdx = Math.floor(Math.random() * (items.length - 1));
+    if (leastIdx >= mostIdx) leastIdx += 1;
+
+    selectMost(blockNo, items[mostIdx].itemNo);
+    selectLeast(blockNo, items[leastIdx].itemNo);
+
+    if (currentBlock < totalBlocks - 1) {
+      currentBlock = Math.min(totalBlocks - 1, currentBlock + 1);
+    } else {
+      formEl?.requestSubmit();
+    }
+  }
+
+  function handleDevKeydown(e: KeyboardEvent) {
+    if (!dev) return;
+    if (e.key.toLowerCase() !== 'x') return;
+    e.preventDefault();
+    devFillRandomAndAdvance();
+  }
 </script>
 
 <svelte:head><title>Tes DISC</title></svelte:head>
+<svelte:window onkeydown={handleDevKeydown} />
 
 <div class="flex max-w-2xl flex-col gap-6">
   <div>
     <h2 class="text-2xl font-bold">Tes DISC</h2>
+    {#if dev}
+      <p class="mt-1 text-xs text-amber-600">
+        Dev mode: tekan <kbd class="rounded border px-1">X</kbd> untuk mengisi jawaban acak dan lanjut otomatis.
+      </p>
+    {/if}
     <p class="text-muted-foreground mt-1 text-sm">
       INSTRUKSI : Terdapat 24 soal, Setiap nomor di bawah ini memuat 4 (empat) kalimat. Tugas anda adalah :
     </p>
@@ -70,6 +110,7 @@
   {:else}
     <form
       method="POST"
+      bind:this={formEl}
       use:enhance={() => {
         loading = true;
         return async ({ update }) => { loading = false; await update(); };
