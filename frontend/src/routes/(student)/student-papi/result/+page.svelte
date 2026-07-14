@@ -66,7 +66,7 @@
                 <div>
                   <div class="mb-1 flex items-center justify-between text-sm">
                     <span class="font-medium">{t.traitCode} — {t.traitName}</span>
-                    <span class="text-muted-foreground text-xs">{t.score}/{MAX_SCORE}</span>
+                    <span class="text-muted-foreground text-xs">{t.score}</span>
                   </div>
                   <div class="bg-muted h-2.5 w-full overflow-hidden rounded-full">
                     <div
