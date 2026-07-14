@@ -31,6 +31,11 @@
   function selectLeast(blockNo: number, itemNo: number) {
     selections = { ...selections, [blockNo]: { ...selections[blockNo], least: itemNo } };
   }
+
+  let currentBlockNo = $derived(blocks[currentBlock]?.[0]?.blockNo);
+  let currentBlockAnswered = $derived(
+    selections[currentBlockNo]?.most !== undefined && selections[currentBlockNo]?.least !== undefined
+  );
 </script>
 
 <svelte:head><title>Tes DISC</title></svelte:head>
@@ -93,8 +98,9 @@
                       name="b{blockNo}_most"
                       value={q.itemNo}
                       checked={selections[blockNo]?.most === q.itemNo}
+                      disabled={selections[blockNo]?.least === q.itemNo}
                       onchange={() => selectMost(blockNo, q.itemNo)}
-                      class="size-4 cursor-pointer accent-green-600"
+                      class="size-4 cursor-pointer accent-green-600 disabled:cursor-not-allowed disabled:opacity-30"
                     />
                   </div>
                   <div class="flex w-28 justify-center">
@@ -103,8 +109,9 @@
                       name="b{blockNo}_least"
                       value={q.itemNo}
                       checked={selections[blockNo]?.least === q.itemNo}
+                      disabled={selections[blockNo]?.most === q.itemNo}
                       onchange={() => selectLeast(blockNo, q.itemNo)}
-                      class="size-4 cursor-pointer accent-red-500"
+                      class="size-4 cursor-pointer accent-red-500 disabled:cursor-not-allowed disabled:opacity-30"
                     />
                   </div>
                 </div>
@@ -127,10 +134,11 @@
         {#if currentBlock < totalBlocks - 1}
           <Button
             type="button"
+            disabled={!currentBlockAnswered}
             onclick={() => (currentBlock = Math.min(totalBlocks - 1, currentBlock + 1))}
           >Selanjutnya</Button>
         {:else}
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading || !currentBlockAnswered}>
             {loading ? 'Mengirim...' : 'Kirim Jawaban'}
           </Button>
         {/if}
