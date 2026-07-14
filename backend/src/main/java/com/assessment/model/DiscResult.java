@@ -43,6 +43,22 @@ public class DiscResult {
     @Column(name = "s_dif") private Integer sDif;
     @Column(name = "c_dif") private Integer cDif;
 
+    // Converted (normalized) D/I/S/C values — what the classic DISC line
+    // graphs plot (GRAPH 1 MOST / GRAPH 2 LEAST / GRAPH 3 CHANGE on the
+    // Psikogram report), not the raw tallies above.
+    @Column(name = "most_d_conv") private java.math.BigDecimal mostDConv;
+    @Column(name = "most_i_conv") private java.math.BigDecimal mostIConv;
+    @Column(name = "most_s_conv") private java.math.BigDecimal mostSConv;
+    @Column(name = "most_c_conv") private java.math.BigDecimal mostCConv;
+    @Column(name = "least_d_conv") private java.math.BigDecimal leastDConv;
+    @Column(name = "least_i_conv") private java.math.BigDecimal leastIConv;
+    @Column(name = "least_s_conv") private java.math.BigDecimal leastSConv;
+    @Column(name = "least_c_conv") private java.math.BigDecimal leastCConv;
+    @Column(name = "dif_d_conv") private java.math.BigDecimal difDConv;
+    @Column(name = "dif_i_conv") private java.math.BigDecimal difIConv;
+    @Column(name = "dif_s_conv") private java.math.BigDecimal difSConv;
+    @Column(name = "dif_c_conv") private java.math.BigDecimal difCConv;
+
     @Column(name = "most_key", length = 30)  private String mostKey;
     @Column(name = "least_key", length = 30) private String leastKey;
     @Column(name = "dif_key", length = 30)   private String difKey;

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '$lib/components/ui/card/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
+  import DiscLineChart from '$lib/components/disc-line-chart/DiscLineChart.svelte';
 
   let { data } = $props();
   let r = $derived(data.result);
@@ -128,6 +129,29 @@
       </CardContent>
     </Card>
   {/if}
+
+  <Card>
+    <CardHeader><CardTitle class="text-sm">Grafik DISC</CardTitle></CardHeader>
+    <CardContent>
+      <div class="grid grid-cols-3 gap-2">
+        <DiscLineChart
+          title="GRAPH 1 MOST"
+          subtitle="Mask Public Self"
+          values={{ d: r?.mostDConv ?? 0, i: r?.mostIConv ?? 0, s: r?.mostSConv ?? 0, c: r?.mostCConv ?? 0 }}
+        />
+        <DiscLineChart
+          title="GRAPH 2 LEAST"
+          subtitle="Core Private Self"
+          values={{ d: r?.leastDConv ?? 0, i: r?.leastIConv ?? 0, s: r?.leastSConv ?? 0, c: r?.leastCConv ?? 0 }}
+        />
+        <DiscLineChart
+          title="GRAPH 3 CHANGE"
+          subtitle="Mirror Perceived Self"
+          values={{ d: r?.difDConv ?? 0, i: r?.difIConv ?? 0, s: r?.difSConv ?? 0, c: r?.difCConv ?? 0 }}
+        />
+      </div>
+    </CardContent>
+  </Card>
 
   <div class="grid gap-4 sm:grid-cols-3">
     <Card>
