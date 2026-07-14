@@ -1,39 +1,49 @@
 package com.assessment.service;
 
 import com.assessment.exception.ResourceNotFoundException;
-import com.assessment.model.DiscPersonalityProfile;
+import com.assessment.model.DiscDifConversion;
+import com.assessment.model.DiscLeastConversion;
+import com.assessment.model.DiscMostConversion;
+import com.assessment.model.DiscPatternProfile;
 import com.assessment.model.DiscQuestion;
 import com.assessment.model.DiscResult;
-import com.assessment.repository.DiscPersonalityProfileRepository;
+import com.assessment.repository.DiscDifConversionRepository;
+import com.assessment.repository.DiscLeastConversionRepository;
+import com.assessment.repository.DiscMostConversionRepository;
+import com.assessment.repository.DiscPatternProfileRepository;
 import com.assessment.repository.DiscQuestionRepository;
 import com.assessment.repository.DiscResultRepository;
-import com.assessment.repository.DiscScoringDifRepository;
-import com.assessment.repository.DiscScoringLeastRepository;
-import com.assessment.repository.DiscScoringMostRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class DiscScoringService {
 
+    private static final int MOST_LEAST_MIN_RAW = 0;
+    private static final int MOST_LEAST_MAX_RAW = 20;
+    private static final int DIF_MIN_RAW = -22;
+    private static final int DIF_MAX_RAW = 22;
+
     private final DiscQuestionRepository discQuestionRepository;
-    private final DiscScoringMostRepository discScoringMostRepository;
-    private final DiscScoringLeastRepository discScoringLeastRepository;
-    private final DiscScoringDifRepository discScoringDifRepository;
-    private final DiscPersonalityProfileRepository discPersonalityProfileRepository;
+    private final DiscMostConversionRepository discMostConversionRepository;
+    private final DiscLeastConversionRepository discLeastConversionRepository;
+    private final DiscDifConversionRepository discDifConversionRepository;
+    private final DiscPatternProfileRepository discPatternProfileRepository;
+    private final DiscPatternClassifier discPatternClassifier;
     private final DiscResultRepository discResultRepository;
     private final ObjectMapper objectMapper;
 
     public record DiscAnswerDto(int blockNo, int mostItemNo, int leastItemNo) {}
+
+    private record ConvertedScores(BigDecimal d, BigDecimal i, BigDecimal s, BigDecimal c) {}
 
     @Transactional
     @SneakyThrows
@@ -68,21 +78,23 @@ public class DiscScoringService {
         int sDif = sMost - sLeast;
         int cDif = cMost - cLeast;
 
-        // Step 3 — Determine keys for MOST, LEAST, DIF
-        String mostKey = resolveMostKey(dMost, iMost, sMost, cMost);
-        String leastKey = resolveLeastKey(dLeast, iLeast, sLeast, cLeast);
-        String difKey = resolveDifKey(dDif, iDif, sDif, cDif);
+        // Step 3 — Convert each line's raw D/I/S/C independently (each
+        // dimension is its own lookup against that line's shared table —
+        // NOT a combined 4-key row), then classify into one of 40 patterns.
+        ConvertedScores mostConv = convertMost(dMost, iMost, sMost, cMost);
+        ConvertedScores leastConv = convertLeast(dLeast, iLeast, sLeast, cLeast);
+        ConvertedScores difConv = convertDif(dDif, iDif, sDif, cDif);
 
-        // Step 4 — Look up personality profile
-        DiscPersonalityProfile profile = discPersonalityProfileRepository
-                .findByMostKeyAndLeastKeyAndDifKey(mostKey, leastKey, difKey)
-                .orElseGet(() -> DiscPersonalityProfile.builder()
-                        .mostKey(mostKey).leastKey(leastKey).difKey(difKey)
-                        .title("Profil Beragam")
-                        .description("Kombinasi unik dari beberapa dimensi kepribadian.")
-                        .build());
+        DiscPatternProfile mostProfile = lookupPattern(discPatternClassifier.classify(
+                mostConv.d(), mostConv.i(), mostConv.s(), mostConv.c()));
+        DiscPatternProfile leastProfile = lookupPattern(discPatternClassifier.classify(
+                leastConv.d(), leastConv.i(), leastConv.s(), leastConv.c()));
+        DiscPatternProfile difProfile = lookupPattern(discPatternClassifier.classify(
+                difConv.d(), difConv.i(), difConv.s(), difConv.c()));
 
-        // Step 5 — Build and save DiscResult
+        // Step 4 — Build and save DiscResult. The DIF pattern is the
+        // headline "Kepribadian Asli / Sesungguhnya" result; MOST/LEAST are
+        // the "Saat di Publik" / "Saat Mendapat Tekanan" personas.
         String answersJson = objectMapper.writeValueAsString(answers);
 
         DiscResult result = DiscResult.builder()
@@ -93,11 +105,17 @@ public class DiscScoringService {
                 .dMost(dMost).iMost(iMost).sMost(sMost).cMost(cMost)
                 .dLeast(dLeast).iLeast(iLeast).sLeast(sLeast).cLeast(cLeast)
                 .dDif(dDif).iDif(iDif).sDif(sDif).cDif(cDif)
-                .mostKey(mostKey)
-                .leastKey(leastKey)
-                .difKey(difKey)
-                .profileTitle(profile.getTitle())
-                .profileDesc(profile.getDescription())
+                .mostKey(mostProfile.getTypeKey())
+                .leastKey(leastProfile.getTypeKey())
+                .difKey(difProfile.getTypeKey())
+                .mostProfileTitle(mostProfile.getTitle())
+                .mostProfileTraits(mostProfile.getTraits())
+                .leastProfileTitle(leastProfile.getTitle())
+                .leastProfileTraits(leastProfile.getTraits())
+                .profileTitle(difProfile.getTitle())
+                .profileDesc(difProfile.getDescription())
+                .difProfileTraits(difProfile.getTraits())
+                .jobRecommendations(difProfile.getJobRecommendations())
                 .answers(answersJson)
                 .completedAt(LocalDateTime.now())
                 .build();
@@ -113,45 +131,52 @@ public class DiscScoringService {
                         "DISC question not found: block=" + blockNo + " item=" + itemNo));
     }
 
-    private String resolveMostKey(int d, int i, int s, int c) {
-        int max = Math.max(Math.max(d, i), Math.max(s, c));
-        String computed = buildTiedKey(d, i, s, c, max);
-        return discScoringMostRepository
-                .findByScores(flag(d, max), flag(i, max), flag(s, max), flag(c, max))
-                .map(row -> row.getKey())
-                .orElse(computed.isEmpty() ? "X" : computed);
+    private ConvertedScores convertMost(int d, int i, int s, int c) {
+        DiscMostConversion cd = discMostConversionRepository.findById(clamp(d, MOST_LEAST_MIN_RAW, MOST_LEAST_MAX_RAW))
+                .orElseThrow(() -> new ResourceNotFoundException("Missing DiscMostConversion row for raw=" + (clamp(d, MOST_LEAST_MIN_RAW, MOST_LEAST_MAX_RAW))));
+        DiscMostConversion ci = discMostConversionRepository.findById(clamp(i, MOST_LEAST_MIN_RAW, MOST_LEAST_MAX_RAW))
+                .orElseThrow(() -> new ResourceNotFoundException("Missing DiscMostConversion row for raw=" + (clamp(i, MOST_LEAST_MIN_RAW, MOST_LEAST_MAX_RAW))));
+        DiscMostConversion cs = discMostConversionRepository.findById(clamp(s, MOST_LEAST_MIN_RAW, MOST_LEAST_MAX_RAW))
+                .orElseThrow(() -> new ResourceNotFoundException("Missing DiscMostConversion row for raw=" + (clamp(s, MOST_LEAST_MIN_RAW, MOST_LEAST_MAX_RAW))));
+        DiscMostConversion cc = discMostConversionRepository.findById(clamp(c, MOST_LEAST_MIN_RAW, MOST_LEAST_MAX_RAW))
+                .orElseThrow(() -> new ResourceNotFoundException("Missing DiscMostConversion row for raw=" + (clamp(c, MOST_LEAST_MIN_RAW, MOST_LEAST_MAX_RAW))));
+        return new ConvertedScores(cd.getDConv(), ci.getIConv(), cs.getSConv(), cc.getCConv());
     }
 
-    private String resolveLeastKey(int d, int i, int s, int c) {
-        int max = Math.max(Math.max(d, i), Math.max(s, c));
-        String computed = buildTiedKey(d, i, s, c, max);
-        return discScoringLeastRepository
-                .findByScores(flag(d, max), flag(i, max), flag(s, max), flag(c, max))
-                .map(row -> row.getKey())
-                .orElse(computed.isEmpty() ? "X" : computed);
+    private ConvertedScores convertLeast(int d, int i, int s, int c) {
+        DiscLeastConversion cd = discLeastConversionRepository.findById(clamp(d, MOST_LEAST_MIN_RAW, MOST_LEAST_MAX_RAW))
+                .orElseThrow(() -> new ResourceNotFoundException("Missing DiscLeastConversion row for raw=" + (clamp(d, MOST_LEAST_MIN_RAW, MOST_LEAST_MAX_RAW))));
+        DiscLeastConversion ci = discLeastConversionRepository.findById(clamp(i, MOST_LEAST_MIN_RAW, MOST_LEAST_MAX_RAW))
+                .orElseThrow(() -> new ResourceNotFoundException("Missing DiscLeastConversion row for raw=" + (clamp(i, MOST_LEAST_MIN_RAW, MOST_LEAST_MAX_RAW))));
+        DiscLeastConversion cs = discLeastConversionRepository.findById(clamp(s, MOST_LEAST_MIN_RAW, MOST_LEAST_MAX_RAW))
+                .orElseThrow(() -> new ResourceNotFoundException("Missing DiscLeastConversion row for raw=" + (clamp(s, MOST_LEAST_MIN_RAW, MOST_LEAST_MAX_RAW))));
+        DiscLeastConversion cc = discLeastConversionRepository.findById(clamp(c, MOST_LEAST_MIN_RAW, MOST_LEAST_MAX_RAW))
+                .orElseThrow(() -> new ResourceNotFoundException("Missing DiscLeastConversion row for raw=" + (clamp(c, MOST_LEAST_MIN_RAW, MOST_LEAST_MAX_RAW))));
+        return new ConvertedScores(cd.getDConv(), ci.getIConv(), cs.getSConv(), cc.getCConv());
     }
 
-    private String resolveDifKey(int d, int i, int s, int c) {
-        int max = Math.max(Math.max(d, i), Math.max(s, c));
-        String computed = buildTiedKey(d, i, s, c, max);
-        return discScoringDifRepository
-                .findByScores(flag(d, max), flag(i, max), flag(s, max), flag(c, max))
-                .map(row -> row.getKey())
-                .orElse(computed.isEmpty() ? "X" : computed);
+    private ConvertedScores convertDif(int d, int i, int s, int c) {
+        DiscDifConversion cd = discDifConversionRepository.findById(clamp(d, DIF_MIN_RAW, DIF_MAX_RAW))
+                .orElseThrow(() -> new ResourceNotFoundException("Missing DiscDifConversion row for raw=" + (clamp(d, DIF_MIN_RAW, DIF_MAX_RAW))));
+        DiscDifConversion ci = discDifConversionRepository.findById(clamp(i, DIF_MIN_RAW, DIF_MAX_RAW))
+                .orElseThrow(() -> new ResourceNotFoundException("Missing DiscDifConversion row for raw=" + (clamp(i, DIF_MIN_RAW, DIF_MAX_RAW))));
+        DiscDifConversion cs = discDifConversionRepository.findById(clamp(s, DIF_MIN_RAW, DIF_MAX_RAW))
+                .orElseThrow(() -> new ResourceNotFoundException("Missing DiscDifConversion row for raw=" + (clamp(s, DIF_MIN_RAW, DIF_MAX_RAW))));
+        DiscDifConversion cc = discDifConversionRepository.findById(clamp(c, DIF_MIN_RAW, DIF_MAX_RAW))
+                .orElseThrow(() -> new ResourceNotFoundException("Missing DiscDifConversion row for raw=" + (clamp(c, DIF_MIN_RAW, DIF_MAX_RAW))));
+        return new ConvertedScores(cd.getDConv(), ci.getIConv(), cs.getSConv(), cc.getCConv());
     }
 
-    // Returns 1 if score == max, 0 otherwise — used as the DB lookup key
-    private int flag(int score, int max) {
-        return score == max ? 1 : 0;
+    // Raw tallies can exceed the source conversion table's range in extreme,
+    // rarely-seen cases (e.g. picking one category as MOST on every block) —
+    // clamp to the table's boundary row rather than fail, matching how norm
+    // tables are conventionally extrapolated at the extremes.
+    private int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
     }
 
-    // Builds a string like "D", "DI", "DISC" from tied positions, in alphabetical order
-    private String buildTiedKey(int d, int i, int s, int c, int max) {
-        StringBuilder sb = new StringBuilder();
-        if (d == max) sb.append("D");
-        if (i == max) sb.append("I");
-        if (s == max) sb.append("S");
-        if (c == max) sb.append("C");
-        return sb.toString();
+    private DiscPatternProfile lookupPattern(int patternIndex) {
+        return discPatternProfileRepository.findByPatternIndex(patternIndex)
+                .orElseThrow(() -> new ResourceNotFoundException("Unknown DISC pattern index: " + patternIndex));
     }
 }

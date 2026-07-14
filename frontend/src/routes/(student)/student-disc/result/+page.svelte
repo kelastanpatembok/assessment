@@ -5,27 +5,44 @@
   let { data } = $props();
   let r = $derived(data.result);
 
+  // most/least/dif_profile_traits are stored as JSONB but serialized by
+  // Jackson as plain strings (the Java field type is String, annotated only
+  // for JDBC — Jackson has no idea it's JSON), so each needs its own parse.
+  function parseTraits(json: string | null | undefined): string[] {
+    if (!json) return [];
+    try {
+      const parsed = JSON.parse(json);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  let mostTraits = $derived(parseTraits(r?.mostProfileTraits));
+  let leastTraits = $derived(parseTraits(r?.leastProfileTraits));
+  let difTraits = $derived(parseTraits(r?.difProfileTraits));
+
   function barWidth(value: number, max: number) {
     return max > 0 ? Math.round((value / max) * 100) : 0;
   }
 
   let mostScores = $derived([
-    { label: 'D', value: r?.dmost ?? 0 },
-    { label: 'I', value: r?.imost ?? 0 },
-    { label: 'S', value: r?.smost ?? 0 },
-    { label: 'C', value: r?.cmost ?? 0 },
+    { label: 'D', value: r?.dMost ?? 0 },
+    { label: 'I', value: r?.iMost ?? 0 },
+    { label: 'S', value: r?.sMost ?? 0 },
+    { label: 'C', value: r?.cMost ?? 0 },
   ]);
   let leastScores = $derived([
-    { label: 'D', value: r?.dleast ?? 0 },
-    { label: 'I', value: r?.ileast ?? 0 },
-    { label: 'S', value: r?.sleast ?? 0 },
-    { label: 'C', value: r?.cleast ?? 0 },
+    { label: 'D', value: r?.dLeast ?? 0 },
+    { label: 'I', value: r?.iLeast ?? 0 },
+    { label: 'S', value: r?.sLeast ?? 0 },
+    { label: 'C', value: r?.cLeast ?? 0 },
   ]);
   let difScores = $derived([
-    { label: 'D', value: r?.ddif ?? 0 },
-    { label: 'I', value: r?.idif ?? 0 },
-    { label: 'S', value: r?.sdif ?? 0 },
-    { label: 'C', value: r?.cdif ?? 0 },
+    { label: 'D', value: r?.dDif ?? 0 },
+    { label: 'I', value: r?.iDif ?? 0 },
+    { label: 'S', value: r?.sDif ?? 0 },
+    { label: 'C', value: r?.cDif ?? 0 },
   ]);
 
   let maxMost = $derived(Math.max(...mostScores.map(s => s.value), 1));
@@ -51,11 +68,64 @@
     <Card>
       <CardHeader>
         <div class="flex items-start justify-between gap-2">
-          <CardTitle>{r.profileTitle}</CardTitle>
+          <div>
+            <p class="text-muted-foreground text-xs">Kepribadian Asli / Sesungguhnya</p>
+            <CardTitle>{r.profileTitle}</CardTitle>
+          </div>
           <Badge variant="outline">DISC</Badge>
         </div>
-        <CardDescription class="mt-2 text-sm leading-relaxed">{r.profileDesc ?? ''}</CardDescription>
+        {#if difTraits.length > 0}
+          <ul class="mt-3 flex flex-wrap gap-1.5">
+            {#each difTraits as trait}
+              <li class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs">{trait}</li>
+            {/each}
+          </ul>
+        {/if}
+        <CardDescription class="mt-3 text-sm leading-relaxed">{r.profileDesc ?? ''}</CardDescription>
       </CardHeader>
+    </Card>
+  {/if}
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <Card>
+      <CardHeader>
+        <p class="text-muted-foreground text-xs">Kepribadian Saat di Publik</p>
+        <CardTitle class="text-base">{r?.mostProfileTitle ?? '-'}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {#if mostTraits.length > 0}
+          <ul class="flex flex-wrap gap-1.5">
+            {#each mostTraits as trait}
+              <li class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs">{trait}</li>
+            {/each}
+          </ul>
+        {/if}
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader>
+        <p class="text-muted-foreground text-xs">Kepribadian Saat Mendapat Tekanan</p>
+        <CardTitle class="text-base">{r?.leastProfileTitle ?? '-'}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {#if leastTraits.length > 0}
+          <ul class="flex flex-wrap gap-1.5">
+            {#each leastTraits as trait}
+              <li class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs">{trait}</li>
+            {/each}
+          </ul>
+        {/if}
+      </CardContent>
+    </Card>
+  </div>
+
+  {#if r?.jobRecommendations}
+    <Card>
+      <CardHeader><CardTitle class="text-sm">Job Match</CardTitle></CardHeader>
+      <CardContent>
+        <p class="text-muted-foreground text-sm leading-relaxed">{r.jobRecommendations}</p>
+      </CardContent>
     </Card>
   {/if}
 

@@ -43,12 +43,29 @@ public class DiscResult {
     @Column(name = "s_dif") private Integer sDif;
     @Column(name = "c_dif") private Integer cDif;
 
-    @Column(name = "most_key", length = 10)  private String mostKey;
-    @Column(name = "least_key", length = 10) private String leastKey;
-    @Column(name = "dif_key", length = 10)   private String difKey;
+    @Column(name = "most_key", length = 30)  private String mostKey;
+    @Column(name = "least_key", length = 30) private String leastKey;
+    @Column(name = "dif_key", length = 30)   private String difKey;
 
+    // DIF pattern ("Kepribadian Asli / Sesungguhnya") — the headline result
     @Column(name = "profile_title", length = 100) private String profileTitle;
     @Column(name = "profile_desc", columnDefinition = "TEXT") private String profileDesc;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "dif_profile_traits", columnDefinition = "jsonb")
+    private String difProfileTraits;
+    @Column(name = "job_recommendations", columnDefinition = "TEXT") private String jobRecommendations;
+
+    // MOST pattern ("Kepribadian Saat di Publik")
+    @Column(name = "most_profile_title", length = 100) private String mostProfileTitle;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "most_profile_traits", columnDefinition = "jsonb")
+    private String mostProfileTraits;
+
+    // LEAST pattern ("Kepribadian Saat Mendapat Tekanan")
+    @Column(name = "least_profile_title", length = 100) private String leastProfileTitle;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "least_profile_traits", columnDefinition = "jsonb")
+    private String leastProfileTraits;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
