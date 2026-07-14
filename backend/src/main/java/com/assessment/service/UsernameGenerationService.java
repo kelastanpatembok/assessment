@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -34,6 +35,7 @@ public class UsernameGenerationService {
 
     private static final int MAX_SEQUENCE_ATTEMPTS = 1000;
     private static final int MAX_CODE_LENGTH = 10;
+    private static final int CONFLICT_CHECK_BATCH_SIZE = 50;
     private static final Pattern VALID_PATTERN = Pattern.compile("^[A-Za-z0-9_]+$");
 
     /**
@@ -77,19 +79,25 @@ public class UsernameGenerationService {
         // Check for existing usernames in auth service
         Set<String> existing = authServiceClient.checkUsernamesExist(candidates);
         log.debug("Found {} existing usernames in auth service", existing.size());
-        
+
+        // Tracks every username this call has already claimed (both direct picks and
+        // resolved ones) so two candidates in the same batch can never collide with
+        // each other, even though neither is registered in auth yet.
+        Set<String> reserved = new HashSet<>();
+
         // Resolve conflicts and build final unique username list
         List<String> unique = new ArrayList<>();
         int sequenceOffset = count + 1;
-        
+
         for (String candidate : candidates) {
             if (!existing.contains(candidate)) {
                 unique.add(candidate);
+                reserved.add(candidate);
             } else {
                 log.debug("Username conflict detected: {}", candidate);
-                
+
                 // Find next available sequence number
-                String resolved = resolveConflict(prefix, sequenceOffset, existing);
+                String resolved = resolveConflict(prefix, sequenceOffset, reserved);
                 if (resolved == null) {
                     String error = String.format(
                         "Could not generate unique username after %d attempts. Pattern: %s, offset: %d",
@@ -100,35 +108,55 @@ public class UsernameGenerationService {
                     log.error(error);
                     throw new UsernameGenerationException(error);
                 }
-                
+
                 log.debug("Resolved username conflict: {} -> {}", candidate, resolved);
                 unique.add(resolved);
-                existing.add(resolved); // prevent duplicate resolution
+                reserved.add(resolved); // prevent duplicate resolution
                 sequenceOffset++;
             }
         }
-        
+
         log.info("Successfully generated {} unique usernames", unique.size());
         return unique;
     }
 
     /**
      * Resolve a username conflict by finding the next available sequence number.
-     * 
-     * Attempts up to MAX_SEQUENCE_ATTEMPTS to find an unused username by incrementing
-     * the sequence number.
-     * 
+     *
+     * Re-checks each candidate window against the auth service as it searches — the
+     * initial batch check only covered {@code _001.._{count}}, so anything beyond
+     * that range is unverified. Trusting an unverified candidate here previously let
+     * bulk-generate silently collide with a real existing username: the auth service's
+     * register endpoint treats a taken username as a no-op (returns the existing user
+     * without changing its password), so the "new" credential printed on the sheet
+     * belonged to a different, unrelated account and its real password never changed.
+     *
      * @param prefix the username prefix (e.g., "SCHOOL_TEST_")
      * @param startSeq the starting sequence number
-     * @param existing set of already-existing usernames
+     * @param reserved usernames already claimed earlier in this same generation call
      * @return a unique username, or null if no available username found within MAX_SEQUENCE_ATTEMPTS
      */
-    private String resolveConflict(String prefix, int startSeq, Set<String> existing) {
-        for (int i = 0; i < MAX_SEQUENCE_ATTEMPTS; i++) {
-            String candidate = String.format("%s%03d", prefix, startSeq + i);
-            if (!existing.contains(candidate)) {
-                log.trace("Conflict resolved at sequence offset {}", i);
-                return candidate;
+    private String resolveConflict(String prefix, int startSeq, Set<String> reserved) {
+        for (int base = startSeq; base < startSeq + MAX_SEQUENCE_ATTEMPTS; base += CONFLICT_CHECK_BATCH_SIZE) {
+            int windowEnd = Math.min(base + CONFLICT_CHECK_BATCH_SIZE, startSeq + MAX_SEQUENCE_ATTEMPTS);
+
+            List<String> window = new ArrayList<>();
+            for (int seq = base; seq < windowEnd; seq++) {
+                String candidate = String.format("%s%03d", prefix, seq);
+                if (!reserved.contains(candidate)) {
+                    window.add(candidate);
+                }
+            }
+            if (window.isEmpty()) {
+                continue;
+            }
+
+            Set<String> existingInWindow = authServiceClient.checkUsernamesExist(window);
+            for (String candidate : window) {
+                if (!existingInWindow.contains(candidate)) {
+                    log.trace("Conflict resolved to {}", candidate);
+                    return candidate;
+                }
             }
         }
         return null;
