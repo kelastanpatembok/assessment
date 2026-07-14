@@ -1,5 +1,6 @@
 package com.assessment.service;
 
+import com.assessment.exception.BadRequestException;
 import com.assessment.exception.ResourceNotFoundException;
 import com.assessment.model.DiscDifConversion;
 import com.assessment.model.DiscLeastConversion;
@@ -49,6 +50,20 @@ public class DiscScoringService {
     @SneakyThrows
     public DiscResult scoreAndSave(String authUserId, String studentName, String schoolName,
                                    Long assignmentId, List<DiscAnswerDto> answers) {
+
+        // Guard against incomplete submissions: a client-side bug silently
+        // dropping one block (e.g. a form field not yet flushed to the DOM
+        // at submit time) would otherwise still tally and score normally,
+        // just on fewer than 24 blocks, producing a plausible-looking but
+        // wrong result with no visible error.
+        long expectedBlocks = discQuestionRepository.findByActiveTrueOrderByBlockNoAscItemNoAsc().stream()
+                .map(DiscQuestion::getBlockNo)
+                .distinct()
+                .count();
+        if (answers.size() != expectedBlocks) {
+            throw new BadRequestException(
+                    "Jawaban tidak lengkap: diterima " + answers.size() + " dari " + expectedBlocks + " kelompok soal");
+        }
 
         // Step 1 — Tally MOST and LEAST counts per D/I/S/C
         int dMost = 0, iMost = 0, sMost = 0, cMost = 0;

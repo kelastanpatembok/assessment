@@ -1,7 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import { dev, browser } from '$app/environment';
-  import { getContext, onMount } from 'svelte';
+  import { getContext, onMount, tick } from 'svelte';
   import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Progress } from '$lib/components/ui/progress/index.js';
@@ -81,7 +81,7 @@
   // integration tests) can blast through all 24 blocks without clicking
   // through every radio by hand. Gated on $app/environment's `dev` flag,
   // so it's compiled out of production builds entirely.
-  function devFillRandomAndAdvance() {
+  async function devFillRandomAndAdvance() {
     if (loading || blocks.length === 0) return;
     const blockNo = currentBlockNo;
     const items = blocks[currentBlock] as Statement[];
@@ -97,6 +97,10 @@
     if (currentBlock < totalBlocks - 1) {
       currentBlock = Math.min(totalBlocks - 1, currentBlock + 1);
     } else {
+      // Radio `checked` state only reaches the DOM after Svelte flushes —
+      // requestSubmit() right after setting state would serialize the form
+      // BEFORE that flush and silently drop this last block's answer.
+      await tick();
       formEl?.requestSubmit();
     }
   }
