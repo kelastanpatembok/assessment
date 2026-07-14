@@ -64,10 +64,18 @@
 			return dateString;
 		}
 	}
+
+	function buildDocumentTitle(data: PrintData): string {
+		const stripSpaces = (value: string) => value.replace(/\s+/g, '');
+		const date = new Date(data.generatedAt);
+		const month = date.toLocaleDateString('id-ID', { month: 'long' });
+		const year = date.getFullYear();
+		return `${stripSpaces(data.schoolName)}-${stripSpaces(data.testCategory)}-${month}-${year}`;
+	}
 </script>
 
 <svelte:head>
-	<title>Print Credentials</title>
+	<title>{printData ? buildDocumentTitle(printData) : 'Print Credentials'}</title>
 </svelte:head>
 
 {#if error}
