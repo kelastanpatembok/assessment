@@ -27,23 +27,27 @@
     return max > 0 ? Math.round((value / max) * 100) : 0;
   }
 
+  // Jackson's legacy bean-naming mangles getDMost()/getILeast()/etc by
+  // lowercasing the entire leading run of uppercase letters, not just the
+  // first — so the wire keys are "dmost"/"ileast"/etc, not "dMost"/"iLeast".
+  // Matches the same lowercase keys counselor-results already reads.
   let mostScores = $derived([
-    { label: 'D', value: r?.dMost ?? 0 },
-    { label: 'I', value: r?.iMost ?? 0 },
-    { label: 'S', value: r?.sMost ?? 0 },
-    { label: 'C', value: r?.cMost ?? 0 },
+    { label: 'D', value: r?.dmost ?? 0 },
+    { label: 'I', value: r?.imost ?? 0 },
+    { label: 'S', value: r?.smost ?? 0 },
+    { label: 'C', value: r?.cmost ?? 0 },
   ]);
   let leastScores = $derived([
-    { label: 'D', value: r?.dLeast ?? 0 },
-    { label: 'I', value: r?.iLeast ?? 0 },
-    { label: 'S', value: r?.sLeast ?? 0 },
-    { label: 'C', value: r?.cLeast ?? 0 },
+    { label: 'D', value: r?.dleast ?? 0 },
+    { label: 'I', value: r?.ileast ?? 0 },
+    { label: 'S', value: r?.sleast ?? 0 },
+    { label: 'C', value: r?.cleast ?? 0 },
   ]);
   let difScores = $derived([
-    { label: 'D', value: r?.dDif ?? 0 },
-    { label: 'I', value: r?.iDif ?? 0 },
-    { label: 'S', value: r?.sDif ?? 0 },
-    { label: 'C', value: r?.cDif ?? 0 },
+    { label: 'D', value: r?.ddif ?? 0 },
+    { label: 'I', value: r?.idif ?? 0 },
+    { label: 'S', value: r?.sdif ?? 0 },
+    { label: 'C', value: r?.cdif ?? 0 },
   ]);
 
   let maxMost = $derived(Math.max(...mostScores.map(s => s.value), 1));
