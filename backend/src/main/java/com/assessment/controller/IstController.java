@@ -3,16 +3,12 @@ package com.assessment.controller;
 import com.assessment.exception.ConflictException;
 import com.assessment.exception.ResourceNotFoundException;
 import com.assessment.model.AssessmentUser;
-import com.assessment.model.IstMePair;
 import com.assessment.model.IstQuestion;
 import com.assessment.model.IstResult;
-import com.assessment.model.IstWuQuestion;
 import com.assessment.model.IstZrQuestion;
 import com.assessment.repository.AssessmentUserRepository;
-import com.assessment.repository.IstMePairRepository;
 import com.assessment.repository.IstQuestionRepository;
 import com.assessment.repository.IstResultRepository;
-import com.assessment.repository.IstWuQuestionRepository;
 import com.assessment.repository.IstZrQuestionRepository;
 import com.assessment.security.CurrentUser;
 import com.assessment.service.ActivityLogService;
@@ -34,8 +30,6 @@ public class IstController {
 
     private final IstQuestionRepository istQuestionRepository;
     private final IstZrQuestionRepository istZrQuestionRepository;
-    private final IstWuQuestionRepository istWuQuestionRepository;
-    private final IstMePairRepository istMePairRepository;
     private final IstResultRepository istResultRepository;
     private final AssessmentUserRepository assessmentUserRepository;
     private final IstScoringService istScoringService;
@@ -44,37 +38,41 @@ public class IstController {
 
     record SubmitRequest(Long assignmentId, List<IstSubtestAnswers> subtests) {}
 
+    // Student-facing question shape — deliberately excludes correctAnswer so the answer
+    // key isn't shipped to the browser (the legacy app leaked it into the exam page's
+    // HTML source; see docs/todo-cfit-test.md / docs/todo-ist-test.md).
+    record IstQuestionView(Long id, String subtestCode, Integer itemNo, String questionText,
+                            String imageUrl, Map<String, String> options, List<String> optionImages) {}
+
+    // ZR (number sequences) has its own table/repository, so it needs its own masked
+    // view — same reasoning as IstQuestionView: don't ship correctAnswer to the client.
+    record IstZrQuestionView(Long id, Integer itemNo, String sequenceText) {}
+
     /**
      * Returns questions for one subtest at a time via ?subtest=SE|WA|AN|GE|RA|ZR|FA|WU|ME.
-     * ME pairs hide the correctAnswer field — callers should discard it client-side;
-     * the scoring service uses the DB value directly.
+     * ZR (numeric sequences) has its own table; every other subtest lives in the
+     * generic ist_questions table (text MC/free-text for most, image MC for FA/WU).
      */
     @GetMapping("/questions")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> questions(@RequestParam(required = false) String subtest) {
         if (subtest == null || subtest.isBlank()) {
-            return ResponseEntity.ok(istQuestionRepository.findAll());
+            return ResponseEntity.ok(toViews(istQuestionRepository.findAll()));
         }
         return switch (subtest.toUpperCase()) {
-            case "ZR" -> ResponseEntity.ok(istZrQuestionRepository.findAllByOrderByItemNoAsc());
-            case "WU" -> ResponseEntity.ok(istWuQuestionRepository.findAllByOrderByItemNoAsc());
-            case "ME" -> {
-                List<IstMePair> pairs = istMePairRepository.findAllByOrderByItemNoAsc();
-                // Mask correct answer before sending to client
-                List<Map<String, Object>> masked = pairs.stream().map(p -> {
-                    Map<String, Object> m = new java.util.LinkedHashMap<>();
-                    m.put("id", p.getId());
-                    m.put("itemNo", p.getItemNo());
-                    m.put("word1", p.getWord1());
-                    m.put("word2", p.getWord2());
-                    m.put("options", p.getOptions());
-                    return m;
-                }).toList();
-                yield ResponseEntity.ok(masked);
-            }
-            default -> ResponseEntity.ok(
-                    istQuestionRepository.findBySubtestCodeAndActiveTrueOrderByItemNoAsc(subtest.toUpperCase()));
+            case "ZR" -> ResponseEntity.ok(istZrQuestionRepository.findAllByOrderByItemNoAsc().stream()
+                    .map(q -> new IstZrQuestionView(q.getId(), q.getItemNo(), q.getSequenceText()))
+                    .toList());
+            default -> ResponseEntity.ok(toViews(
+                    istQuestionRepository.findBySubtestCodeAndActiveTrueOrderByItemNoAsc(subtest.toUpperCase())));
         };
+    }
+
+    private List<IstQuestionView> toViews(List<IstQuestion> questions) {
+        return questions.stream()
+                .map(q -> new IstQuestionView(q.getId(), q.getSubtestCode(), q.getItemNo(), q.getQuestionText(),
+                        q.getImageUrl(), q.getOptions(), q.getOptionImages()))
+                .toList();
     }
 
     @GetMapping("/check")

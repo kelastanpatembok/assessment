@@ -2,18 +2,14 @@ package com.assessment.service;
 
 import com.assessment.exception.ResourceNotFoundException;
 import com.assessment.model.IstIqBand;
-import com.assessment.model.IstMePair;
 import com.assessment.model.IstNorma;
 import com.assessment.model.IstQuestion;
 import com.assessment.model.IstResult;
-import com.assessment.model.IstWuQuestion;
 import com.assessment.model.IstZrQuestion;
 import com.assessment.repository.IstIqBandRepository;
-import com.assessment.repository.IstMePairRepository;
 import com.assessment.repository.IstNormaRepository;
 import com.assessment.repository.IstQuestionRepository;
 import com.assessment.repository.IstResultRepository;
-import com.assessment.repository.IstWuQuestionRepository;
 import com.assessment.repository.IstZrQuestionRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -33,8 +29,6 @@ public class IstScoringService {
 
     private final IstQuestionRepository istQuestionRepository;
     private final IstZrQuestionRepository istZrQuestionRepository;
-    private final IstWuQuestionRepository istWuQuestionRepository;
-    private final IstMePairRepository istMePairRepository;
     private final IstNormaRepository istNormaRepository;
     private final IstIqBandRepository istIqBandRepository;
     private final IstResultRepository istResultRepository;
@@ -105,10 +99,8 @@ public class IstScoringService {
 
     private int scoreSubtest(String code, List<IstItemAnswer> items) {
         return switch (code) {
-            case "SE", "WA", "AN", "GE", "RA", "FA" -> scoreStandard(code, items);
+            case "SE", "WA", "AN", "GE", "RA", "FA", "WU", "ME" -> scoreStandard(code, items);
             case "ZR" -> scoreZr(items);
-            case "WU" -> scoreWu(items);
-            case "ME" -> scoreMe(items);
             default -> 0;
         };
     }
@@ -147,35 +139,4 @@ public class IstScoringService {
         return score;
     }
 
-    private int scoreWu(List<IstItemAnswer> items) {
-        List<IstWuQuestion> questions = istWuQuestionRepository.findAllByOrderByItemNoAsc();
-        Map<Integer, IstWuQuestion> byItem = new HashMap<>();
-        for (IstWuQuestion q : questions) byItem.put(q.getItemNo(), q);
-
-        int score = 0;
-        for (IstItemAnswer item : items) {
-            IstWuQuestion q = byItem.get(item.itemNo());
-            if (q != null && item.answer().trim().toUpperCase()
-                    .equals(q.getCorrectAnswer().toUpperCase())) {
-                score++;
-            }
-        }
-        return score;
-    }
-
-    private int scoreMe(List<IstItemAnswer> items) {
-        List<IstMePair> pairs = istMePairRepository.findAllByOrderByItemNoAsc();
-        Map<Integer, IstMePair> byItem = new HashMap<>();
-        for (IstMePair p : pairs) byItem.put(p.getItemNo(), p);
-
-        int score = 0;
-        for (IstItemAnswer item : items) {
-            IstMePair p = byItem.get(item.itemNo());
-            if (p != null && item.answer().trim()
-                    .equalsIgnoreCase(p.getCorrectAnswer().trim())) {
-                score++;
-            }
-        }
-        return score;
-    }
 }

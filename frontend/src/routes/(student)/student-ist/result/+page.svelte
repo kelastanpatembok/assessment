@@ -13,7 +13,7 @@
     { key: 'RA', label: 'RA — Aritmatika' },
     { key: 'ZR', label: 'ZR — Deret Angka' },
     { key: 'FA', label: 'FA — Pemilihan Bentuk' },
-    { key: 'WU', label: 'WU — Pengetahuan Praktis' },
+    { key: 'WU', label: 'WU — Tugas Kubus' },
     { key: 'ME', label: 'ME — Memori' },
   ];
 

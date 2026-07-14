@@ -5,6 +5,9 @@ import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.util.List;
+import java.util.Map;
+
 @Entity
 @Table(name = "ist_questions")
 @Data
@@ -26,12 +29,20 @@ public class IstQuestion {
     @Column(name = "question_text", columnDefinition = "TEXT")
     private String questionText;
 
+    // Stem image — used by FA/WU (image-based subtests); null for text subtests.
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
+    // Text MC options (lettered map), used by SE/WA/AN/GE/RA/ME when they have options.
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private String options;
+    private Map<String, String> options;
+
+    // Positional array of option image paths, used by FA/WU — letter derived from
+    // array index (0 -> a, 1 -> b, ...), same convention as cfit_questions.option_images.
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "option_images", columnDefinition = "jsonb")
+    private List<String> optionImages;
 
     @Column(name = "correct_answer", length = 20)
     private String correctAnswer;

@@ -8,47 +8,31 @@
   let loading = $state(false);
   const examGuard = getContext<{ disarm: () => void }>('exam-guard');
   let activeSubtest = $state(0);
-  // ME subtest: track memory phase (show pairs) vs recall phase (answer questions)
-  let meMemoryShown = $state(false);
 
   type IstQuestion = {
     id: number;
-    subtestCode: string;
+    subtestCode?: string; // absent for ZR (its own table/endpoint) — fall back to the subtest key
     itemNo: number;
-    subtest: string;
-    question?: string;
-    questionText?: string;
-    questionImage?: string | null;
+    questionText?: string | null;
+    sequenceText?: string | null; // ZR only
     imageUrl?: string | null;
     options?: Record<string, string> | null;
-    optionsImage?: Record<string, string> | null;
+    optionImages?: string[] | null;
   };
 
   type Subtest = { key: string; label: string; questions: IstQuestion[] };
   let subtests: Subtest[] = $derived(data.subtests ?? []);
   let total = $derived(subtests.length);
-  let currentSt = $derived(subtests[activeSubtest]);
 
-  // WU subtest: BENAR/SALAH radio
-  // ZR subtest: text input
-  // ME subtest: memory pairs first, then recall questions
-  // Others: MC or text
-
-  function isWU(key: string) { return key === 'WU'; }
+  // ZR: numeric text input. FA/WU: image MC. Everything else: text MC (or free-text
+  // fallback when no options are seeded, e.g. SE/WA/AN/GE/RA placeholder content).
   function isZR(key: string) { return key === 'ZR'; }
-  function isME(key: string) { return key === 'ME'; }
+  function isImageMC(q: IstQuestion) { return !!q.optionImages && q.optionImages.length > 0; }
+  function optionLetter(index: number): string { return String.fromCharCode(97 + index); }
   function optionEntries(q: IstQuestion): [string, string][] {
     if (!q.options) return [];
     return Object.entries(q.options);
   }
-
-  // ME memory pairs are stored as the first set of questions (before recall starts)
-  // The backend should distinguish these; we treat all ME questions as recall after showing memory phase
-  let meMemoryPairs = $derived(
-    currentSt?.key === 'ME'
-      ? currentSt.questions.filter((q: IstQuestion) => !q.options && !isZR('ME'))
-      : []
-  );
 </script>
 
 <svelte:head><title>Tes IQ IST</title></svelte:head>
@@ -80,7 +64,7 @@
           type="button"
           class="rounded-lg px-3 py-1.5 text-sm transition-colors
             {activeSubtest === i ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}"
-          onclick={() => { activeSubtest = i; meMemoryShown = false; }}
+          onclick={() => (activeSubtest = i)}
         >{st.key}</button>
       {/each}
     </div>
@@ -105,78 +89,74 @@
               <CardTitle class="text-base">Subtes {st.key}</CardTitle>
             </CardHeader>
             <CardContent>
-              {#if isME(st.key) && !meMemoryShown}
-                <!-- ME Memory phase: show word pairs -->
-                <p class="text-muted-foreground mb-4 text-sm font-medium">
-                  Hafalkan pasangan kata berikut. Anda akan diminta mengingat pasangannya.
-                </p>
-                <div class="grid grid-cols-2 gap-3">
-                  {#each st.questions as q}
-                    <div class="rounded-lg border p-3 text-center text-sm font-medium">
-                      {(q as any).word1 ?? q.questionText ?? q.question ?? ''} → {(q as any).word2 ?? ''}
-                    </div>
-                  {/each}
-                </div>
-                <Button type="button" class="mt-4" onclick={() => (meMemoryShown = true)}>
-                  Sudah Hafal — Lanjutkan
-                </Button>
-              {:else}
-                {#each st.questions as q, qi}
-                  {#if !isME(st.key) || meMemoryShown || q.options}
-                    <div class="border-border border-b pb-4 last:border-0 last:pb-0 {qi > 0 ? 'pt-4' : ''}">
-                      <p class="mb-3 text-sm font-medium">{qi + 1}. {isME(st.key) ? ((q as any).word1 ?? '') + ' → ?' : (q.questionText ?? q.question ?? '')}</p>
-
-                      {#if isWU(st.key)}
-                        <!-- WU: Benar/Salah -->
-                        <div class="flex gap-4">
-                          <label class="flex cursor-pointer items-center gap-2 text-sm">
-                            <input type="radio" name="ist_{q.subtestCode ?? st.key}_{q.itemNo}" value="BENAR" class="size-4" required />
-                            Benar
-                          </label>
-                          <label class="flex cursor-pointer items-center gap-2 text-sm">
-                            <input type="radio" name="ist_{q.subtestCode ?? st.key}_{q.itemNo}" value="SALAH" class="size-4" required />
-                            Salah
-                          </label>
-                        </div>
-                      {:else if isZR(st.key)}
-                        <!-- ZR: text input -->
-                        <input
-                          type="text"
-                          name="ist_{q.subtestCode ?? st.key}_{q.itemNo}"
-                          placeholder="Jawaban Anda..."
-                          class="border-input bg-background flex h-10 w-full max-w-xs rounded-lg border px-3 text-sm"
-                          required
-                        />
-                      {:else if optionEntries(q).length > 0}
-                        <!-- MC options -->
-                        <div class="grid grid-cols-2 gap-2 sm:grid-cols-5">
-                          {#each optionEntries(q) as [optKey, optVal]}
-                            <label class="hover:bg-accent flex cursor-pointer items-center gap-2 rounded-lg border p-2 text-sm">
-                              <input
-                                type="radio"
-                                name="ist_{q.subtestCode ?? st.key}_{q.itemNo}"
-                                value={optKey}
-                                class="size-4 shrink-0"
-                                required
-                              />
-                              <span>{optKey}. {optVal}</span>
-                            </label>
-                          {/each}
-                        </div>
-                      {:else}
-                        <!-- Text answer -->
-                        <input
-                          type="text"
-                          name="ist_{q.subtestCode ?? st.key}_{q.itemNo}"
-                          placeholder="Jawaban Anda..."
-                          class="border-input bg-background flex h-10 w-full max-w-xs rounded-lg border px-3 text-sm"
-                          required
-                        />
-                      {/if}
-                    </div>
+              {#each st.questions as q, qi}
+                <div class="border-border border-b pb-4 last:border-0 last:pb-0 {qi > 0 ? 'pt-4' : ''}">
+                  {#if q.questionText || q.sequenceText}
+                    <p class="mb-3 text-sm font-medium">{qi + 1}. {q.questionText ?? q.sequenceText}</p>
+                  {:else}
+                    <p class="mb-3 text-sm font-medium">{qi + 1}.</p>
                   {/if}
-                {/each}
-              {/if}
+
+                  {#if isImageMC(q)}
+                    <!-- FA/WU: image stem + image options -->
+                    {#if q.imageUrl}
+                      <div class="mb-3">
+                        <img src={q.imageUrl} alt="Soal {qi + 1}" class="h-auto max-w-xs rounded-lg border" />
+                      </div>
+                    {/if}
+                    <div class="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                      {#each q.optionImages ?? [] as optImg, oi}
+                        {@const letter = optionLetter(oi)}
+                        <label class="hover:bg-accent flex cursor-pointer flex-col items-center gap-1 rounded-lg border p-2 text-xs">
+                          <input
+                            type="radio"
+                            name="ist_{q.subtestCode ?? st.key}_{q.itemNo}"
+                            value={letter}
+                            class="size-4 shrink-0"
+                            required
+                          />
+                          <img src={optImg} alt="Opsi {letter}" class="h-16 w-auto rounded border" />
+                          <span>{letter}</span>
+                        </label>
+                      {/each}
+                    </div>
+                  {:else if isZR(st.key)}
+                    <!-- ZR: text input -->
+                    <input
+                      type="text"
+                      name="ist_{q.subtestCode ?? st.key}_{q.itemNo}"
+                      placeholder="Jawaban Anda..."
+                      class="border-input bg-background flex h-10 w-full max-w-xs rounded-lg border px-3 text-sm"
+                      required
+                    />
+                  {:else if optionEntries(q).length > 0}
+                    <!-- MC options -->
+                    <div class="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                      {#each optionEntries(q) as [optKey, optVal]}
+                        <label class="hover:bg-accent flex cursor-pointer items-center gap-2 rounded-lg border p-2 text-sm">
+                          <input
+                            type="radio"
+                            name="ist_{q.subtestCode ?? st.key}_{q.itemNo}"
+                            value={optKey}
+                            class="size-4 shrink-0"
+                            required
+                          />
+                          <span>{optKey}. {optVal}</span>
+                        </label>
+                      {/each}
+                    </div>
+                  {:else}
+                    <!-- Text answer -->
+                    <input
+                      type="text"
+                      name="ist_{q.subtestCode ?? st.key}_{q.itemNo}"
+                      placeholder="Jawaban Anda..."
+                      class="border-input bg-background flex h-10 w-full max-w-xs rounded-lg border px-3 text-sm"
+                      required
+                    />
+                  {/if}
+                </div>
+              {/each}
             </CardContent>
           </Card>
         </div>
@@ -187,7 +167,7 @@
           type="button"
           variant="outline"
           disabled={activeSubtest === 0}
-          onclick={() => { activeSubtest = Math.max(0, activeSubtest - 1); meMemoryShown = false; }}
+          onclick={() => (activeSubtest = Math.max(0, activeSubtest - 1))}
         >Sebelumnya</Button>
 
         <span class="text-muted-foreground text-sm">{activeSubtest + 1} / {total}</span>
@@ -195,7 +175,7 @@
         {#if activeSubtest < total - 1}
           <Button
             type="button"
-            onclick={() => { activeSubtest = Math.min(total - 1, activeSubtest + 1); meMemoryShown = false; }}
+            onclick={() => (activeSubtest = Math.min(total - 1, activeSubtest + 1))}
           >Selanjutnya</Button>
         {:else}
           <Button type="submit" disabled={loading}>
