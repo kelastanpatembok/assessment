@@ -1,10 +1,12 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import { getContext } from 'svelte';
   import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
 
   let { data, form } = $props();
   let loading = $state(false);
+  const examGuard = getContext<{ disarm: () => void }>('exam-guard');
 
   type HollandQuestion = {
     id: number;
@@ -54,7 +56,11 @@
       method="POST"
       use:enhance={() => {
         loading = true;
-        return async ({ update }) => { loading = false; await update(); };
+        return async ({ result, update }) => {
+          loading = false;
+          if (result.type === 'redirect') examGuard?.disarm();
+          await update();
+        };
       }}
       class="flex flex-col gap-6"
     >

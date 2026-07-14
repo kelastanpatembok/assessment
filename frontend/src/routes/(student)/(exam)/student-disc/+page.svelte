@@ -1,6 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { dev } from '$app/environment';
+  import { dev, browser } from '$app/environment';
+  import { getContext, onMount } from 'svelte';
   import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Progress } from '$lib/components/ui/progress/index.js';
@@ -9,6 +10,9 @@
   let loading = $state(false);
   let currentBlock = $state(0);
   let formEl: HTMLFormElement | undefined = $state();
+
+  const examGuard = getContext<{ disarm: () => void }>('exam-guard');
+  let draftKey = $derived(`disc-draft-${data.assignmentId ?? 'na'}`);
 
   type Statement = { id: number; blockNo: number; itemNo: number; category: string; statement: string };
 
@@ -39,6 +43,38 @@
   let currentBlockAnswered = $derived(
     selections[currentBlockNo]?.most !== undefined && selections[currentBlockNo]?.least !== undefined
   );
+
+  // Draft autosave: since answers only reach the server on final submit,
+  // an accidental refresh/close would otherwise lose all progress. Restore
+  // on mount, persist on every change, and clear once the test is actually
+  // submitted (see the form's use:enhance below).
+  let draftHydrated = $state(false);
+
+  onMount(() => {
+    if (!browser) return;
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.selections) selections = parsed.selections;
+        if (typeof parsed?.currentBlock === 'number') currentBlock = parsed.currentBlock;
+      }
+    } catch {
+      // corrupt/unavailable draft — ignore and start fresh
+    }
+    draftHydrated = true;
+  });
+
+  $effect(() => {
+    if (!browser || !draftHydrated) return;
+    const snapshot = JSON.stringify({ selections, currentBlock });
+    localStorage.setItem(draftKey, snapshot);
+  });
+
+  function clearDraft() {
+    if (!browser) return;
+    localStorage.removeItem(draftKey);
+  }
 
   // Dev-only helper: pressing "x" picks a random most/least pair on the
   // current block and advances, so manual QA (and later, browser-driven
@@ -113,7 +149,14 @@
       bind:this={formEl}
       use:enhance={() => {
         loading = true;
-        return async ({ update }) => { loading = false; await update(); };
+        return async ({ result, update }) => {
+          loading = false;
+          if (result.type === 'redirect') {
+            examGuard?.disarm();
+            clearDraft();
+          }
+          await update();
+        };
       }}
     >
       <input type="hidden" name="assignmentId" value={data.assignmentId ?? 0} />
