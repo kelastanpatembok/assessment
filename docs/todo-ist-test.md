@@ -63,15 +63,38 @@ More images exist in `/upload/fotosoalist` + `/upload/fotoopsiist` beyond 117–
 earlier, messier batch of test/duplicate uploads around item "soal1–6") — not used,
 since they don't correspond to any item number in the answer key.
 
-### SE / WA / AN / RA / ZR / ME — answers now known, question text still missing
+### SE / WA / AN — now real MC structure + real answers (V18__ist_se_wa_an_mc_structure.sql)
 
-The same `ist-result.docx` also gives the real answer key for these six subtests,
-confirming their real format: SE/WA/AN/ME are single-letter MC (items 1–20, 21–40,
-41–60, 157–176), RA/ZR are numeric free-text (items 77–96, 97–116). **No source
-document with the actual question/option text exists yet** (no `ist.pdf` equivalent to
-`docs/papi.pdf` or `docs/Holland.pdf`), so seeding real MC option text isn't possible
-yet — these six subtests keep placeholder question text. Recording the full answer key
-here now so it isn't lost once the real question booklet turns up:
+Re-checking `tesIQIST.blade.php` (steps 1–3) confirmed SE/WA/AN are genuinely multiple
+choice in the legacy app — `json_decode($item->opsi)` rendered as radio-button options
+with `$item->jawaban` as the correct letter, the exact same convention as FA/WU/ME.
+The original V8 seed had left them as free-text inputs scored by exact string match
+against a single fabricated word/phrase — unreliable (typos/phrasing) *and*
+structurally wrong. V18 converted all 60 items (SE 1–20, WA 21–40, AN 41–60) to real
+MC with the real per-item answer letter from `ist-result.docx`. Scoring is now
+deterministic exact-letter-match, same as FA/WU/ME — no more free-text fuzzy matching
+for these three. Question text and option *labels* are still placeholder (clearly
+marked "menunggu teks asli"), since no source has the actual sentence-completion/
+word-choice/analogy content — only the structure and answer key are real.
+
+### RA / ZR — confirmed genuinely free-text/numeric, left as-is
+
+Also confirmed from the same legacy view: steps 5–6 (RA, ZR) render plain
+`<input type="number">` with no options at all — free-text numeric is the *correct*
+legacy structure for these two, not a gap. Exact-integer-match scoring (already
+implemented) is fully deterministic for numeric answers, so no structural fix was
+needed here. Real numeric answer keys are known now too (see below) — only the
+question text (the arithmetic problem / number sequence for each item) is still
+placeholder.
+
+### RA / ZR / ME — question text still missing despite having real answers
+
+`ist-result.docx` gives the real answer key for these three too, confirming ME is
+single-letter MC (items 157–176, already converted in V16) and RA/ZR are numeric
+(items 77–96, 97–116). **No source document with the actual question/option text
+exists yet** (no `ist.pdf` equivalent to `docs/papi.pdf` or `docs/Holland.pdf`), so
+these three subtests keep placeholder question text pending the real question
+booklet. Recording the full answer key here now so it isn't lost:
 
 ```
 SE (1-20):  E C D D D B C A E B C D D E C A B B C B
@@ -102,9 +125,10 @@ here for a future pass; not touched to avoid scope creep beyond what was request
 ## How to add real text once the question booklet is found
 
 1. Add a new migration updating `question_text`/`options` for the `SE`/`WA`/`AN`/`ME`
-   rows (and `question_text` for `RA`/`ZR`) in `ist_questions` — the answer key above
-   already tells you what `correct_answer` should be for each item number, so only the
-   question/option text needs filling in.
+   rows (and just `question_text` for `RA`/`ZR`, which have no options) in
+   `ist_questions` — the answer key above already tells you what `correct_answer`
+   should be for every item number, so only the question/option text needs filling in.
+   Structure is already correct for all six; this is a pure content swap.
 2. For GE, see the tiered-scoring gap above — that needs a schema addition
    (`ist_subtest4_questions`-equivalent), not just a data update.
 3. No Java or frontend code changes needed for SE/WA/AN/RA/ZR/ME — `IstQuestion`,
