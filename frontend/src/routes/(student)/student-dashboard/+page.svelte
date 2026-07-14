@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { enhance } from '$app/forms';
+  import { dev } from '$app/environment';
   import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '$lib/components/ui/card/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
@@ -38,9 +40,21 @@
             {/if}
           </CardDescription>
         </CardHeader>
-        <CardContent class="mt-auto">
+        <CardContent class="mt-auto flex flex-col gap-2">
           {#if test.completed}
             <Button href="{test.href}/result" variant="outline" class="w-full">Lihat Hasil</Button>
+            {#if dev}
+              <form
+                method="POST"
+                action="?/clear"
+                use:enhance={() => async ({ update }) => { await update(); }}
+              >
+                <input type="hidden" name="testKey" value={test.key} />
+                <Button type="submit" variant="ghost" size="sm" class="text-destructive w-full">
+                  Clear (dev)
+                </Button>
+              </form>
+            {/if}
           {:else if test.available}
             <Button href={test.href} class="w-full">Mulai Tes</Button>
           {:else}

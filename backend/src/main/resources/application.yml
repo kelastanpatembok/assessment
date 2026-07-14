@@ -36,6 +36,11 @@ app:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:2001,http://localhost:3000}
   storage:
     credentials-path: ${CREDENTIALS_STORAGE_PATH:./storage/credentials}
+  # Enables DevToolsController's "clear my own result" endpoint (used by the
+  # student dashboard's dev-only Clear button so a result can be retaken
+  # while testing). Set to false in any environment where retakes must be
+  # disallowed.
+  dev-tools-enabled: ${DEV_TOOLS_ENABLED:true}
 
 logging:
   level:

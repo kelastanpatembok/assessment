@@ -1,5 +1,6 @@
 import { createApiClient } from '$lib/api/index';
-import type { PageServerLoad } from './$types';
+import { fail } from '@sveltejs/kit';
+import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
   const api = createApiClient(locals.token);
@@ -31,4 +32,24 @@ export const load: PageServerLoad = async ({ locals }) => {
       { key: 'ist', label: 'IQ IST', href: '/student-ist', ...resolveStatus(ist) },
     ],
   };
+};
+
+export const actions: Actions = {
+  // Dev-only (button is hidden outside dev mode; backend also gates this
+  // behind app.dev-tools-enabled) — clears the caller's own result for one
+  // instrument so it can be retaken while testing.
+  clear: async ({ request, locals }) => {
+    const api = createApiClient(locals.token);
+    const data = await request.formData();
+    const testKey = data.get('testKey');
+    if (typeof testKey !== 'string') return fail(400, { error: 'Missing testKey' });
+
+    try {
+      await api.delete(`/dev/results/${testKey}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Gagal menghapus hasil';
+      return fail(422, { error: message });
+    }
+    return { cleared: testKey };
+  },
 };
