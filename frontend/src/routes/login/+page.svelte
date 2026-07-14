@@ -4,9 +4,12 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
+  import { HugeiconsIcon } from '@hugeicons/svelte';
+  import { ViewIcon, ViewOffIcon } from '@hugeicons/core-free-icons';
 
   let { form } = $props();
   let loading = $state(false);
+  let showPassword = $state(false);
 </script>
 
 <svelte:head><title>Masuk — Assessment</title></svelte:head>
@@ -58,14 +61,26 @@
 
           <div class="flex flex-col gap-2">
             <Label for="password">Password</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="Masukkan password"
-              autocomplete="current-password"
-              required
-            />
+            <div class="relative">
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Masukkan password"
+                autocomplete="current-password"
+                required
+                class="pr-10"
+              />
+              <button
+                type="button"
+                class="text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex items-center px-3"
+                onclick={() => (showPassword = !showPassword)}
+                aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                tabindex="-1"
+              >
+                <HugeiconsIcon icon={showPassword ? ViewOffIcon : ViewIcon} size={18} />
+              </button>
+            </div>
           </div>
 
           <Button type="submit" class="w-full" disabled={loading}>
