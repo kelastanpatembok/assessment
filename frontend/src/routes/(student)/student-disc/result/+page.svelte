@@ -62,77 +62,18 @@
 <svelte:head><title>Hasil DISC</title></svelte:head>
 
 <div class="flex max-w-2xl flex-col gap-6">
+  <nav aria-label="Breadcrumb" class="text-muted-foreground flex items-center gap-1.5 text-sm">
+    <a href="/student-dashboard" class="hover:text-foreground hover:underline">Dashboard</a>
+    <span aria-hidden="true">/</span>
+    <span class="text-foreground">Hasil Tes DISC</span>
+  </nav>
+
   <div>
     <h2 class="text-2xl font-bold">Hasil Tes DISC</h2>
     <p class="text-muted-foreground mt-1 text-sm">
       {r?.studentName} · {r?.schoolName ?? '-'}
     </p>
   </div>
-
-  {#if r?.profileTitle}
-    <Card>
-      <CardHeader>
-        <div class="flex items-start justify-between gap-2">
-          <div>
-            <p class="text-muted-foreground text-xs">Kepribadian Asli / Sesungguhnya</p>
-            <CardTitle>{r.profileTitle}</CardTitle>
-          </div>
-          <Badge variant="outline">DISC</Badge>
-        </div>
-        {#if difTraits.length > 0}
-          <ul class="mt-3 flex flex-wrap gap-1.5">
-            {#each difTraits as trait}
-              <li class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs">{trait}</li>
-            {/each}
-          </ul>
-        {/if}
-        <CardDescription class="mt-3 text-sm leading-relaxed">{r.profileDesc ?? ''}</CardDescription>
-      </CardHeader>
-    </Card>
-  {/if}
-
-  <div class="grid gap-4 sm:grid-cols-2">
-    <Card>
-      <CardHeader>
-        <p class="text-muted-foreground text-xs">Kepribadian Saat di Publik</p>
-        <CardTitle class="text-base">{r?.mostProfileTitle ?? '-'}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {#if mostTraits.length > 0}
-          <ul class="flex flex-wrap gap-1.5">
-            {#each mostTraits as trait}
-              <li class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs">{trait}</li>
-            {/each}
-          </ul>
-        {/if}
-      </CardContent>
-    </Card>
-
-    <Card>
-      <CardHeader>
-        <p class="text-muted-foreground text-xs">Kepribadian Saat Mendapat Tekanan</p>
-        <CardTitle class="text-base">{r?.leastProfileTitle ?? '-'}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {#if leastTraits.length > 0}
-          <ul class="flex flex-wrap gap-1.5">
-            {#each leastTraits as trait}
-              <li class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs">{trait}</li>
-            {/each}
-          </ul>
-        {/if}
-      </CardContent>
-    </Card>
-  </div>
-
-  {#if r?.jobRecommendations}
-    <Card>
-      <CardHeader><CardTitle class="text-sm">Job Match</CardTitle></CardHeader>
-      <CardContent>
-        <p class="text-muted-foreground text-sm leading-relaxed">{r.jobRecommendations}</p>
-      </CardContent>
-    </Card>
-  {/if}
 
   <Card>
     <CardHeader><CardTitle class="text-sm">Grafik DISC</CardTitle></CardHeader>
@@ -216,7 +157,68 @@
     </Card>
   </div>
 
-  <div class="flex gap-3">
-    <a href="/student-dashboard" class="text-primary text-sm hover:underline">← Kembali ke Dashboard</a>
+  {#if r?.profileTitle}
+    <Card>
+      <CardHeader>
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <p class="text-muted-foreground text-xs">Kepribadian Asli / Sesungguhnya</p>
+            <CardTitle>{r.profileTitle}</CardTitle>
+          </div>
+          <Badge variant="outline">DISC</Badge>
+        </div>
+        {#if difTraits.length > 0}
+          <ul class="mt-3 flex flex-wrap gap-1.5">
+            {#each difTraits as trait}
+              <li class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs">{trait}</li>
+            {/each}
+          </ul>
+        {/if}
+        <CardDescription class="mt-3 text-sm leading-relaxed">{r.profileDesc ?? ''}</CardDescription>
+      </CardHeader>
+    </Card>
+  {/if}
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <Card>
+      <CardHeader>
+        <p class="text-muted-foreground text-xs">Kepribadian Saat di Publik</p>
+        <CardTitle class="text-base">{r?.mostProfileTitle ?? '-'}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {#if mostTraits.length > 0}
+          <ul class="flex flex-wrap gap-1.5">
+            {#each mostTraits as trait}
+              <li class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs">{trait}</li>
+            {/each}
+          </ul>
+        {/if}
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader>
+        <p class="text-muted-foreground text-xs">Kepribadian Saat Mendapat Tekanan</p>
+        <CardTitle class="text-base">{r?.leastProfileTitle ?? '-'}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {#if leastTraits.length > 0}
+          <ul class="flex flex-wrap gap-1.5">
+            {#each leastTraits as trait}
+              <li class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs">{trait}</li>
+            {/each}
+          </ul>
+        {/if}
+      </CardContent>
+    </Card>
   </div>
+
+  {#if r?.jobRecommendations}
+    <Card>
+      <CardHeader><CardTitle class="text-sm">Job Match</CardTitle></CardHeader>
+      <CardContent>
+        <p class="text-muted-foreground text-sm leading-relaxed">{r.jobRecommendations}</p>
+      </CardContent>
+    </Card>
+  {/if}
 </div>
