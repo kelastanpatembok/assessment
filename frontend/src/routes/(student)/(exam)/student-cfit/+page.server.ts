@@ -38,12 +38,21 @@ export const actions: Actions = {
 
     const assignmentId = Number(data.get('assignmentId') ?? 0);
 
-    // Parse st{subtestNo}_q{itemNo} fields into CfitAnswerDto list
-    const answers: { subtestNo: number; itemNo: number; answer: string }[] = [];
+    // Parse st{subtestNo}_q{itemNo} (radio, one value) and st{subtestNo}_q{itemNo}[]
+    // (Subtest 2 checkboxes, up to two values sharing the same field name) into
+    // CfitAnswerDto{subtestNo, itemNo, answers[]} entries.
+    const answerMap = new Map<string, { subtestNo: number; itemNo: number; answers: string[] }>();
     for (const [k, v] of data.entries()) {
-      const m = k.match(/^st(\d+)_q(\d+)$/);
-      if (m) answers.push({ subtestNo: Number(m[1]), itemNo: Number(m[2]), answer: v as string });
+      const m = k.match(/^st(\d+)_q(\d+)(\[\])?$/);
+      if (!m) continue;
+      const subtestNo = Number(m[1]);
+      const itemNo = Number(m[2]);
+      const mapKey = `${subtestNo}_${itemNo}`;
+      const entry = answerMap.get(mapKey) ?? { subtestNo, itemNo, answers: [] };
+      entry.answers.push(v as string);
+      answerMap.set(mapKey, entry);
     }
+    const answers = Array.from(answerMap.values());
 
     if (answers.length === 0) return fail(422, { error: 'Harap isi semua jawaban' });
 

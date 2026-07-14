@@ -35,10 +35,19 @@ public class CfitController {
 
     record SubmitRequest(Long assignmentId, List<CfitAnswerDto> answers) {}
 
+    // Student-facing question shape — deliberately excludes correctAnswer/correctAnswer2
+    // so the answer key isn't shipped to the browser (the legacy app leaked it into the
+    // exam page's HTML source; see docs/todo-cfit-test.md).
+    record CfitQuestionView(Long id, Integer subtestNo, Integer itemNo, String stemImageUrl, List<String> optionImages) {}
+
     @GetMapping("/questions")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<CfitQuestion>> questions() {
-        return ResponseEntity.ok(cfitQuestionRepository.findByActiveTrueOrderBySubtestNoAscItemNoAsc());
+    public ResponseEntity<List<CfitQuestionView>> questions() {
+        List<CfitQuestionView> views = cfitQuestionRepository.findByActiveTrueOrderBySubtestNoAscItemNoAsc()
+                .stream()
+                .map(q -> new CfitQuestionView(q.getId(), q.getSubtestNo(), q.getItemNo(), q.getStemImageUrl(), q.getOptionImages()))
+                .toList();
+        return ResponseEntity.ok(views);
     }
 
     @GetMapping("/check")

@@ -15,8 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +29,9 @@ public class CfitScoringService {
     private final CfitResultRepository cfitResultRepository;
     private final ObjectMapper objectMapper;
 
-    public record CfitAnswerDto(int subtestNo, int itemNo, String answer) {}
+    // answers: the letter(s) the student picked for this item. Subtest 2 (Classification)
+    // requires exactly 2 letters; every other subtest requires exactly 1.
+    public record CfitAnswerDto(int subtestNo, int itemNo, List<String> answers) {}
 
     @Transactional
     @SneakyThrows
@@ -46,7 +50,7 @@ public class CfitScoringService {
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "CFIT question not found: subtest=" + answer.subtestNo()
                                     + " item=" + answer.itemNo()));
-            if (answer.answer().equalsIgnoreCase(question.getCorrectAnswer())) {
+            if (isCorrect(question, answer.answers())) {
                 subtestScores.merge(answer.subtestNo(), 1, Integer::sum);
             }
         }
@@ -88,5 +92,22 @@ public class CfitScoringService {
                 .build();
 
         return cfitResultRepository.save(result);
+    }
+
+    // Subtest 2 (Classification) needs both correctAnswer and correctAnswer2 selected
+    // (order-independent, no extras); every other subtest needs exactly correctAnswer.
+    private boolean isCorrect(CfitQuestion question, List<String> submitted) {
+        if (submitted == null) return false;
+        Set<String> given = new HashSet<>();
+        for (String s : submitted) {
+            if (s != null) given.add(s.toLowerCase());
+        }
+        if (question.getCorrectAnswer2() != null) {
+            Set<String> expected = Set.of(
+                    question.getCorrectAnswer().toLowerCase(),
+                    question.getCorrectAnswer2().toLowerCase());
+            return given.equals(expected);
+        }
+        return given.size() == 1 && given.contains(question.getCorrectAnswer().toLowerCase());
     }
 }
