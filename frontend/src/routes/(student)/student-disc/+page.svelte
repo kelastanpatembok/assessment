@@ -2,6 +2,7 @@
   import { enhance } from '$app/forms';
   import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
+  import { Progress } from '$lib/components/ui/progress/index.js';
 
   let { data, form } = $props();
   let loading = $state(false);
@@ -121,27 +122,33 @@
         </div>
       {/each}
 
-      <div class="mt-4 flex items-center justify-between">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={currentBlock === 0}
-          onclick={() => (currentBlock = Math.max(0, currentBlock - 1))}
-        >Sebelumnya</Button>
+      <div class="mt-4 flex flex-col gap-2">
+        <div class="text-muted-foreground flex items-center justify-between text-sm">
+          <span>Soal {currentBlock + 1} dari {totalBlocks}</span>
+          <span>{Math.round(((currentBlock + 1) / totalBlocks) * 100)}%</span>
+        </div>
+        <Progress value={currentBlock + 1} max={totalBlocks} />
 
-        <span class="text-muted-foreground text-sm">{currentBlock + 1} / {totalBlocks}</span>
-
-        {#if currentBlock < totalBlocks - 1}
+        <div class="mt-2 flex items-center justify-between">
           <Button
             type="button"
-            disabled={!currentBlockAnswered}
-            onclick={() => (currentBlock = Math.min(totalBlocks - 1, currentBlock + 1))}
-          >Selanjutnya</Button>
-        {:else}
-          <Button type="submit" disabled={loading || !currentBlockAnswered}>
-            {loading ? 'Mengirim...' : 'Kirim Jawaban'}
-          </Button>
-        {/if}
+            variant="outline"
+            disabled={currentBlock === 0}
+            onclick={() => (currentBlock = Math.max(0, currentBlock - 1))}
+          >Sebelumnya</Button>
+
+          {#if currentBlock < totalBlocks - 1}
+            <Button
+              type="button"
+              disabled={!currentBlockAnswered}
+              onclick={() => (currentBlock = Math.min(totalBlocks - 1, currentBlock + 1))}
+            >Selanjutnya</Button>
+          {:else}
+            <Button type="submit" disabled={loading || !currentBlockAnswered}>
+              {loading ? 'Mengirim...' : 'Kirim Jawaban'}
+            </Button>
+          {/if}
+        </div>
       </div>
     </form>
   {/if}
