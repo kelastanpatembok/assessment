@@ -994,6 +994,7 @@ open http://localhost:2001
 - The shadcn-svelte style is `maia` (not default). Don't switch it. Add components with `npx shadcn-svelte@latest add <component>`.
 - `components.json` iconLibrary is `hugeicons` — import icons from `@hugeicons/svelte`.
 - `@sveltejs/adapter-node` is used (not static or vercel) — the built frontend is a Node server on port 2001.
+- **Never use the browser's default `confirm()`, `alert()`, or `prompt()`.** They can't be styled, don't match the app's design system, and block the JS thread. Use shadcn-svelte's `alert-dialog` (`npx shadcn-svelte@latest add alert-dialog`) for confirmations, or `dialog`/`sonner` for informational messages, instead. Note this doesn't apply to the native `beforeunload` prompt itself (the "leave site?" browser dialog on tab close/refresh) — that one is enforced by the browser and can't be replaced with custom UI; only avoid reaching for `confirm()`/`alert()`/`prompt()` for anything we control.
 
 ---
 
