@@ -15,7 +15,7 @@ function summarizeResult(testKey: string, result: Record<string, any>): string {
 		case 'disc':
 			return result.profileTitle || result.difKey || '-';
 		case 'holland':
-			return result.hollandCode || [result.type1, result.type2, result.type3].filter(Boolean).join('') || '-';
+			return result.hollandCode || [result.type1, result.type2].filter(Boolean).join('') || '-';
 		case 'papi':
 			return 'Trait score tersedia';
 		case 'cfit':

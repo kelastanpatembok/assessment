@@ -8,6 +8,6 @@ import java.util.List;
 
 @Repository
 public interface HollandQuestionRepository extends JpaRepository<HollandQuestion, Long> {
-    List<HollandQuestion> findByActiveTrueOrderByGroupCodeAscItemNoAsc();
-    List<HollandQuestion> findByGroupCodeOrderByItemNoAsc(String groupCode);
+    List<HollandQuestion> findByActiveTrueOrderByRoundAscRiasecTypeAscItemNoAsc();
+    List<HollandQuestion> findByRoundAndRiasecTypeOrderByItemNoAsc(Integer round, String riasecType);
 }

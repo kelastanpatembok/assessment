@@ -38,7 +38,7 @@ public class HollandController {
     @GetMapping("/questions")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<HollandQuestion>> questions() {
-        return ResponseEntity.ok(hollandQuestionRepository.findByActiveTrueOrderByGroupCodeAscItemNoAsc());
+        return ResponseEntity.ok(hollandQuestionRepository.findByActiveTrueOrderByRoundAscRiasecTypeAscItemNoAsc());
     }
 
     @GetMapping("/check")

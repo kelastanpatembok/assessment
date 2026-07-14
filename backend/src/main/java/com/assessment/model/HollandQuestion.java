@@ -15,14 +15,15 @@ public class HollandQuestion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "group_code", nullable = false, length = 3)
-    private String groupCode;
-
-    @Column(name = "item_no", nullable = false)
-    private Integer itemNo;
+    // 1 = Minat (Interest), 2 = Kemampuan (Ability), 3 = Pilihan Karir (Career choice)
+    @Column(nullable = false)
+    private Integer round;
 
     @Column(name = "riasec_type", nullable = false, length = 1)
     private String riasecType;
+
+    @Column(name = "item_no", nullable = false)
+    private Integer itemNo;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String statement;

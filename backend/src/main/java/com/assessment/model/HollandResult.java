@@ -33,12 +33,22 @@ public class HollandResult {
     @Column(name = "c_score") private Integer cScore;
 
     @Column(name = "type1", length = 1) private String type1;
-    @Column(name = "type2", length = 1) private String type2;
-    @Column(name = "type3", length = 1) private String type3;
-    @Column(name = "holland_code", length = 3) private String hollandCode;
+    @Column(name = "type1_name", length = 50) private String type1Name;
+    @Column(name = "type1_description", columnDefinition = "TEXT") private String type1Description;
+    @Column(name = "type1_characteristics", columnDefinition = "TEXT") private String type1Characteristics;
+    @Column(name = "type1_strengths", columnDefinition = "TEXT") private String type1Strengths;
+    @Column(name = "type1_weaknesses", columnDefinition = "TEXT") private String type1Weaknesses;
+    @Column(name = "type1_job_match", columnDefinition = "TEXT") private String type1JobMatch;
 
-    @Column(name = "type1_name", length = 50)  private String type1Name;
-    @Column(name = "type1_desc", columnDefinition = "TEXT") private String type1Desc;
+    @Column(name = "type2", length = 1) private String type2;
+    @Column(name = "type2_name", length = 50) private String type2Name;
+    @Column(name = "type2_description", columnDefinition = "TEXT") private String type2Description;
+    @Column(name = "type2_characteristics", columnDefinition = "TEXT") private String type2Characteristics;
+    @Column(name = "type2_strengths", columnDefinition = "TEXT") private String type2Strengths;
+    @Column(name = "type2_weaknesses", columnDefinition = "TEXT") private String type2Weaknesses;
+    @Column(name = "type2_job_match", columnDefinition = "TEXT") private String type2JobMatch;
+
+    @Column(name = "holland_code", length = 2) private String hollandCode;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")

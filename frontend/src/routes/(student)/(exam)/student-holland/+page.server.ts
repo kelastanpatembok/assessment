@@ -5,6 +5,9 @@ import type { PageServerLoad, Actions } from './$types';
 export const load: PageServerLoad = async ({ locals }) => {
   const api = createApiClient(locals.token);
   const check = await api.get('/holland/check').catch(() => null);
+  if (check?.completed) {
+    redirect(302, '/student-holland/result');
+  }
   if (!check?.canTake) {
     const hasResult = await api.get('/holland/result/me').then(() => true).catch(() => false);
     if (hasResult) redirect(302, '/student-holland/result');
@@ -35,10 +38,13 @@ export const actions: Actions = {
 
     if (answers.length === 0) return fail(422, { error: 'Harap isi semua jawaban' });
 
-    const result = await api.post('/holland/submit', { assignmentId, answers });
-    if (result?.code === 'INTERNAL_SERVER_ERROR' || result?.error) {
-      return fail(422, { error: result.message ?? result.error ?? 'Gagal mengirim jawaban' });
+    try {
+      await api.post('/holland/submit', { assignmentId, answers });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Gagal mengirim jawaban';
+      return fail(422, { error: message });
     }
+
     redirect(302, '/student-holland/result');
   },
 };

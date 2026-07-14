@@ -25,5 +25,14 @@ public class HollandDescription {
     private String description;
 
     @Column(columnDefinition = "TEXT")
-    private String careers;
+    private String characteristics;
+
+    @Column(columnDefinition = "TEXT")
+    private String strengths;
+
+    @Column(columnDefinition = "TEXT")
+    private String weaknesses;
+
+    @Column(name = "job_match", columnDefinition = "TEXT")
+    private String jobMatch;
 }

@@ -19,13 +19,52 @@
     { key: 'C', label: 'Conventional',   value: r?.cscore ?? 0 },
   ].sort((a, b) => b.value - a.value));
 
-  let hollandCode = $derived(r?.hollandCode ?? dimensions.slice(0, 3).map(d => d.key).join(''));
-  let maxVal = $derived(Math.max(...dimensions.map(d => d.value), 1));
+  let hollandCode = $derived(r?.hollandCode ?? dimensions.slice(0, 2).map((d) => d.key).join(''));
+  let maxVal = $derived(Math.max(...dimensions.map((d) => d.value), 1));
+
+  type TopType = {
+    key: string;
+    name: string;
+    description?: string;
+    characteristics?: string;
+    strengths?: string;
+    weaknesses?: string;
+    jobMatch?: string;
+  };
+
+  let topTypes = $derived<TopType[]>(
+    [
+      r?.type1 && {
+        key: r.type1,
+        name: r.type1Name,
+        description: r.type1Description,
+        characteristics: r.type1Characteristics,
+        strengths: r.type1Strengths,
+        weaknesses: r.type1Weaknesses,
+        jobMatch: r.type1JobMatch,
+      },
+      r?.type2 && {
+        key: r.type2,
+        name: r.type2Name,
+        description: r.type2Description,
+        characteristics: r.type2Characteristics,
+        strengths: r.type2Strengths,
+        weaknesses: r.type2Weaknesses,
+        jobMatch: r.type2JobMatch,
+      },
+    ].filter(Boolean) as TopType[]
+  );
 </script>
 
 <svelte:head><title>Hasil Holland RIASEC</title></svelte:head>
 
 <div class="flex max-w-2xl flex-col gap-6">
+  <nav aria-label="Breadcrumb" class="text-muted-foreground flex items-center gap-1.5 text-sm">
+    <a href="/student-dashboard" class="hover:text-foreground hover:underline">Dashboard</a>
+    <span aria-hidden="true">/</span>
+    <span class="text-foreground">Hasil Tes Holland RIASEC</span>
+  </nav>
+
   <div>
     <h2 class="text-2xl font-bold">Hasil Tes Holland RIASEC</h2>
     <p class="text-muted-foreground mt-1 text-sm">
@@ -37,7 +76,7 @@
     <CardHeader>
       <div class="flex items-center gap-3">
         <CardTitle>Kode Holland</CardTitle>
-        <Badge class="text-lg px-3">{hollandCode}</Badge>
+        <Badge class="px-3 text-lg">{hollandCode}</Badge>
       </div>
     </CardHeader>
   </Card>
@@ -64,18 +103,43 @@
     </CardContent>
   </Card>
 
-  {#if r?.type1Name}
+  {#each topTypes as t, i}
     <Card>
       <CardHeader>
-        <CardTitle class="text-base">{r.type1} — {r.type1Name}</CardTitle>
+        <div class="flex items-center gap-2">
+          <Badge variant="outline">Tipe {i + 1}</Badge>
+          <CardTitle class="text-base">{t.key} — {t.name}</CardTitle>
+        </div>
       </CardHeader>
-      {#if r.type1Desc}
-        <CardContent>
-          <p class="text-muted-foreground text-sm leading-relaxed">{r.type1Desc}</p>
-        </CardContent>
-      {/if}
+      <CardContent class="flex flex-col gap-4 text-sm">
+        {#if t.description}
+          <p class="text-muted-foreground leading-relaxed">{t.description}</p>
+        {/if}
+        {#if t.characteristics}
+          <div>
+            <p class="mb-1 font-medium">Karakter</p>
+            <p class="text-muted-foreground whitespace-pre-line leading-relaxed">{t.characteristics}</p>
+          </div>
+        {/if}
+        {#if t.strengths}
+          <div>
+            <p class="mb-1 font-medium">Kelebihan</p>
+            <p class="text-muted-foreground whitespace-pre-line leading-relaxed">{t.strengths}</p>
+          </div>
+        {/if}
+        {#if t.weaknesses}
+          <div>
+            <p class="mb-1 font-medium">Kelemahan</p>
+            <p class="text-muted-foreground whitespace-pre-line leading-relaxed">{t.weaknesses}</p>
+          </div>
+        {/if}
+        {#if t.jobMatch}
+          <div>
+            <p class="mb-1 font-medium">Job Match</p>
+            <p class="text-muted-foreground whitespace-pre-line leading-relaxed">{t.jobMatch}</p>
+          </div>
+        {/if}
+      </CardContent>
     </Card>
-  {/if}
-
-  <a href="/student-dashboard" class="text-primary text-sm hover:underline">← Kembali ke Dashboard</a>
+  {/each}
 </div>
