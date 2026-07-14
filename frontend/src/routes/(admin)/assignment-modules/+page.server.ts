@@ -12,13 +12,14 @@ const TEST_LABELS: Record<string, string> = {
 export const load: PageServerLoad = async ({ locals }) => {
 	const api = createApiClient(locals.token);
 
-	const [assignmentsRaw, discRaw, hollandRaw, papiRaw, cfitRaw, istRaw] = await Promise.allSettled([
+	const [assignmentsRaw, discRaw, hollandRaw, papiRaw, cfitRaw, istRaw, credentialBatchesRaw] = await Promise.allSettled([
 		api.get('/test-assignments'),
 		api.get('/disc/results'),
 		api.get('/holland/results'),
 		api.get('/papi/results'),
 		api.get('/cfit/results'),
-		api.get('/ist/results')
+		api.get('/ist/results'),
+		api.get('/credentials/batches')
 	]);
 
 	const assignments = assignmentsRaw.status === 'fulfilled' && Array.isArray(assignmentsRaw.value) ? assignmentsRaw.value : [];
@@ -30,13 +31,27 @@ export const load: PageServerLoad = async ({ locals }) => {
 		ist: istRaw.status === 'fulfilled' && Array.isArray(istRaw.value) ? istRaw.value : []
 	};
 
+	// Batches come back sorted newest-first, so the first match per assignment is the latest one.
+	const credentialBatches =
+		credentialBatchesRaw.status === 'fulfilled' && Array.isArray(credentialBatchesRaw.value)
+			? credentialBatchesRaw.value
+			: [];
+	const latestBatchByAssignment = new Map<number, { id: number; pdfFilename: string }>();
+	for (const batch of credentialBatches) {
+		if (!latestBatchByAssignment.has(batch.testAssignmentId)) {
+			latestBatchByAssignment.set(batch.testAssignmentId, { id: batch.id, pdfFilename: batch.pdfFilename });
+		}
+	}
+
 	return {
+		token: locals.token,
 		assignments: assignments.map((assignment: any) => {
 			const tests: string[] = Array.isArray(assignment.category?.tests) ? assignment.category.tests : [];
 			const resultCount = tests.reduce((total, testKey) => {
 				const results = resultCollections[testKey as keyof typeof resultCollections] ?? [];
 				return total + results.filter((result: any) => result.assignmentId === assignment.id).length;
 			}, 0);
+			const latestBatch = latestBatchByAssignment.get(assignment.id) ?? null;
 
 			return {
 				id: assignment.id,
@@ -49,7 +64,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 				active: Boolean(assignment.active),
 				windowStart: assignment.windowStart ?? null,
 				windowEnd: assignment.windowEnd ?? null,
-				resultCount
+				resultCount,
+				latestBatchId: latestBatch?.id ?? null,
+				latestBatchFilename: latestBatch?.pdfFilename ?? null
 			};
 		})
 	};

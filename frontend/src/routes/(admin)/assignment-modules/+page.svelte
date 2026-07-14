@@ -1,5 +1,26 @@
 <script lang="ts">
+	import { createApiClient } from '$lib/api/index';
+	import { downloadBlob } from '$lib/utils';
+
 	let { data } = $props();
+	let downloadingBatchId = $state<number | null>(null);
+	let downloadError = $state<string | null>(null);
+
+	async function handleDownloadBatch(batchId: number | null, filename: string | null) {
+		if (!batchId) return;
+
+		downloadingBatchId = batchId;
+		downloadError = null;
+		try {
+			const api = createApiClient(data.token);
+			const blob = await api.getBlob(`/credentials/batches/${batchId}/download`);
+			downloadBlob(blob, filename ?? `kredensial-${batchId}.pdf`);
+		} catch (e) {
+			downloadError = e instanceof Error ? e.message : 'Gagal mengunduh PDF kredensial';
+		} finally {
+			downloadingBatchId = null;
+		}
+	}
 
 	type AssignmentRow = (typeof data.assignments)[number];
 	type SortKey = 'schoolName' | 'categoryName' | 'windowStart' | 'windowEnd' | 'resultCount';
@@ -182,6 +203,10 @@
 					</div>
 				</div>
 
+				{#if downloadError}
+					<p class="text-destructive text-sm">{downloadError}</p>
+				{/if}
+
 				<div class="grid gap-3 lg:grid-cols-[minmax(0,2fr),220px,220px]">
 					<label class="space-y-2">
 						<span class="text-sm font-medium">Cari modul</span>
@@ -287,12 +312,24 @@
 										</td>
 										<td class="border-border border-b px-4 py-4 align-top text-sm font-medium">{assignment.resultCount}</td>
 										<td class="border-border border-b px-4 py-4 align-top">
-											<a
-												href={`/assignment-modules/${assignment.id}`}
-												class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center rounded-lg px-4 text-sm font-medium transition-colors"
-											>
-												Buka
-											</a>
+											<div class="flex flex-wrap gap-2">
+												<a
+													href={`/assignment-modules/${assignment.id}`}
+													class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center rounded-lg px-4 text-sm font-medium transition-colors"
+												>
+													Buka
+												</a>
+												{#if assignment.latestBatchId}
+													<button
+														type="button"
+														onclick={() => handleDownloadBatch(assignment.latestBatchId, assignment.latestBatchFilename)}
+														disabled={downloadingBatchId === assignment.latestBatchId}
+														class="border-input bg-background hover:bg-accent disabled:opacity-50 inline-flex h-10 items-center rounded-lg border px-4 text-sm font-medium transition-colors"
+													>
+														{downloadingBatchId === assignment.latestBatchId ? 'Mengunduh...' : 'Unduh PDF'}
+													</button>
+												{/if}
+											</div>
 										</td>
 									</tr>
 								{/each}

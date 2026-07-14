@@ -34,13 +34,14 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	}
 
 	const api = createApiClient(locals.token);
-	const [assignmentsRaw, discRaw, hollandRaw, papiRaw, cfitRaw, istRaw] = await Promise.allSettled([
+	const [assignmentsRaw, discRaw, hollandRaw, papiRaw, cfitRaw, istRaw, credentialBatchesRaw] = await Promise.allSettled([
 		api.get('/test-assignments'),
 		api.get('/disc/results'),
 		api.get('/holland/results'),
 		api.get('/papi/results'),
 		api.get('/cfit/results'),
-		api.get('/ist/results')
+		api.get('/ist/results'),
+		api.get(`/credentials/batches?testAssignmentId=${assignmentId}`)
 	]);
 
 	const assignments = assignmentsRaw.status === 'fulfilled' && Array.isArray(assignmentsRaw.value) ? assignmentsRaw.value : [];
@@ -88,6 +89,17 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	const totalResults = moduleTests.reduce((sum, test) => sum + test.resultCount, 0);
 
+	const credentialBatches =
+		credentialBatchesRaw.status === 'fulfilled' && Array.isArray(credentialBatchesRaw.value)
+			? credentialBatchesRaw.value.map((batch: any) => ({
+					id: batch.id,
+					credentialCount: batch.credentialCount,
+					pdfFilename: batch.pdfFilename,
+					generatedBy: batch.generatedBy,
+					createdAt: batch.createdAt
+				}))
+			: [];
+
 	return {
 		assignment: {
 			id: assignment.id,
@@ -99,6 +111,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			windowEnd: assignment.windowEnd ?? null
 		},
 		moduleTests,
-		totalResults
+		totalResults,
+		credentialBatches,
+		token: locals.token
 	};
 };

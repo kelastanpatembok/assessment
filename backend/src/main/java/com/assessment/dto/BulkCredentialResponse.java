@@ -9,5 +9,6 @@ public record BulkCredentialResponse(
     String testCategory,
     int count,
     String createdBy,
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+    Long credentialBatchId // null if the server-side PDF export failed to save
 ) {}

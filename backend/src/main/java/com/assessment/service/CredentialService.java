@@ -4,7 +4,9 @@ import com.assessment.dto.BulkCredentialRequest;
 import com.assessment.dto.BulkCredentialResponse;
 import com.assessment.dto.CredentialDTO;
 import com.assessment.exception.CredentialGenerationException;
+import com.assessment.model.CredentialBatch;
 import com.assessment.model.TestAssignment;
+import com.assessment.repository.CredentialBatchRepository;
 import com.assessment.repository.TestAssignmentRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +54,15 @@ public class CredentialService {
 
     @Autowired
     private ActivityLogService activityLogService;
+
+    @Autowired
+    private CredentialPdfService credentialPdfService;
+
+    @Autowired
+    private CredentialStorageService credentialStorageService;
+
+    @Autowired
+    private CredentialBatchRepository credentialBatchRepository;
 
     /**
      * Generate bulk credentials for a test assignment.
@@ -141,19 +152,62 @@ public class CredentialService {
         } catch (Exception ex) {
             log.warn("Failed to write credential generation audit log: {}", ex.getMessage());
         }
-        
-        // 6. Return response
+
+        // 6. Save a printable PDF of this batch so an admin can retrieve it later
+        //    (there is no S3-compatible storage yet, so this lands on local disk).
+        //    Best-effort: a failure here must not roll back the already-created credentials.
+        Long credentialBatchId = null;
+        LocalDateTime generatedAt = LocalDateTime.now();
+        try {
+            credentialBatchId = saveCredentialPdfBatch(assignment, credentials, adminUsername, generatedAt);
+        } catch (Exception ex) {
+            log.warn("Failed to save credential PDF batch for assignment {}: {}", assignment.getId(), ex.getMessage());
+        }
+
+        // 7. Return response
         BulkCredentialResponse response = new BulkCredentialResponse(
                 credentials,
                 assignment.getSchool().getName(),
                 assignment.getCategory().getName(),
                 request.count(),
                 adminUsername,
-                LocalDateTime.now()
+                generatedAt,
+                credentialBatchId
         );
-        
+
         log.info("Bulk credential generation completed successfully");
         return response;
+    }
+
+    /**
+     * Renders the batch to PDF, stores it on disk, and records its metadata.
+     *
+     * @return the persisted CredentialBatch id
+     */
+    private Long saveCredentialPdfBatch(TestAssignment assignment, List<CredentialDTO> credentials,
+                                         String adminUsername, LocalDateTime generatedAt) {
+        String schoolName = assignment.getSchool().getName();
+        String categoryName = assignment.getCategory().getName();
+
+        byte[] pdfBytes = credentialPdfService.generatePdf(credentials, schoolName, categoryName, generatedAt);
+        String displayFilename = credentialPdfService.buildDisplayFilename(schoolName, categoryName, generatedAt);
+
+        CredentialBatch batch = CredentialBatch.builder()
+                .testAssignmentId(assignment.getId())
+                .schoolId(assignment.getSchool().getId())
+                .schoolName(schoolName)
+                .categoryName(categoryName)
+                .credentialCount(credentials.size())
+                .pdfFilename(displayFilename)
+                .generatedBy(adminUsername)
+                .build();
+        batch = credentialBatchRepository.save(batch);
+
+        credentialStorageService.save(batch.getId(), pdfBytes);
+        log.info("Credential PDF batch saved: id={}, assignmentId={}, count={}",
+                batch.getId(), assignment.getId(), credentials.size());
+
+        return batch.getId();
     }
 
     /**

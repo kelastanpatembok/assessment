@@ -7,6 +7,7 @@
     CredentialDisplay,
     ProgressIndicator,
   } from '$lib/components/wizard';
+  import { downloadBlob } from '$lib/utils';
   import { PUBLIC_API_URL } from '$env/static/public';
 
   // ==================== TypeScript Interfaces ====================
@@ -72,6 +73,7 @@
   });
   let studentCount = $state<number>(1);
   let generatedCredentials = $state<Credential[]>([]);
+  let generatedBatchId = $state<number | null>(null);
   let isGenerating = $state(false);
   let progressCurrent = $state(0);
   let error = $state<string | null>(null);
@@ -81,11 +83,25 @@
 
   let { data } = $props();
   let token: string | null = $state(null);
+  let presetApplied = $state(false);
 
   // Initialize token from page data
   $effect(() => {
     if (data?.token) {
       token = data.token;
+    }
+  });
+
+  // If we arrived from an existing assignment (e.g. "Cetak Kredensial" in Modul Penugasan),
+  // skip step 1 entirely and jump straight to configuring the username pattern.
+  $effect(() => {
+    if (!presetApplied && data?.presetAssignment) {
+      const assignment = data.presetAssignment;
+      createdAssignment = assignment;
+      usernamePattern.schoolCode = deriveSchoolCode(assignment.school.name);
+      usernamePattern.testCode = deriveTestCode(assignment.category.slug);
+      currentStep = 2;
+      presetApplied = true;
     }
   });
 
@@ -132,6 +148,13 @@
    * Does not display back button on final display screen (handled in template)
    */
   function handleStepBack() {
+    // When we jumped straight into step 2 from an existing assignment, step 1 has no
+    // meaningful state to return to, so send the admin back to the assignment list instead.
+    if (presetApplied && currentStep === 2) {
+      window.location.href = '/assignment-modules';
+      return;
+    }
+
     if (currentStep > 1) {
       error = null;
       currentStep--;
@@ -336,6 +359,7 @@
       if (response && response.credentials) {
         progressCurrent = response.credentials.length;
         generatedCredentials = response.credentials;
+        generatedBatchId = response.credentialBatchId ?? null;
         currentStep = 3;
       } else {
         // Show what the actual response contains for debugging
@@ -389,6 +413,26 @@
     handleGenerate();
   }
 
+  /**
+   * Downloads the server-stored PDF for the batch just generated.
+   * Admin-only: the API requires SUPERADMIN and is never exposed as a public/static file.
+   */
+  let downloadingPdf = $state(false);
+  async function handleDownloadPdf() {
+    if (!generatedBatchId) return;
+
+    downloadingPdf = true;
+    try {
+      const api = createApiClient(token);
+      const blob = await api.getBlob(`/credentials/batches/${generatedBatchId}/download`);
+      downloadBlob(blob, `kredensial-${generatedBatchId}.pdf`);
+    } catch (e) {
+      error = e instanceof Error ? e.message : 'Gagal mengunduh PDF kredensial';
+    } finally {
+      downloadingPdf = false;
+    }
+  }
+
   // ==================== Reactive Updates ====================
 
   /**
@@ -403,12 +447,19 @@
 
 <div class="flex flex-col gap-6">
   <div class="flex items-center justify-between">
-    <h2 class="text-2xl font-bold">Generate Kredensial Siswa</h2>
+    <div>
+      <h2 class="text-2xl font-bold">Generate Kredensial Siswa</h2>
+      {#if data.presetAssignment}
+        <p class="text-muted-foreground text-sm">
+          Untuk penugasan {data.presetAssignment.school.name} — {data.presetAssignment.category.name}
+        </p>
+      {/if}
+    </div>
     <a
-      href="/admin-dashboard"
+      href={data.presetAssignment ? '/assignment-modules' : '/admin-dashboard'}
       class="text-muted-foreground hover:text-foreground text-sm transition-colors"
     >
-      &larr; Kembali ke Dashboard
+      &larr; {data.presetAssignment ? 'Kembali ke Modul Penugasan' : 'Kembali ke Dashboard'}
     </a>
   </div>
 
@@ -450,6 +501,23 @@
         schoolName={createdAssignment?.school.name || ''}
         testCategory={createdAssignment?.category.name || ''}
       />
+
+      {#if generatedBatchId}
+        <div class="bg-muted/50 mt-4 flex items-center justify-between gap-4 rounded-lg p-4">
+          <p class="text-muted-foreground text-xs">
+            PDF kredensial ini tersimpan otomatis di server. Bisa diunduh kembali kapan saja dari
+            halaman Modul Penugasan.
+          </p>
+          <button
+            type="button"
+            onclick={handleDownloadPdf}
+            disabled={downloadingPdf}
+            class="bg-secondary hover:bg-secondary/80 disabled:opacity-50 inline-flex h-9 shrink-0 items-center rounded-lg px-4 text-sm font-medium transition-colors"
+          >
+            {downloadingPdf ? 'Mengunduh...' : 'Unduh PDF'}
+          </button>
+        </div>
+      {/if}
     </div>
   {/if}
 

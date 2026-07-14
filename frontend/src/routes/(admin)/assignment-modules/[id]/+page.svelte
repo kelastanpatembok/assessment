@@ -1,5 +1,10 @@
 <script lang="ts">
+	import { createApiClient } from '$lib/api/index';
+	import { downloadBlob } from '$lib/utils';
+
 	let { data } = $props();
+	let downloadingBatchId = $state<number | null>(null);
+	let downloadError = $state<string | null>(null);
 
 	function formatDate(value: string | null) {
 		if (!value) return '-';
@@ -7,6 +12,20 @@
 			return new Date(value).toLocaleString('id-ID');
 		} catch {
 			return value;
+		}
+	}
+
+	async function handleDownloadBatch(batchId: number, filename: string) {
+		downloadingBatchId = batchId;
+		downloadError = null;
+		try {
+			const api = createApiClient(data.token);
+			const blob = await api.getBlob(`/credentials/batches/${batchId}/download`);
+			downloadBlob(blob, filename);
+		} catch (e) {
+			downloadError = e instanceof Error ? e.message : 'Gagal mengunduh PDF kredensial';
+		} finally {
+			downloadingBatchId = null;
 		}
 	}
 </script>
@@ -48,6 +67,63 @@
 		<p class="text-muted-foreground mt-2 text-sm">
 			{formatDate(data.assignment.windowStart)} - {formatDate(data.assignment.windowEnd)}
 		</p>
+	</section>
+
+	<section class="bg-card border-border rounded-xl border p-6">
+		<div class="mb-4 flex items-center justify-between gap-4">
+			<div>
+				<h3 class="text-lg font-semibold">Riwayat Kredensial</h3>
+				<p class="text-muted-foreground text-sm">
+					PDF kredensial (username + password) yang pernah dibuat untuk penugasan ini.
+				</p>
+			</div>
+			<a
+				href={`/credentials/new?assignmentId=${data.assignment.id}`}
+				class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 shrink-0 items-center rounded-lg px-4 text-sm font-medium transition-colors"
+			>
+				Buat Kredensial Baru
+			</a>
+		</div>
+
+		{#if downloadError}
+			<p class="text-destructive mb-3 text-sm">{downloadError}</p>
+		{/if}
+
+		{#if data.credentialBatches.length === 0}
+			<p class="text-muted-foreground text-sm">Belum ada kredensial yang pernah dibuat untuk penugasan ini.</p>
+		{:else}
+			<div class="overflow-x-auto">
+				<table class="w-full text-sm">
+					<thead class="bg-muted/60 border-border border-b">
+						<tr>
+							<th class="px-3 py-2 text-left font-semibold">Dibuat</th>
+							<th class="px-3 py-2 text-left font-semibold">Jumlah</th>
+							<th class="px-3 py-2 text-left font-semibold">Oleh</th>
+							<th class="px-3 py-2 text-left font-semibold">Aksi</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each data.credentialBatches as batch}
+							<tr class="border-border border-b">
+								<td class="px-3 py-3">{formatDate(batch.createdAt)}</td>
+								<td class="px-3 py-3">{batch.credentialCount} siswa</td>
+								<td class="px-3 py-3">{batch.generatedBy}</td>
+								<td class="px-3 py-3">
+									<button
+										type="button"
+										onclick={() => handleDownloadBatch(batch.id, batch.pdfFilename)}
+										disabled={downloadingBatchId === batch.id}
+										class="bg-secondary hover:bg-secondary/80 disabled:opacity-50 inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium transition-colors"
+									>
+										{downloadingBatchId === batch.id ? 'Mengunduh...' : 'Unduh PDF'}
+									</button>
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		{/if}
 	</section>
 
 	<div class="grid gap-6">

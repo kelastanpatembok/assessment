@@ -85,6 +85,16 @@ export function createApiClient(token: string | null) {
         throw error;
       });
     },
+    // For binary responses (e.g. PDF downloads) that need the Authorization header,
+    // which a plain <a href> can't attach.
+    getBlob: async (path: string): Promise<Blob> => {
+      console.log(`Making GET (blob) request to: ${base}${path}`);
+      const response = await fetch(`${base}${path}`, { headers: { Authorization: headers['Authorization'] } });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return response.blob();
+    },
     post: (path: string, body: unknown) => {
       console.log(`Making POST request to: ${base}${path}`);
       return fetch(`${base}${path}`, { method: 'POST', headers, body: JSON.stringify(body) }).then(handleResponse).catch(error => {
