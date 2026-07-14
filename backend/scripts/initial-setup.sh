@@ -1,11 +1,24 @@
 #!/usr/bin/env bash
-# initial-setup.sh — idempotent DISC question bank reset
+# initial-setup.sh — idempotent DISC + PAPI Kostick question bank reset
 #
 # The DISC question bank must always have 24 blocks x 4 statements (96 rows),
 # sourced from "Psikogram DISC_simulasidewi.xlsx" (tab "DISC Test", cross-checked
 # against the P/K scoring formulas on the "Input" tab). This project is still in
 # development, so this script clears disc_questions (and disc_results, which are
 # stale once block numbering changes) and reseeds from scratch. Safe to rerun.
+#
+# The PAPI Kostick section reseeds papi_questions (90 pairs x 2 statements = 180
+# rows) and papi_descriptions (20 traits). Statement text is transcribed verbatim
+# from docs/papi.pdf (pages 1-5; the instructions page is page 6, the LAST page
+# of that PDF). The pair_no -> trait_code assignment is NOT sourced from an
+# official answer key (none was available in docs/papi.pdf or docs/papi-result.xls
+# at the time this was written) — it's a structurally-balanced placeholder (each
+# of the 20 traits appears in exactly 9 of the 90 pairs) pending confirmation from
+# the psychologist. Likewise papi_descriptions' high_desc/low_desc text is a
+# two-band placeholder grounded in the one example paragraph per trait visible in
+# the "URAIAN PAPIKOSTIK" tab of docs/papi-result.xls, not an official manual.
+# When the real key/manual arrives, replace the two INSERT blocks below wholesale
+# and rerun this script — no schema or code changes needed.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -204,3 +217,244 @@ COUNT=$(PGPASSWORD="${DATABASE_PASSWORD_VALUE}" psql \
   -c "SELECT count(*) FROM disc_questions;")
 
 echo "Done — disc_questions now has ${COUNT} rows (24 blocks x 4 items expected)."
+
+echo "Resetting PAPI Kostick question bank on ${PGDATABASE}@${PGHOST}:${PGPORT} ..."
+
+PGPASSWORD="${DATABASE_PASSWORD_VALUE}" psql \
+  --host="$PGHOST" \
+  --port="$PGPORT" \
+  --username="$DATABASE_USERNAME_VALUE" \
+  --dbname="$PGDATABASE" \
+  --set=ON_ERROR_STOP=1 \
+  -v ON_ERROR_STOP=1 <<'SQL'
+BEGIN;
+
+-- Dev-only data: safe to wipe. papi_results.answers references pair_no values
+-- that go stale the moment papi_questions is reseeded, so results are cleared
+-- alongside the question bank (same convention as disc_results above).
+TRUNCATE TABLE papi_results RESTART IDENTITY;
+TRUNCATE TABLE papi_questions RESTART IDENTITY;
+TRUNCATE TABLE papi_descriptions RESTART IDENTITY;
+
+-- 90 pairs x 2 statements (A/B), transcribed verbatim from docs/papi.pdf
+-- pages 1-5. trait_code assignment is a structurally-balanced placeholder
+-- (every trait appears in exactly 9 of the 90 pairs) — NOT an official key.
+-- See the comment header of this script before relying on scored results.
+INSERT INTO papi_questions (pair_no, item_letter, trait_code, statement) VALUES
+  (1, 'A', 'G', 'Saya seorang pekerja “keras”'),
+  (1, 'B', 'N', 'Saya bukan seorang “pemurung”'),
+  (2, 'A', 'G', 'Saya suka bekerja lebih baik dari orang lain'),
+  (2, 'B', 'A', 'Saya suka bekerja sampai selesai'),
+  (3, 'A', 'G', 'Saya suka memperagakan kepada orang lain tentang bagaimana caranya melakukan sesuatu'),
+  (3, 'B', 'P', 'Saya ingin bekerja sebaik mungkin'),
+  (4, 'A', 'G', 'Saya suka berkelakar'),
+  (4, 'B', 'X', 'Saya suka mengatakan kepada orang lain apa yang harus dikerjakannya'),
+  (5, 'A', 'N', 'Saya suka berkumpul dengan kelompok-kelompok'),
+  (5, 'B', 'A', 'Saya suka diperhatikan oleh orang lain'),
+  (6, 'A', 'N', 'Saya senang bersahabat dengan intim (sangat dekat)'),
+  (6, 'B', 'P', 'Saya senang berkelompok'),
+  (7, 'A', 'N', 'Saya cepat berubah bila saya rasa hal itu diperlukan'),
+  (7, 'B', 'X', 'Saya berusaha untuk intim (dekat) dengan teman-teman'),
+  (8, 'A', 'N', 'Saya suka “memukul balik” (membalas) jika saya benar-benar disakiti'),
+  (8, 'B', 'B', 'Saya suka melakukan hal-hal yang baru dan berbeda'),
+  (9, 'A', 'A', 'Saya ingin atasan saya menyukai saya'),
+  (9, 'B', 'P', 'Saya suka mengatakan kepada orang lain jika mereka salah'),
+  (10, 'A', 'A', 'Saya suka mengikuti perintah-perintah yang diberikan kepada saya'),
+  (10, 'B', 'X', 'Saya suka membiarkan orang lain mengatur saya'),
+  (11, 'A', 'A', 'Saya bekerja “keras” (sekuat tenaga)'),
+  (11, 'B', 'B', 'Saya orang yang tertib, saya meletakkan segala sesuatu pada tempatnya'),
+  (12, 'A', 'A', 'Saya bujuk orang lain untuk melakukan apa yang saya inginkan'),
+  (12, 'B', 'O', 'Saya bukan orang yang cepat marah'),
+  (13, 'A', 'P', 'Saya suka mengatakan kepada kelompok apa yang harus dilakukan'),
+  (13, 'B', 'X', 'Saya selalu tetap bekerja sampai selesai'),
+  (14, 'A', 'P', 'Saya selalu ingin diperhatikan'),
+  (14, 'B', 'B', 'Saya selalu ingin berhasil'),
+  (15, 'A', 'P', 'Saya ingin “diterima” oleh kelompok'),
+  (15, 'B', 'O', 'Saya suka membantu menyadarkan pemikiran orang lain'),
+  (16, 'A', 'P', 'Saya cemas jika orang lain tidak menyukai saya'),
+  (16, 'B', 'Z', 'Saya senang jika orang-orang memperhatikan saya'),
+  (17, 'A', 'X', 'Saya suka mencoba sesuatu yang baru'),
+  (17, 'B', 'B', 'Saya lebih menyukai bekerja bersama orang lain daripada bekerja sendiri'),
+  (18, 'A', 'X', 'Terkadang saya memaki orang lain jika ada kesalahan'),
+  (18, 'B', 'O', 'Saya bingung jika seseorang tidak menyukai saya'),
+  (19, 'A', 'X', 'Saya suka membiarkan jika orang lain mengatur saya'),
+  (19, 'B', 'Z', 'Saya suka mencoba pekerjaan baru dan berbeda'),
+  (20, 'A', 'X', 'Saya menyukai petunjuk-petunjuk yang terperinci'),
+  (20, 'B', 'K', 'Saya suka mengatakan kepada orang lain jika mereka mengganggu saya'),
+  (21, 'A', 'B', 'Saya selalu bekerja “keras”'),
+  (21, 'B', 'O', 'Saya suka bekerja dengan cermat dan terperinci'),
+  (22, 'A', 'B', 'Saya berusaha untuk menjadi pemimpin yang baik'),
+  (22, 'B', 'Z', 'Saya seorang organisator yang baik'),
+  (23, 'A', 'B', 'Saya seorang yang cepat marah'),
+  (23, 'B', 'K', 'Saya seorang yang lambat dalam mengambil keputusan'),
+  (24, 'A', 'B', 'Saya senang mengerjakan beberapa pekerjaan dalam waktu yang bersamaan'),
+  (24, 'B', 'F', 'Saya lebih suka diam jika berada di dalam kelompok'),
+  (25, 'A', 'O', 'Saya senang jika diundang'),
+  (25, 'B', 'Z', 'Saya ingin melakukan sesuatu lebih baik dari yang lain'),
+  (26, 'A', 'O', 'Saya suka berteman secara intim (sangat dekat)'),
+  (26, 'B', 'K', 'Saya suka memberi nasihat kepada orang lain'),
+  (27, 'A', 'O', 'Saya suka melakukan hal yang baru dan berbeda'),
+  (27, 'B', 'F', 'Saya suka bercerita mengenai bagaimana saya mengelola tugas –tugas yang saya kerjakan'),
+  (28, 'A', 'O', 'Saya sangat mempertahankan kebenaran'),
+  (28, 'B', 'L', 'Saya suka bergabung di dalam suatu kelompok'),
+  (29, 'A', 'Z', 'Saya tidak mau berbeda dengan orang lain'),
+  (29, 'B', 'K', 'Saya berusaha untuk sangat intim (dekat) dengan orang lain'),
+  (30, 'A', 'Z', 'Saya suka dipandu oleh orang lain bagaimana cara mengerjakan suatu pekerjaan tertentu'),
+  (30, 'B', 'F', 'Saya mudah merasa bosan'),
+  (31, 'A', 'Z', 'Saya bekerja keras'),
+  (31, 'B', 'L', 'Saya banyak berfikir dan berencana'),
+  (32, 'A', 'Z', 'Saya memimpin kelompok'),
+  (32, 'B', 'I', 'Saya tertarik dengan hal-hal kecil (detail)'),
+  (33, 'A', 'K', 'Saya cepat dan mudah mengambil keputusan'),
+  (33, 'B', 'F', 'Saya meletakkan segala sesuatu secara rapi dan teratur'),
+  (34, 'A', 'K', 'Saya mengerjakan tugas-tugas dengan cepat'),
+  (34, 'B', 'L', 'Saya jarang marah atau sedih'),
+  (35, 'A', 'K', 'Saya ingin menjadi bagian dalam kelompok'),
+  (35, 'B', 'I', 'Pada suatu waktu, saya hanya ingin mengerjakan satu tugas saja'),
+  (36, 'A', 'K', 'Saya berusaha untuk dekat dengan teman-teman saya'),
+  (36, 'B', 'T', 'Saya berusaha keras untuk menjadi yang terbaik'),
+  (37, 'A', 'F', 'Saya menyukai mode baju baru dan tipe-tipe mobil baru'),
+  (37, 'B', 'L', 'Saya ingin menjadi penanggung jawab bagi orang lain'),
+  (38, 'A', 'F', 'Saya suka berdebat'),
+  (38, 'B', 'I', 'Saya ingin diperhatikan'),
+  (39, 'A', 'F', 'Saya senang diatur oleh orang lain'),
+  (39, 'B', 'T', 'Saya senang menjadi anggota dari suatu kelompok'),
+  (40, 'A', 'F', 'Saya senang mengikuti tata tertib peraturan'),
+  (40, 'B', 'V', 'Saya menyukai orang-orang yang mengenal diri saya'),
+  (41, 'A', 'L', 'Saya bekerja sangat keras'),
+  (41, 'B', 'I', 'Saya sangat bersahabat'),
+  (42, 'A', 'L', 'Orang lain beranggapan bahwa saya adalah seorang pemimpin yang baik'),
+  (42, 'B', 'T', 'Saya berfikir jauh kedepan dan terperinci'),
+  (43, 'A', 'L', 'Terkadang saya memanfaatkan peluang'),
+  (43, 'B', 'V', 'Saya sering meributkan hal sepele'),
+  (44, 'A', 'L', 'Orang lain menganggap saya bekerja secara cepat'),
+  (44, 'B', 'S', 'Orang lain menganggap saya menempatkan segala sesuatu secara rapi dan teratur'),
+  (45, 'A', 'I', 'Saya suka dengan permainan dan olahraga'),
+  (45, 'B', 'T', 'Saya sangat ramah'),
+  (46, 'A', 'I', 'Saya menyukai jika orang lain bersikap intim dan bersahabat'),
+  (46, 'B', 'V', 'Saya selalu berusaha untuk menyelesaikan apa yang saya mulai'),
+  (47, 'A', 'I', 'Saya suka bereksperimen dan mencoba sesuatu yang baru'),
+  (47, 'B', 'S', 'Saya suka mengerjakan pekerjaan yang sulit dengan baik'),
+  (48, 'A', 'I', 'Saya ingin diperlakukan secara adil'),
+  (48, 'B', 'R', 'Saya suka memberi tahu orang lain bagaimana cara mengerjakan suatu hal'),
+  (49, 'A', 'T', 'Saya suka mengerjakan apa yang dituntut kepada saya'),
+  (49, 'B', 'V', 'Saya suka menarik perhatian'),
+  (50, 'A', 'T', 'Saya suka petunjuk yang terperinci untuk melakukan sesuatu'),
+  (50, 'B', 'S', 'Saya merasa diri saya tidak mengenal lelah dalam bekerja sehari -hari'),
+  (51, 'A', 'T', 'Saya selalu berusaha mengerjakan tugas secara sempurna'),
+  (51, 'B', 'R', 'Saya merasa bahwa saya tidak mengenal lelah dalam mengerjakan pekerjaan sehari-hari'),
+  (52, 'A', 'T', 'Saya adalah tipe seorang pemimpin'),
+  (52, 'B', 'D', 'Saya mudah berteman'),
+  (53, 'A', 'V', 'Saya memanfaatkan peluang'),
+  (53, 'B', 'S', 'Saya banyak berfikir'),
+  (54, 'A', 'V', 'Saya bekerja dengan cara yang cepat'),
+  (54, 'B', 'R', 'Saya mengerjakan hal-hal yang detail'),
+  (55, 'A', 'V', 'Banyak energi saya tercurah pada permainan dan olahraga'),
+  (55, 'B', 'D', 'Saya menempatkan segala sesuatu secara rapi dan teratur'),
+  (56, 'A', 'V', 'Saya bergaul dengan semua orang'),
+  (56, 'B', 'E', 'Saya pandai mengendalikan diri'),
+  (57, 'A', 'S', 'Saya ingin berkenalan dengan orang baru dan mengerjakan sesuatu yang baru'),
+  (57, 'B', 'R', 'Saya selalu ingin menyelesaikan pekerjaan yang saya mulai'),
+  (58, 'A', 'S', 'Biasanya saya mempertahankan apa yang saya yakini'),
+  (58, 'B', 'D', 'Biasanya saya bekerja keras'),
+  (59, 'A', 'S', 'Saya menyukai saran dari orang yang saya kagumi'),
+  (59, 'B', 'E', 'Saya senang diatur orang lain'),
+  (60, 'A', 'S', 'Saya biarkan orang lain mempengaruhi saya'),
+  (60, 'B', 'C', 'Saya suka menerima banyak perhatian'),
+  (61, 'A', 'R', 'Biasanya saya bekerja sangat keras'),
+  (61, 'B', 'D', 'Biasanya saya bekerja cepat'),
+  (62, 'A', 'R', 'Jika saya berbicara, kelompok saya mendengarkan'),
+  (62, 'B', 'E', 'Saya terampil menggunakan alat-alat kerja'),
+  (63, 'A', 'R', 'Saya lambat dalam pergaulan'),
+  (63, 'B', 'C', 'Saya lambat dalam mengatur pemikiran saya'),
+  (64, 'A', 'R', 'Biasanya saya makan secara cepat'),
+  (64, 'B', 'W', 'Saya suka membaca'),
+  (65, 'A', 'D', 'Saya suka berganti-ganti pekerjaan'),
+  (65, 'B', 'E', 'Saya suka pekerjaan yang dilakukan secara teliti'),
+  (66, 'A', 'D', 'Saya berteman sebanyak mungkin'),
+  (66, 'B', 'C', 'Saya dapat menemukan bagian yang hilang'),
+  (67, 'A', 'D', 'Perencanaan saya jauh ke masa depan'),
+  (67, 'B', 'W', 'Saya selalu bersikap ramah tamah'),
+  (68, 'A', 'G', 'Saya merasa bangga akan nama baik saya'),
+  (68, 'B', 'D', 'Saya menghadapi permasalahan sampai terpecahkan'),
+  (69, 'A', 'E', 'Saya patuh kepada orang yang saya kagumi'),
+  (69, 'B', 'C', 'Saya ingin menjadi orang yang berhasil'),
+  (70, 'A', 'E', 'Saya senang jika orang lain mengambil keputusan untuk kelompok saya'),
+  (70, 'B', 'W', 'Saya suka mengambil keputusan untuk kelompok saya'),
+  (71, 'A', 'G', 'Saya selalu berusaha sangat “keras”'),
+  (71, 'B', 'E', 'Saya cepat dan mudah mengambil keputusan'),
+  (72, 'A', 'N', 'Biasanya kelompok saya mengerjakan hal yang saya inginkan'),
+  (72, 'B', 'E', 'Biasanya saya tergesa-gesa'),
+  (73, 'A', 'C', 'Seringkali saya merasa lelah'),
+  (73, 'B', 'W', 'Saya lambat dalam mengambil keputusan'),
+  (74, 'A', 'G', 'Saya bekerja secara cepat'),
+  (74, 'B', 'C', 'Saya mudah mendapat teman'),
+  (75, 'A', 'N', 'Biasanya saya bersemangat atau bergairah'),
+  (75, 'B', 'C', 'Saya memanfaatkan sebagian besar waktu saya untuk berfikir'),
+  (76, 'A', 'A', 'Saya sangat hangat (ramah) kepada orang lain'),
+  (76, 'B', 'C', 'Saya menyukai pekerjaan yang menuntut ketepatan'),
+  (77, 'A', 'G', 'Saya banyak berfikir dan berencana'),
+  (77, 'B', 'W', 'Saya meletakkan segala sesuatu pada tempatnya'),
+  (78, 'A', 'N', 'Saya menyukai pekerjaan yang mudah'),
+  (78, 'B', 'W', 'Saya tidak cepat marah'),
+  (79, 'A', 'A', 'Saya senang mengikuti orang yang saya kagumi'),
+  (79, 'B', 'W', 'Saya selalu menyelesaikan pekerjaan yang saya mulai'),
+  (80, 'A', 'P', 'Saya menyukai petunjuk yang jelas'),
+  (80, 'B', 'W', 'Saya suka bekerja keras'),
+  (81, 'A', 'G', 'Saya mengikuti apa yang saya inginkan'),
+  (81, 'B', 'L', 'Saya seorang pemimpin yang baik'),
+  (82, 'A', 'N', 'Saya meminta orang lain untuk bekerja keras'),
+  (82, 'B', 'I', 'Saya seorang yang senang bergembira'),
+  (83, 'A', 'A', 'Saya membuat keputusan secara cepat'),
+  (83, 'B', 'T', 'Saya berbicara dengan cepat'),
+  (84, 'A', 'P', 'Biasanya saya bekerja secara tergesa - gesa'),
+  (84, 'B', 'V', 'Saya berlatih sesuatu secara teratur'),
+  (85, 'A', 'X', 'Saya tidak suka bertemu dengan orang lain'),
+  (85, 'B', 'S', 'Saya cepat lelah'),
+  (86, 'A', 'B', 'Saya mempunyai banyak sekali teman'),
+  (86, 'B', 'R', 'Banyak waktu saya untuk berpikir'),
+  (87, 'A', 'O', 'Saya suka bekerja dengan teori'),
+  (87, 'B', 'D', 'Saya suka bekerja secara detail'),
+  (88, 'A', 'Z', 'Saya suka bekerja secara detail'),
+  (88, 'B', 'E', 'Saya suka mengorganisir pekerjaan saya'),
+  (89, 'A', 'K', 'Saya meletakkan segala sesuatu pada tempatnya'),
+  (89, 'B', 'C', 'Saya selalu ramah'),
+  (90, 'A', 'F', 'Saya senang diberi petunjuk mengenai apa yang harus saya lakukan'),
+  (90, 'B', 'W', 'Saya harus menyelesaikan apa yang saya mulai');
+-- 20 PAPI traits. description/high_desc/low_desc are a two-band placeholder
+-- grounded in the single example paragraph per trait in the "URAIAN
+-- PAPIKOSTIK" tab of docs/papi-result.xls — not an official interpretation
+-- manual. Replace wholesale once the psychologist supplies one.
+INSERT INTO papi_descriptions (trait_code, trait_name, description, high_desc, low_desc) VALUES
+  ('N', 'Ketuntasan Tugas', 'Mengukur dorongan untuk menuntaskan sendiri setiap tugas yang sudah dimulai hingga selesai.', 'Sangat berkomitmen menyelesaikan sendiri setiap tugas hingga tuntas, enggan mendelegasikan sebelum pekerjaan benar-benar selesai.', 'Cukup nyaman mendelegasikan sebagian pekerjaan kepada orang lain begitu ada kesempatan, tidak selalu menuntaskan sendiri hingga akhir.'),
+  ('G', 'Orientasi Hasil', 'Mengukur dorongan untuk bekerja keras dengan arah dan target yang jelas.', 'Bekerja sangat keras dengan tujuan yang tegas dan terarah, gigih mengejar target yang ditetapkan.', 'Bekerja santai tanpa target yang jelas, kurang terdorong untuk mengejar pencapaian tertentu.'),
+  ('A', 'Kebutuhan Berprestasi', 'Mengukur dorongan internal untuk mencapai sukses dan memanfaatkan kemampuan diri secara optimal.', 'Sangat kompetitif dan haus akan prestasi, berinisiatif tinggi, terus berusaha memanfaatkan kemampuan diri secara maksimal untuk mencapai sukses.', 'Tidak kompetitif, merasa mapan dan puas dengan capaian saat ini, tidak terlalu terdorong untuk menghasilkan prestasi, membutuhkan dorongan dari luar untuk berusaha mencapai sukses, kurang berinisiatif memanfaatkan kemampuan diri secara optimal.'),
+  ('L', 'Kepercayaan Diri Memimpin', 'Mengukur kepercayaan diri dan kesiapan mengambil peran memimpin.', 'Sangat percaya diri dan aktif mencari posisi kepemimpinan, nyaman mengambil tanggung jawab memimpin orang lain.', 'Kurang percaya diri untuk memimpin, cenderung menghindari posisi yang menuntut tanggung jawab kepemimpinan.'),
+  ('P', 'Kontrol terhadap Orang Lain', 'Mengukur kebutuhan untuk mengendalikan dan mengawasi pekerjaan orang lain.', 'Aktif mengontrol dan mengarahkan pekerjaan orang lain, serta bersedia mempertanggungjawabkan hasil kerja timnya secara langsung.', 'Enggan mengontrol atau mengarahkan orang lain, lebih memberi kebebasan penuh kepada bawahan untuk bekerja dengan caranya sendiri.'),
+  ('I', 'Kecepatan Mengambil Keputusan', 'Mengukur kecepatan, keyakinan, dan keberanian dalam mengambil keputusan.', 'Sangat yakin dan cepat dalam mengambil keputusan, berani mengambil risiko dan memanfaatkan peluang, namun cenderung impulsif, tidak sabar, dan kurang mempertimbangkan akurasi.', 'Berhati-hati dan mempertimbangkan matang-matang sebelum mengambil keputusan, cenderung menghindari risiko.'),
+  ('T', 'Tempo Mental', 'Mengukur tingkat aktivitas mental dan kemampuan menyesuaikan tempo kerja.', 'Sangat aktif secara mental, mampu menyesuaikan tempo kerja dengan cepat sesuai tuntutan pekerjaan dan lingkungan.', 'Lebih menyukai tempo kerja yang stabil dan konsisten, kurang nyaman jika harus sering menyesuaikan kecepatan kerja.'),
+  ('V', 'Energi Fisik', 'Mengukur tingkat energi fisik dan preferensi terhadap aktivitas yang menuntut stamina.', 'Enerjik dan menyukai aktivitas fisik, memiliki stamina tinggi untuk menangani tugas berat, namun kurang betah bekerja lama di belakang meja.', 'Lebih nyaman dengan pekerjaan yang tidak menuntut banyak aktivitas fisik, betah bekerja di belakang meja dalam waktu lama.'),
+  ('X', 'Kebutuhan Tampil Beda', 'Mengukur kebutuhan untuk tampil menonjol dan berbeda dari orang lain.', 'Senang menjadi pusat perhatian, aktif menonjolkan diri dan tampil beda dari orang lain.', 'Sederhana, cenderung pendiam dan pemalu, tidak suka menonjolkan diri di depan orang lain.'),
+  ('S', 'Kebutuhan Sosial', 'Mengukur kebutuhan akan kehadiran dan interaksi dengan orang lain dalam bekerja.', 'Sangat membutuhkan kehadiran dan interaksi dengan orang lain, luwes dan nyaman dalam situasi sosial.', 'Dapat bekerja sendiri tanpa membutuhkan kehadiran orang lain, cenderung menarik diri dan canggung dalam situasi sosial.'),
+  ('B', 'Kebutuhan Berkelompok', 'Mengukur kebutuhan untuk menjadi bagian dari suatu kelompok dan diterima olehnya.', 'Sangat suka bergabung dan menjadi bagian dari kelompok, mengutamakan kerja sama, ingin disukai dan diakui lingkungan, cenderung bergantung pada kelompok.', 'Cukup nyaman bekerja sendiri tanpa harus menjadi bagian dari kelompok tertentu, tidak terlalu bergantung pada penerimaan kelompok.'),
+  ('O', 'Kepekaan terhadap Orang Lain', 'Mengukur kepekaan dan perhatian terhadap kebutuhan emosional orang lain.', 'Sangat peka terhadap kebutuhan dan perasaan orang lain, suka menjalin hubungan persahabatan yang hangat dan tulus, namun mudah tersinggung dan sangat perasa.', 'Kurang memperhatikan kebutuhan emosional orang lain, lebih berfokus pada hal-hal di luar hubungan personal, tidak mudah tersinggung.'),
+  ('R', 'Orientasi Teoritis', 'Mengukur kecenderungan berpikir teoritis-konseptual dibandingkan praktis-berdasarkan pengalaman.', 'Sangat menyukai dan mengutamakan pemikiran teoritis, konsep, dan ide-ide baru dibanding pengalaman praktis.', 'Lebih mengutamakan pengalaman praktis dan konkret dibanding pemikiran teoritis atau konsep abstrak.'),
+  ('D', 'Perhatian pada Detail', 'Mengukur tingkat perhatian dan ketelitian terhadap detail pekerjaan.', 'Sangat memperhatikan detail dan kecermatan dalam bekerja, teliti terhadap hal-hal kecil.', 'Melihat pekerjaan secara makro/garis besar, cenderung menghindari detail dan mendelegasikannya kepada orang lain, berisiko bertindak tanpa data yang cukup akurat.'),
+  ('C', 'Kebutuhan Keteraturan', 'Mengukur kebutuhan akan keteraturan, struktur, dan kerapian dalam bekerja.', 'Sangat menyukai keteraturan dan struktur yang jelas, bekerja sesuai rencana yang sudah disusun rapi sebelumnya.', 'Lebih mementingkan fleksibilitas daripada struktur, bekerja sesuai situasi ketimbang rencana yang sudah disusun, kurang mempedulikan keteraturan dan kerapian.'),
+  ('Z', 'Kebutuhan akan Perubahan', 'Mengukur seberapa besar kebutuhan akan perubahan dan variasi dalam bekerja.', 'Sangat mudah beradaptasi dan menyukai perubahan, senang menghadapi situasi baru yang dinamis.', 'Lebih menyukai kestabilan dan rutinitas, kurang nyaman menghadapi perubahan mendadak.'),
+  ('E', 'Pengendalian Emosi', 'Mengukur kemampuan mengendalikan dan mengelola ekspresi emosi.', 'Mampu mengendalikan dan mengelola emosi dengan baik, tenang dan stabil dalam menghadapi tekanan.', 'Cenderung ekspresif dan reaktif secara emosional, mudah menunjukkan perasaan secara terbuka.'),
+  ('K', 'Sikap terhadap Konflik', 'Mengukur ketegasan dan kesiapan menghadapi situasi konflik.', 'Berani menghadapi konflik secara langsung dan tegas mempertahankan posisinya.', 'Cenderung menghindari konflik, memilih mencari titik temu dan memahami sudut pandang orang lain daripada berkonfrontasi.'),
+  ('F', 'Loyalitas', 'Mengukur loyalitas dan kepatuhan terhadap organisasi atau atasan.', 'Sangat loyal dan patuh terhadap organisasi/atasan, dapat diandalkan untuk mengikuti arahan.', 'Kurang terikat secara loyalitas terhadap organisasi/atasan, lebih mengutamakan penilaian pribadi.'),
+  ('W', 'Kejelasan Tugas dan Wewenang', 'Mengukur kebutuhan akan kejelasan uraian tugas, tanggung jawab, dan wewenang.', 'Sangat membutuhkan uraian tugas yang rinci serta batasan tanggung jawab dan wewenang yang jelas sebelum bekerja.', 'Nyaman bekerja tanpa batasan tugas dan wewenang yang terlalu rinci, dapat menyesuaikan diri dengan ambiguitas peran.');
+COMMIT;
+SQL
+
+PAPI_COUNT=$(PGPASSWORD="${DATABASE_PASSWORD_VALUE}" psql \
+  --host="$PGHOST" \
+  --port="$PGPORT" \
+  --username="$DATABASE_USERNAME_VALUE" \
+  --dbname="$PGDATABASE" \
+  --tuples-only --no-align \
+  -c "SELECT count(*) FROM papi_questions;")
+
+echo "Done — papi_questions now has ${PAPI_COUNT} rows (90 pairs x 2 items expected)."

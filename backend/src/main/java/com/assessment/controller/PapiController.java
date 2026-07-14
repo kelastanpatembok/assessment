@@ -10,6 +10,8 @@ import com.assessment.repository.PapiQuestionRepository;
 import com.assessment.repository.PapiResultRepository;
 import com.assessment.security.CurrentUser;
 import com.assessment.service.ActivityLogService;
+import com.assessment.service.PapiInterpretationService;
+import com.assessment.service.PapiInterpretationService.TraitDetail;
 import com.assessment.service.PapiScoringService;
 import com.assessment.service.PapiScoringService.PapiAnswerDto;
 import com.assessment.service.TestAssignmentService;
@@ -18,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -30,10 +33,22 @@ public class PapiController {
     private final PapiResultRepository papiResultRepository;
     private final AssessmentUserRepository assessmentUserRepository;
     private final PapiScoringService papiScoringService;
+    private final PapiInterpretationService papiInterpretationService;
     private final TestAssignmentService testAssignmentService;
     private final ActivityLogService activityLogService;
 
     record SubmitRequest(Long assignmentId, List<PapiAnswerDto> answers) {}
+
+    record PapiResultView(Long id, String authUserId, String studentName, String schoolName,
+                           Long assignmentId, String traitScores, List<TraitDetail> traitDetails,
+                           LocalDateTime completedAt) {}
+
+    private PapiResultView toView(PapiResult result) {
+        return new PapiResultView(
+                result.getId(), result.getAuthUserId(), result.getStudentName(), result.getSchoolName(),
+                result.getAssignmentId(), result.getTraitScores(), papiInterpretationService.interpret(result),
+                result.getCompletedAt());
+    }
 
     @GetMapping("/questions")
     @PreAuthorize("isAuthenticated()")
@@ -80,10 +95,10 @@ public class PapiController {
 
     @GetMapping("/result/me")
     @PreAuthorize("hasRole('SISWA')")
-    public ResponseEntity<PapiResult> myResult() {
+    public ResponseEntity<PapiResultView> myResult() {
         PapiResult result = papiResultRepository.findByAuthUserId(CurrentUser.userId())
                 .orElseThrow(() -> new ResourceNotFoundException("No PAPI result found"));
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(toView(result));
     }
 
     @GetMapping("/results")
@@ -94,9 +109,9 @@ public class PapiController {
 
     @GetMapping("/results/{authUserId}")
     @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR')")
-    public ResponseEntity<PapiResult> resultForStudent(@PathVariable String authUserId) {
+    public ResponseEntity<PapiResultView> resultForStudent(@PathVariable String authUserId) {
         PapiResult result = papiResultRepository.findByAuthUserId(authUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("No PAPI result found for: " + authUserId));
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(toView(result));
     }
 }
