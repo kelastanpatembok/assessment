@@ -54,10 +54,11 @@ export const actions: Actions = {
 
     try {
       await api.post('/disc/submit', { assignmentId, answers });
-      redirect(302, '/student-disc/result');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Gagal mengirim jawaban';
       return fail(422, { error: message });
     }
+
+    redirect(302, '/student-disc/result');
   },
 };
