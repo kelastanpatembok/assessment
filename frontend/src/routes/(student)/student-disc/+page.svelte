@@ -47,11 +47,11 @@
       INSTRUKSI : Terdapat 24 soal, Setiap nomor di bawah ini memuat 4 (empat) kalimat. Tugas anda adalah :
     </p>
     <ol class="text-muted-foreground mt-1 list-decimal space-y-1 pl-5 text-sm">
-      <li>Beri tanda [x] pada kolom di bawah huruf [P] di samping kalimat yang PALING menggambarkan diri anda</li>
-      <li>Beri tanda [x] pada kolom di bawah huruf [K] di samping kalimat yang PALING TIDAK menggambarkan diri anda</li>
+      <li>Pilih kolom "Paling Tepat" di samping kalimat yang PALING menggambarkan diri anda</li>
+      <li>Pilih kolom "Paling Tidak Tepat" di samping kalimat yang PALING TIDAK menggambarkan diri anda</li>
     </ol>
     <p class="text-muted-foreground mt-1 text-sm">
-      PERHATIKAN : Setiap nomor hanya ada 1 (satu) tanda [x] di bawah masing-masing kolom P dan K.
+      PERHATIKAN : Setiap nomor hanya ada 1 (satu) pilihan di bawah masing-masing kolom Paling Tepat dan Paling Tidak Tepat.
     </p>
   </div>
 
