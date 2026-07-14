@@ -48,31 +48,46 @@ subtest (and `ist_zr_questions.correct_answer` too) — both now go through mask
 DTOs (`IstQuestionView`, `IstZrQuestionView`) that omit the answer key, matching the
 fix already applied to `/cfit/questions`.
 
-## What's missing (blockers)
+## FA / WU — now fully real (V17__ist_fa_wu_real_answers.sql)
 
-### The real FA/WU answer key
+`docs/ist-result.docx` ("KUNCI JAWABAN IST") surfaced after the initial rework — a
+genuine answer key covering items 1–176 across SE/WA/AN/RA/ZR/FA/WU/ME (GE is absent
+from it, consistent with GE needing the separate tiered free-text model, see below).
+Cross-referencing item numbers against `/upload/fotosoalist` confirmed FA = items
+117–136 and WU = items 137–156, each with a complete stem + 5 option images. All 40
+images check out with matching option sets, so **V17 replaced the 3-item placeholder
+sample with the complete, real 20-item FA and 20-item WU subtests** — real images *and*
+real answers, no more placeholders for these two.
 
-Same blocker as CFIT: no production DB dump exists anywhere in this workspace, and the
-legacy Laravel migrations only define schema — `database/seeds/` never touches
-`soal_iq_ists`. **What we did instead:** migrated 3 real images each for FA and WU
-(from `/upload/fotosoalist` + `/upload/fotoopsiist`, timestamps 117/119/121 for FA and
-138/140/150 for WU) into `frontend/static/ist/`, seeded with a placeholder answer key
-(always option "a"). The images are real; the correct answers are not.
+More images exist in `/upload/fotosoalist` + `/upload/fotoopsiist` beyond 117–156 (an
+earlier, messier batch of test/duplicate uploads around item "soal1–6") — not used,
+since they don't correspond to any item number in the answer key.
 
-**To fix:** get the real answer key from a psychologist or the official IST manual
-(Amthauer's Intelligenz-Struktur-Test), then replace the placeholder `correct_answer`
-values for FA/WU in a new migration (don't edit `V16` in place once applied — see
-`docs/todo-cfit-test.md`'s "How to replace" section, same procedure applies here).
-More of the 48/248 images in `/upload` can be migrated the same way to expand past the
-3-item sample per subtest.
+### SE / WA / AN / RA / ZR / ME — answers now known, question text still missing
 
-### SE / WA / AN / GE / RA / ME text content
+The same `ist-result.docx` also gives the real answer key for these six subtests,
+confirming their real format: SE/WA/AN/ME are single-letter MC (items 1–20, 21–40,
+41–60, 157–176), RA/ZR are numeric free-text (items 77–96, 97–116). **No source
+document with the actual question/option text exists yet** (no `ist.pdf` equivalent to
+`docs/papi.pdf` or `docs/Holland.pdf`), so seeding real MC option text isn't possible
+yet — these six subtests keep placeholder question text. Recording the full answer key
+here now so it isn't lost once the real question booklet turns up:
 
-No source document exists for IST (no `ist.pdf` equivalent to `docs/papi.pdf` or
-`docs/Holland.pdf`) — these six subtests' question text was placeholder before this
-rework and remains placeholder; this rework did not touch their content, only ME's
-*structure* (removed the fabricated memorize phase, kept it as simple placeholder MC
-like the others).
+```
+SE (1-20):  E C D D D B C A E B C D D E C A B B C B
+WA (21-40): B B D C C C C D D A E A A B C A D E B C
+AN (41-60): C E D D D A D B E D C C C C D C C D E E
+RA (77-96, numeric): 35 280 205 26 30 70 45 50 84 78 19 6 75 90 120 17 24 5 48 3
+ZR (97-116, numeric): 27 25 27 15 46 10 42 7 5 14 8 14 45 63 12 80 14 12 63 10
+ME (157-176): D E B A C A D E C B B A E C D B E A C D
+```
+(Each list reads left-to-right in ascending item-number order within its range.)
+
+### GE — no answer key here either, consistent with the tiered-scoring gap below
+
+GE (items 61–76, the gap between AN and RA in the answer key) has no entry in
+`ist-result.docx` at all — it can't have a single fixed MC answer per item, which lines
+up with GE needing tiered free-text scoring rather than exact-match MC (see below).
 
 ### GE tiered scoring — known gap, NOT fixed in this pass
 
@@ -84,14 +99,14 @@ question scored by `scoreStandard` (exact string match, single credit tier) — 
 already the case before this rework and was out of scope for the FA/WU/ME fix. Flagged
 here for a future pass; not touched to avoid scope creep beyond what was requested.
 
-## How to replace FA/WU content
+## How to add real text once the question booklet is found
 
-1. Add a new migration (e.g. `V17__ist_real_answers.sql`) updating `correct_answer` for
-   the `FA`/`WU` rows in `ist_questions`, and/or inserting more rows sourced from
-   additional images in `/upload/fotosoalist` + `/upload/fotoopsiist`.
-2. Copy any additional images into `frontend/static/ist/fotosoalist/` and
-   `.../fotoopsiist/`, referenced by `/ist/fotosoalist/<file>` / `/ist/fotoopsiist/<file>`
-   paths in `option_images` / `image_url`.
-3. No Java or frontend code changes needed — `IstQuestion`, `IstScoringService`, and the
-   exam UI already work against the real per-subtest structure; only the seeded rows
-   need updating.
+1. Add a new migration updating `question_text`/`options` for the `SE`/`WA`/`AN`/`ME`
+   rows (and `question_text` for `RA`/`ZR`) in `ist_questions` — the answer key above
+   already tells you what `correct_answer` should be for each item number, so only the
+   question/option text needs filling in.
+2. For GE, see the tiered-scoring gap above — that needs a schema addition
+   (`ist_subtest4_questions`-equivalent), not just a data update.
+3. No Java or frontend code changes needed for SE/WA/AN/RA/ZR/ME — `IstQuestion`,
+   `IstScoringService`, and the exam UI already work against the real per-subtest
+   structure; only the seeded rows need updating.
