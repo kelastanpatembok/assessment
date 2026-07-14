@@ -9,6 +9,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,15 +48,25 @@ public class AuthServiceClient {
     public AuthRegisterResponse registerUser(String username, String password, String role) {
         try {
             log.debug("Registering user in auth service: username={}", username);
-            
-            String uri = UriComponentsBuilder.fromPath("/auth/register")
+
+            // Build the fully-qualified, encoded-once URI ourselves. Passing a relative
+            // *String* to RestClient.uri(String) has it treated as a URI template and
+            // encoded again on top of UriComponentsBuilder's own encoding (e.g. a space
+            // in "name" ends up stored as the literal text "%20" instead of a real
+            // space) — but passing a bare relative java.net.URI to .uri(URI) skips the
+            // client's configured base URL entirely, so we resolve it against
+            // authBaseUrl here and hand over one already-absolute, already-encoded URI.
+            URI uri = UriComponentsBuilder.fromUriString(authBaseUrl)
+                    .path("/auth/register")
                     .queryParam("username", username)
                     .queryParam("email", username + "@generated.local")
                     .queryParam("password", password)
                     .queryParam("name", "Student " + username)
                     .queryParam("platformId", "assessment")
                     .queryParam("role", role)
-                    .toUriString();
+                    .build()
+                    .encode()
+                    .toUri();
 
             AuthRegisterResponse response = restClient.post()
                     .uri(uri)
