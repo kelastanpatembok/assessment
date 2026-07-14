@@ -1,13 +1,78 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { getContext } from 'svelte';
+  import { getContext, onMount, tick } from 'svelte';
   import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
 
   let { data, form } = $props();
   let loading = $state(false);
+  let formEl: HTMLFormElement | undefined = $state();
   const examGuard = getContext<{ disarm: () => void }>('exam-guard');
   let activeSubtest = $state(0);
+
+  // WAKTU PENYAJIAN TEST: SE 6m, WA 6m, AN 7m, GE 8m, RA 10m, ZR 10m, FA 7m, WU 9m.
+  // ME has two phases: 3m to read/study, then 6m to answer.
+  // Per-subtest countdown: moving on (manually or on timeout) is one-way — once a
+  // subtest is left, it can't be revisited, so there's no "Sebelumnya" button.
+  const SUBTEST_DURATIONS_SEC: Record<string, number> = {
+    SE: 360, WA: 360, AN: 420, GE: 480, RA: 600, ZR: 600, FA: 420, WU: 540,
+  };
+  const ME_MENGHAFAL_SEC = 180;
+  const ME_MENGERJAKAN_SEC = 360;
+
+  let mePhase: 'menghafal' | 'mengerjakan' = $state('menghafal');
+  let remainingSeconds = $state(SUBTEST_DURATIONS_SEC.SE);
+  let autoAdvancing = $state(false);
+
+  function formatTime(sec: number): string {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+
+  function durationFor(index: number): number {
+    const key = subtests[index]?.key;
+    if (key === 'ME') return ME_MENGHAFAL_SEC;
+    return SUBTEST_DURATIONS_SEC[key ?? ''] ?? 0;
+  }
+
+  function goToSubtest(index: number) {
+    activeSubtest = index;
+    mePhase = 'menghafal';
+    remainingSeconds = durationFor(index);
+  }
+
+  function startMeMengerjakan() {
+    mePhase = 'mengerjakan';
+    remainingSeconds = ME_MENGERJAKAN_SEC;
+  }
+
+  function advanceOrSubmit() {
+    const key = subtests[activeSubtest]?.key;
+    if (key === 'ME' && mePhase === 'menghafal') {
+      startMeMengerjakan();
+      return;
+    }
+    if (activeSubtest < total - 1) {
+      goToSubtest(activeSubtest + 1);
+    } else if (!autoAdvancing) {
+      autoAdvancing = true;
+      tick().then(() => formEl?.requestSubmit());
+    }
+  }
+
+  onMount(() => {
+    const id = setInterval(() => {
+      if (loading || autoAdvancing || subtests.length === 0) return;
+      if (remainingSeconds <= 1) {
+        remainingSeconds = 0;
+        advanceOrSubmit();
+      } else {
+        remainingSeconds -= 1;
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  });
 
   type IstQuestion = {
     id: number;
@@ -57,20 +122,28 @@
   {:else if subtests.length === 0}
     <Card><CardContent class="pt-6"><p class="text-muted-foreground">Tidak ada soal tersedia.</p></CardContent></Card>
   {:else}
-    <!-- Subtest nav -->
-    <div class="flex flex-wrap gap-2">
-      {#each subtests as st, i}
-        <button
-          type="button"
-          class="rounded-lg px-3 py-1.5 text-sm transition-colors
-            {activeSubtest === i ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}"
-          onclick={() => (activeSubtest = i)}
-        >{st.key}</button>
-      {/each}
+    <!-- Subtest progress — navigation is forward-only (timer-driven or manual Next),
+         so these are indicators, not clickable tabs; going back isn't possible. -->
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex flex-wrap gap-2">
+        {#each subtests as st, i}
+          <span
+            class="rounded-lg px-3 py-1.5 text-sm
+              {activeSubtest === i ? 'bg-primary text-primary-foreground' : i < activeSubtest ? 'bg-muted text-muted-foreground' : 'bg-secondary text-secondary-foreground'}"
+          >{st.key}</span>
+        {/each}
+      </div>
+      <div class="font-mono text-lg font-semibold {remainingSeconds <= 30 ? 'text-destructive' : ''}">
+        {formatTime(remainingSeconds)}
+        {#if subtests[activeSubtest]?.key === 'ME'}
+          <span class="text-muted-foreground text-xs font-normal">({mePhase === 'menghafal' ? 'menghafal' : 'mengerjakan'})</span>
+        {/if}
+      </div>
     </div>
 
     <form
       method="POST"
+      bind:this={formEl}
       use:enhance={() => {
         loading = true;
         return async ({ result, update }) => {
@@ -89,6 +162,19 @@
               <CardTitle class="text-base">Subtes {st.key}</CardTitle>
             </CardHeader>
             <CardContent>
+              {#if st.key === 'ME' && mePhase === 'menghafal'}
+                <!-- ME menghafal phase: read-only study view, no inputs yet.
+                     Real ME content/pairs aren't sourced yet (see docs/todo-ist-test.md),
+                     so this is a timed read-through of the placeholder items. -->
+                <p class="text-muted-foreground mb-4 text-sm">
+                  Bacalah dan ingat soal-soal berikut. Anda akan menjawabnya setelah waktu menghafal habis.
+                </p>
+                <div class="flex flex-col gap-2">
+                  {#each st.questions as q, qi}
+                    <p class="text-sm">{qi + 1}. {q.questionText ?? ''}</p>
+                  {/each}
+                </div>
+              {:else}
               {#each st.questions as q, qi}
                 <div class="border-border border-b pb-4 last:border-0 last:pb-0 {qi > 0 ? 'pt-4' : ''}">
                   {#if q.questionText || q.sequenceText}
@@ -113,7 +199,6 @@
                             name="ist_{q.subtestCode ?? st.key}_{q.itemNo}"
                             value={letter}
                             class="size-4 shrink-0"
-                            required
                           />
                           <img src={optImg} alt="Opsi {letter}" class="h-16 w-auto rounded border" />
                           <span>{letter}</span>
@@ -127,7 +212,6 @@
                       name="ist_{q.subtestCode ?? st.key}_{q.itemNo}"
                       placeholder="Jawaban Anda..."
                       class="border-input bg-background flex h-10 w-full max-w-xs rounded-lg border px-3 text-sm"
-                      required
                     />
                   {:else if optionEntries(q).length > 0}
                     <!-- MC options -->
@@ -139,7 +223,6 @@
                             name="ist_{q.subtestCode ?? st.key}_{q.itemNo}"
                             value={optKey}
                             class="size-4 shrink-0"
-                            required
                           />
                           <span>{optKey}. {optVal}</span>
                         </label>
@@ -152,31 +235,23 @@
                       name="ist_{q.subtestCode ?? st.key}_{q.itemNo}"
                       placeholder="Jawaban Anda..."
                       class="border-input bg-background flex h-10 w-full max-w-xs rounded-lg border px-3 text-sm"
-                      required
                     />
                   {/if}
                 </div>
               {/each}
+              {/if}
             </CardContent>
           </Card>
         </div>
       {/each}
 
       <div class="flex items-center justify-between">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={activeSubtest === 0}
-          onclick={() => (activeSubtest = Math.max(0, activeSubtest - 1))}
-        >Sebelumnya</Button>
-
         <span class="text-muted-foreground text-sm">{activeSubtest + 1} / {total}</span>
 
         {#if activeSubtest < total - 1}
-          <Button
-            type="button"
-            onclick={() => (activeSubtest = Math.min(total - 1, activeSubtest + 1))}
-          >Selanjutnya</Button>
+          <Button type="button" onclick={() => goToSubtest(activeSubtest + 1)}>Selanjutnya</Button>
+        {:else if subtests[activeSubtest]?.key === 'ME' && mePhase === 'menghafal'}
+          <Button type="button" onclick={startMeMengerjakan}>Lanjut ke Pengerjaan</Button>
         {:else}
           <Button type="submit" disabled={loading}>
             {loading ? 'Mengirim...' : 'Kirim Semua Jawaban'}

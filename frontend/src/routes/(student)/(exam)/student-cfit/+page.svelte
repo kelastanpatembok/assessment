@@ -1,7 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import { dev } from '$app/environment';
-  import { getContext, tick } from 'svelte';
+  import { getContext, onMount, tick } from 'svelte';
   import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
 
@@ -10,6 +10,46 @@
   let formEl: HTMLFormElement | undefined = $state();
   const examGuard = getContext<{ disarm: () => void }>('exam-guard');
   let activeSubtest = $state(0);
+
+  // Waktu Tes CFIT: Subtes 1 = 3 menit, 2 = 4 menit, 3 = 3 menit, 4 = 2,5 menit.
+  // Per-subtest countdown: moving on (manually or on timeout) is one-way — once a
+  // subtest is left, it can't be revisited, so there's no "Sebelumnya" button.
+  const SUBTEST_DURATIONS_SEC = [180, 240, 180, 150];
+  let remainingSeconds = $state(SUBTEST_DURATIONS_SEC[0]);
+  let autoAdvancing = $state(false);
+
+  function formatTime(sec: number): string {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+
+  function goToSubtest(index: number) {
+    activeSubtest = index;
+    remainingSeconds = SUBTEST_DURATIONS_SEC[index] ?? 0;
+  }
+
+  function advanceOrSubmit() {
+    if (activeSubtest < total - 1) {
+      goToSubtest(activeSubtest + 1);
+    } else if (!autoAdvancing) {
+      autoAdvancing = true;
+      tick().then(() => formEl?.requestSubmit());
+    }
+  }
+
+  onMount(() => {
+    const id = setInterval(() => {
+      if (loading || autoAdvancing || subtests.length === 0) return;
+      if (remainingSeconds <= 1) {
+        remainingSeconds = 0;
+        advanceOrSubmit();
+      } else {
+        remainingSeconds -= 1;
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  });
 
   type CfitQuestion = {
     id: number;
@@ -88,7 +128,7 @@
       }
     }
     if (activeSubtest < total - 1) {
-      activeSubtest += 1;
+      goToSubtest(activeSubtest + 1);
     } else {
       tick().then(() => formEl?.requestSubmit());
     }
@@ -130,15 +170,19 @@
   {:else if subtests.length === 0}
     <Card><CardContent class="pt-6"><p class="text-muted-foreground">Tidak ada soal tersedia.</p></CardContent></Card>
   {:else}
-    <!-- Subtest tabs -->
-    <div class="flex gap-2">
-      {#each subtests as st, i}
-        <button
-          type="button"
-          class="rounded-lg px-4 py-2 text-sm transition-colors {activeSubtest === i ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}"
-          onclick={() => (activeSubtest = i)}
-        >{st.label}</button>
-      {/each}
+    <!-- Subtest progress — navigation is forward-only (timer-driven or manual Next),
+         so these are indicators, not clickable tabs; going back isn't possible. -->
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex gap-2">
+        {#each subtests as st, i}
+          <span
+            class="rounded-lg px-4 py-2 text-sm {activeSubtest === i ? 'bg-primary text-primary-foreground' : i < activeSubtest ? 'bg-muted text-muted-foreground' : 'bg-secondary text-secondary-foreground'}"
+          >{st.label}</span>
+        {/each}
+      </div>
+      <div class="font-mono text-lg font-semibold {remainingSeconds <= 30 ? 'text-destructive' : ''}">
+        {formatTime(remainingSeconds)}
+      </div>
     </div>
 
     <form
@@ -192,7 +236,7 @@
                           onchange={(e) => toggleOption(key, letter, e.currentTarget.checked)}
                         />
                       {:else}
-                        <input type="radio" name={key} value={letter} class="size-4 shrink-0" required />
+                        <input type="radio" name={key} value={letter} class="size-4 shrink-0" />
                       {/if}
                       <img src={optImg} alt="Opsi {letter}" class="h-16 w-auto rounded border" />
                       <span>{letter}</span>
@@ -205,25 +249,18 @@
         </div>
       {/each}
 
-      <div class="flex items-center justify-between">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={activeSubtest === 0}
-          onclick={() => (activeSubtest = Math.max(0, activeSubtest - 1))}
-        >Sebelumnya</Button>
-
+      <div class="flex items-center justify-end">
         {#if activeSubtest < total - 1}
-          <Button type="button" onclick={() => (activeSubtest = Math.min(total - 1, activeSubtest + 1))}>
+          <Button type="button" onclick={() => goToSubtest(activeSubtest + 1)}>
             Selanjutnya
           </Button>
         {:else}
           <div class="flex flex-col items-end gap-1">
-            <Button type="submit" disabled={loading || !subtest2Complete}>
+            <Button type="submit" disabled={loading}>
               {loading ? 'Mengirim...' : 'Kirim Semua Jawaban'}
             </Button>
             {#if !subtest2Complete}
-              <span class="text-destructive text-xs">Lengkapi Subtes 2: pilih tepat 2 gambar di setiap soal.</span>
+              <span class="text-muted-foreground text-xs">Beberapa soal Subtes 2 belum lengkap (2 gambar per soal) — tetap bisa dikirim, soal yang belum lengkap dihitung salah.</span>
             {/if}
           </div>
         {/if}
