@@ -54,8 +54,13 @@ public class IstController {
      * generic ist_questions table (text MC/free-text for most, image MC for FA/WU).
      */
     @GetMapping("/questions")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('SISWA')")
     public ResponseEntity<?> questions(@RequestParam(required = false) String subtest) {
+        String userId = CurrentUser.userId();
+        AssessmentUser user = assessmentUserRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        Long schoolId = user.getSchool() != null ? user.getSchool().getId() : null;
+        testAssignmentService.requireAccess(userId, schoolId, "ist");
         if (subtest == null || subtest.isBlank()) {
             return ResponseEntity.ok(toViews(istQuestionRepository.findAll()));
         }
@@ -103,6 +108,8 @@ public class IstController {
         }
         AssessmentUser user = assessmentUserRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        Long schoolId = user.getSchool() != null ? user.getSchool().getId() : null;
+        testAssignmentService.requireAccess(userId, schoolId, "ist");
         String studentName = user.getName();
         String schoolName = user.getSchool() != null ? user.getSchool().getName() : "";
         activityLogService.logEvent(userId, "ist", "START", Map.of());

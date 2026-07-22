@@ -51,8 +51,13 @@ public class PapiController {
     }
 
     @GetMapping("/questions")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('SISWA')")
     public ResponseEntity<List<PapiQuestion>> questions() {
+        String userId = CurrentUser.userId();
+        AssessmentUser user = assessmentUserRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        Long schoolId = user.getSchool() != null ? user.getSchool().getId() : null;
+        testAssignmentService.requireAccess(userId, schoolId, "papi");
         return ResponseEntity.ok(papiQuestionRepository.findByActiveTrueOrderByPairNoAscItemLetterAsc());
     }
 
@@ -84,6 +89,8 @@ public class PapiController {
         }
         AssessmentUser user = assessmentUserRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        Long schoolId = user.getSchool() != null ? user.getSchool().getId() : null;
+        testAssignmentService.requireAccess(userId, schoolId, "papi");
         String studentName = user.getName();
         String schoolName = user.getSchool() != null ? user.getSchool().getName() : "";
         activityLogService.logEvent(userId, "papi", "START", Map.of());

@@ -36,8 +36,13 @@ public class DiscController {
     record SubmitRequest(Long assignmentId, List<DiscAnswerDto> answers) {}
 
     @GetMapping("/questions")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('SISWA')")
     public ResponseEntity<List<DiscQuestion>> questions() {
+        String userId = CurrentUser.userId();
+        AssessmentUser user = assessmentUserRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        Long schoolId = user.getSchool() != null ? user.getSchool().getId() : null;
+        testAssignmentService.requireAccess(userId, schoolId, "disc");
         return ResponseEntity.ok(discQuestionRepository.findByActiveTrueOrderByBlockNoAscItemNoAsc());
     }
 
@@ -69,6 +74,8 @@ public class DiscController {
         }
         AssessmentUser user = assessmentUserRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        Long schoolId = user.getSchool() != null ? user.getSchool().getId() : null;
+        testAssignmentService.requireAccess(userId, schoolId, "disc");
         String studentName = user.getName();
         String schoolName = user.getSchool() != null ? user.getSchool().getName() : "";
         activityLogService.logEvent(userId, "disc", "START", Map.of());

@@ -41,8 +41,13 @@ public class CfitController {
     record CfitQuestionView(Long id, Integer subtestNo, Integer itemNo, String stemImageUrl, List<String> optionImages) {}
 
     @GetMapping("/questions")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('SISWA')")
     public ResponseEntity<List<CfitQuestionView>> questions() {
+        String userId = CurrentUser.userId();
+        AssessmentUser user = assessmentUserRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        Long schoolId = user.getSchool() != null ? user.getSchool().getId() : null;
+        testAssignmentService.requireAccess(userId, schoolId, "cfit");
         List<CfitQuestionView> views = cfitQuestionRepository.findByActiveTrueOrderBySubtestNoAscItemNoAsc()
                 .stream()
                 .map(q -> new CfitQuestionView(q.getId(), q.getSubtestNo(), q.getItemNo(), q.getStemImageUrl(), q.getOptionImages()))
@@ -78,6 +83,8 @@ public class CfitController {
         }
         AssessmentUser user = assessmentUserRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        Long schoolId = user.getSchool() != null ? user.getSchool().getId() : null;
+        testAssignmentService.requireAccess(userId, schoolId, "cfit");
         String studentName = user.getName();
         String schoolName = user.getSchool() != null ? user.getSchool().getName() : "";
         activityLogService.logEvent(userId, "cfit", "START", Map.of());

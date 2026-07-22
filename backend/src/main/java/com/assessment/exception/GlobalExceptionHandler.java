@@ -29,6 +29,12 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("CONFLICT", ex.getMessage()));
     }
 
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleForbidden(ForbiddenException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("FORBIDDEN", ex.getMessage()));
+    }
+
     @ExceptionHandler(CredentialGenerationException.class)
     public ResponseEntity<ErrorResponse> handleCredentialGeneration(CredentialGenerationException ex) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)

@@ -36,8 +36,13 @@ public class HollandController {
     record SubmitRequest(Long assignmentId, List<HollandAnswerDto> answers) {}
 
     @GetMapping("/questions")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('SISWA')")
     public ResponseEntity<List<HollandQuestion>> questions() {
+        String userId = CurrentUser.userId();
+        AssessmentUser user = assessmentUserRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        Long schoolId = user.getSchool() != null ? user.getSchool().getId() : null;
+        testAssignmentService.requireAccess(userId, schoolId, "holland");
         return ResponseEntity.ok(hollandQuestionRepository.findByActiveTrueOrderByRoundAscRiasecTypeAscItemNoAsc());
     }
 
@@ -69,6 +74,8 @@ public class HollandController {
         }
         AssessmentUser user = assessmentUserRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        Long schoolId = user.getSchool() != null ? user.getSchool().getId() : null;
+        testAssignmentService.requireAccess(userId, schoolId, "holland");
         String studentName = user.getName();
         String schoolName = user.getSchool() != null ? user.getSchool().getName() : "";
         activityLogService.logEvent(userId, "holland", "START", Map.of());

@@ -15,6 +15,6 @@ public interface TestAssignmentRepository extends JpaRepository<TestAssignment, 
     List<TestAssignment> findByStudentAuthUserId(String studentId);
     List<TestAssignment> findByCategoryId(Long categoryId);
 
-    @Query("SELECT a FROM TestAssignment a WHERE (a.school.id = :schoolId OR a.student.authUserId = :studentId) AND a.active = true AND (a.windowEnd IS NULL OR a.windowEnd >= :now)")
+    @Query("SELECT a FROM TestAssignment a WHERE (a.school.id = :schoolId OR a.student.authUserId = :studentId) AND a.active = true AND (a.windowStart IS NULL OR a.windowStart <= :now) AND (a.windowEnd IS NULL OR a.windowEnd >= :now)")
     List<TestAssignment> findActiveForStudent(@Param("schoolId") Long schoolId, @Param("studentId") String studentId, @Param("now") LocalDateTime now);
 }

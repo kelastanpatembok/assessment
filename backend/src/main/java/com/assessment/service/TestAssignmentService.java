@@ -1,5 +1,6 @@
 package com.assessment.service;
 
+import com.assessment.exception.ForbiddenException;
 import com.assessment.exception.ResourceNotFoundException;
 import com.assessment.model.AssessmentUser;
 import com.assessment.model.School;
@@ -98,6 +99,19 @@ public class TestAssignmentService {
             String[] tests = a.getCategory().getTests();
             return tests != null && Arrays.asList(tests).contains(testType);
         });
+    }
+
+    /**
+     * Server-side re-check of the assignment window, independent of anything the client
+     * claims — guards the /questions and /submit endpoints directly (not just the /check
+     * flag the dashboard reads) so a direct API call can't bypass "Tanggal Mulai"/
+     * "Tanggal Berakhir".
+     */
+    @Transactional(readOnly = true)
+    public void requireAccess(String authUserId, Long schoolId, String testType) {
+        if (schoolId == null || !checkAccess(authUserId, schoolId, testType)) {
+            throw new ForbiddenException("Tes tidak tersedia di luar periode penugasan yang ditentukan");
+        }
     }
 
     @Transactional

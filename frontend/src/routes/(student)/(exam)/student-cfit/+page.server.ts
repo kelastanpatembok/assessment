@@ -56,9 +56,14 @@ export const actions: Actions = {
 
     if (answers.length === 0) return fail(422, { error: 'Harap isi semua jawaban' });
 
-    const result = await api.post('/cfit/submit', { assignmentId, answers });
-    if (result?.code === 'INTERNAL_SERVER_ERROR' || result?.error) {
-      return fail(422, { error: result.message ?? result.error ?? 'Gagal mengirim jawaban' });
+    try {
+      const result = await api.post('/cfit/submit', { assignmentId, answers });
+      if (result?.code === 'INTERNAL_SERVER_ERROR' || result?.error) {
+        return fail(422, { error: result.message ?? result.error ?? 'Gagal mengirim jawaban' });
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Gagal mengirim jawaban';
+      return fail(422, { error: message });
     }
     redirect(302, '/student-cfit/result');
   },

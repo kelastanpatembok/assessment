@@ -263,9 +263,8 @@
       const response = await api.post('/test-assignments', {
         schoolId: assignmentForm.schoolId,
         categoryId: assignmentForm.categoryId,
-        windowStart: assignmentForm.startDate + 'T00:00:00',
-        windowEnd: assignmentForm.endDate + 'T23:59:59',
-        active: true
+        startDate: assignmentForm.startDate,
+        endDate: assignmentForm.endDate
       });
       
       createdAssignment = {
