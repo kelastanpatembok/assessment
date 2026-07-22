@@ -91,6 +91,22 @@ public class TestAssignmentService {
                 .findFirst().orElse(null);
     }
 
+    /**
+     * Resolves the assignment covering this test type regardless of whether its window
+     * is currently open — used to show students "Periode: ..." on the dashboard even
+     * before the window opens or after it has closed, not just while canTake is true.
+     */
+    @Transactional(readOnly = true)
+    public TestAssignment findAssignmentForType(String authUserId, Long schoolId, String testType) {
+        if (schoolId == null) return null;
+        return testAssignmentRepository.findAssignedForStudent(schoolId, authUserId).stream()
+                .filter(a -> {
+                    String[] tests = a.getCategory().getTests();
+                    return tests != null && Arrays.asList(tests).contains(testType);
+                })
+                .findFirst().orElse(null);
+    }
+
     @Transactional(readOnly = true)
     public boolean checkAccess(String authUserId, Long schoolId, String testType) {
         List<TestAssignment> active = testAssignmentRepository

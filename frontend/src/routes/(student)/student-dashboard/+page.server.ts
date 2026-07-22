@@ -14,12 +14,14 @@ export const load: PageServerLoad = async ({ locals }) => {
   ]);
 
   function resolveStatus(result: PromiseSettledResult<any>) {
-    if (result.status === 'rejected') return { available: false, completed: false };
+    if (result.status === 'rejected') return { available: false, completed: false, windowStart: null, windowEnd: null };
     const v = result.value;
-    if (!v || v.code) return { available: false, completed: false };
+    if (!v || v.code) return { available: false, completed: false, windowStart: null, windowEnd: null };
     return {
       available: v?.canTake ?? false,
       completed: v?.completed ?? false,
+      windowStart: v?.windowStart ?? null,
+      windowEnd: v?.windowEnd ?? null,
     };
   }
 

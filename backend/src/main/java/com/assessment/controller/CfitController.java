@@ -67,11 +67,14 @@ public class CfitController {
         Long assignmentId = canTake
                 ? testAssignmentService.getActiveAssignmentId(userId, schoolId, "cfit")
                 : null;
-        return ResponseEntity.ok(Map.of(
-                "canTake", canTake,
-                "completed", completed,
-                "assignmentId", assignmentId != null ? assignmentId : 0L
-        ));
+        var assignment = testAssignmentService.findAssignmentForType(userId, schoolId, "cfit");
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("canTake", canTake);
+        body.put("completed", completed);
+        body.put("assignmentId", assignmentId != null ? assignmentId : 0L);
+        body.put("windowStart", assignment != null ? assignment.getWindowStart() : null);
+        body.put("windowEnd", assignment != null ? assignment.getWindowEnd() : null);
+        return ResponseEntity.ok(body);
     }
 
     @PostMapping("/submit")

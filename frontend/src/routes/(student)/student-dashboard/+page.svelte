@@ -6,6 +6,15 @@
   import { Button } from '$lib/components/ui/button/index.js';
 
   let { data } = $props();
+
+  const dateFmt = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  function formatWindow(windowStart: string | null, windowEnd: string | null): string | null {
+    if (!windowStart && !windowEnd) return null;
+    const start = windowStart ? dateFmt.format(new Date(windowStart)) : '?';
+    const end = windowEnd ? dateFmt.format(new Date(windowEnd)) : '?';
+    return `${start} – ${end}`;
+  }
 </script>
 
 <svelte:head><title>Dashboard Siswa</title></svelte:head>
@@ -39,6 +48,12 @@
               Tes belum tersedia untuk Anda
             {/if}
           </CardDescription>
+          {#if !test.completed}
+            {@const window = formatWindow(test.windowStart, test.windowEnd)}
+            {#if window}
+              <p class="text-muted-foreground text-xs">Periode pengerjaan: {window}</p>
+            {/if}
+          {/if}
         </CardHeader>
         <CardContent class="mt-auto flex flex-col gap-2">
           {#if test.completed}
