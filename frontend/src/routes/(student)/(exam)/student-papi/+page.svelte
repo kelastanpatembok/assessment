@@ -97,11 +97,35 @@
     }
   }
 
+  // Dev-only helper: pressing "y" always picks statement A and advances — a
+  // deterministic run (PAPI is ipsative/forced-choice, so there's no single
+  // "correct" or "maximum" answer; always-A instead gives a reproducible,
+  // maximally one-sided trait profile) useful for QA'ing the result page
+  // instead of X's random (roughly balanced) profile.
+  async function devFillHighAndAdvance() {
+    if (loading) return;
+    const step = steps[currentStep];
+    if (step?.kind === 'form') {
+      selectChoice(step.pair.pairNo, 'A');
+    }
+    if (currentStep < totalSteps - 1) {
+      currentStep += 1;
+    } else {
+      await tick();
+      formEl?.requestSubmit();
+    }
+  }
+
   function handleDevKeydown(e: KeyboardEvent) {
     if (!dev) return;
-    if (e.key.toLowerCase() !== 'x') return;
-    e.preventDefault();
-    devFillRandomAndAdvance();
+    const key = e.key.toLowerCase();
+    if (key === 'x') {
+      e.preventDefault();
+      devFillRandomAndAdvance();
+    } else if (key === 'y') {
+      e.preventDefault();
+      devFillHighAndAdvance();
+    }
   }
 </script>
 
@@ -113,7 +137,7 @@
     <h2 class="text-2xl font-bold">Tes PAPI Kostick</h2>
     {#if dev}
       <p class="mt-1 text-xs text-amber-600">
-        Dev mode: tekan <kbd class="rounded border px-1">X</kbd> untuk memilih jawaban acak dan lanjut otomatis.
+        Dev mode: tekan <kbd class="rounded border px-1">X</kbd> untuk memilih jawaban acak dan lanjut otomatis, atau <kbd class="rounded border px-1">Y</kbd> untuk selalu memilih pernyataan A dan lanjut otomatis (profil sepihak untuk QA).
       </p>
     {/if}
   </div>

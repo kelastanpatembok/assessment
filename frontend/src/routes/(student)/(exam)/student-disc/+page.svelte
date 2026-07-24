@@ -105,11 +105,44 @@
     }
   }
 
+  // Dev-only helper: pressing "y" always picks D as "Paling Tepat" and C as
+  // "Paling Tidak Tepat" (every block has exactly one statement per D/I/S/C
+  // category) and advances — a deterministic run that maxes out the D score
+  // and minimizes C, useful for QA'ing the high end of the DISC result page
+  // instead of X's random (and thus roughly flat) profile.
+  async function devFillHighAndAdvance() {
+    if (loading || blocks.length === 0) return;
+    const blockNo = currentBlockNo;
+    const items = blocks[currentBlock] as Statement[];
+    if (!blockNo || !items?.length) return;
+
+    const most = items.find((q) => q.category === 'D') ?? items[0];
+    const least =
+      items.find((q) => q.category === 'C' && q.itemNo !== most.itemNo) ??
+      items.find((q) => q.itemNo !== most.itemNo) ??
+      items[0];
+
+    selectMost(blockNo, most.itemNo);
+    selectLeast(blockNo, least.itemNo);
+
+    if (currentBlock < totalBlocks - 1) {
+      currentBlock = Math.min(totalBlocks - 1, currentBlock + 1);
+    } else {
+      await tick();
+      formEl?.requestSubmit();
+    }
+  }
+
   function handleDevKeydown(e: KeyboardEvent) {
     if (!dev) return;
-    if (e.key.toLowerCase() !== 'x') return;
-    e.preventDefault();
-    devFillRandomAndAdvance();
+    const key = e.key.toLowerCase();
+    if (key === 'x') {
+      e.preventDefault();
+      devFillRandomAndAdvance();
+    } else if (key === 'y') {
+      e.preventDefault();
+      devFillHighAndAdvance();
+    }
   }
 </script>
 
@@ -121,7 +154,7 @@
     <h2 class="text-2xl font-bold">Tes DISC</h2>
     {#if dev}
       <p class="mt-1 text-xs text-amber-600">
-        Dev mode: tekan <kbd class="rounded border px-1">X</kbd> untuk mengisi jawaban acak dan lanjut otomatis.
+        Dev mode: tekan <kbd class="rounded border px-1">X</kbd> untuk mengisi jawaban acak dan lanjut otomatis, atau <kbd class="rounded border px-1">Y</kbd> untuk memilih D (Paling Tepat) &amp; C (Paling Tidak Tepat) di tiap kelompok (skor D maksimal).
       </p>
     {/if}
     <p class="text-muted-foreground mt-1 text-sm">

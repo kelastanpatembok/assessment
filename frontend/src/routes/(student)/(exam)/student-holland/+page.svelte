@@ -168,11 +168,37 @@
     }
   }
 
+  // Dev-only helper: pressing "y" fills the current form step with the
+  // highest scale value (5) on every statement and advances — a deterministic
+  // run that maxes out every RIASEC type simultaneously, useful for QA'ing
+  // the high end of the result page instead of X's random (roughly flat)
+  // profile.
+  async function devFillHighAndAdvance() {
+    if (loading) return;
+    const step = steps[currentStep];
+    if (step?.kind === 'form') {
+      for (const q of step.questions) {
+        selectScore(q.id, 5);
+      }
+    }
+    if (currentStep < totalSteps - 1) {
+      currentStep += 1;
+    } else {
+      await tick();
+      formEl?.requestSubmit();
+    }
+  }
+
   function handleDevKeydown(e: KeyboardEvent) {
     if (!dev) return;
-    if (e.key.toLowerCase() !== 'x') return;
-    e.preventDefault();
-    devFillRandomAndAdvance();
+    const key = e.key.toLowerCase();
+    if (key === 'x') {
+      e.preventDefault();
+      devFillRandomAndAdvance();
+    } else if (key === 'y') {
+      e.preventDefault();
+      devFillHighAndAdvance();
+    }
   }
 </script>
 
@@ -184,7 +210,7 @@
     <h2 class="text-2xl font-bold">Tes Holland RIASEC</h2>
     {#if dev}
       <p class="mt-1 text-xs text-amber-600">
-        Dev mode: tekan <kbd class="rounded border px-1">X</kbd> untuk mengisi jawaban acak dan lanjut otomatis.
+        Dev mode: tekan <kbd class="rounded border px-1">X</kbd> untuk mengisi jawaban acak dan lanjut otomatis, atau <kbd class="rounded border px-1">Y</kbd> untuk mengisi nilai tertinggi (5) di semua pernyataan (skor RIASEC maksimal).
       </p>
     {/if}
   </div>
