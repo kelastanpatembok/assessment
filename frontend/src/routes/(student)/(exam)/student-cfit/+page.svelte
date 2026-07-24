@@ -177,11 +177,26 @@
     return st.questions.every((q) => !!selectedAnswers[fieldKey(q)]);
   });
 
-  // Dev-only helper: pressing "x" fills every question in the current subtest
-  // tab with a random option and advances, so manual QA can blast through
-  // all 4 subtests without clicking through every image. On the instruction
-  // screen it just skips straight to the timed questions instead.
-  function devFillRandomAndAdvance() {
+  // Dev-only answer key, hardcoded from V19__cfit_real_answers.sql. Never sent by the
+  // API (CfitController.CfitQuestionView deliberately omits correctAnswer/correctAnswer2
+  // — see docs/todo-cfit-test.md), so the "always right" QA hotkey below embeds it
+  // directly. Safe: `dev` is inlined to `false` in production builds and this whole
+  // branch (including this map) is dead-code-eliminated from the shipped bundle, same
+  // as the rest of the X/Y dev tooling in this file.
+  const CFIT_CORRECT_ANSWERS: Record<string, string> = {
+    st1_q1: 'b', st1_q2: 'c', st1_q3: 'b', st1_q4: 'd', st1_q5: 'e', st1_q6: 'b',
+    st1_q7: 'd', st1_q8: 'b', st1_q9: 'f', st1_q10: 'c', st1_q11: 'b', st1_q12: 'b', st1_q13: 'b',
+    st2_q1: 'be', st2_q2: 'ae', st2_q3: 'ad', st2_q4: 'ce', st2_q5: 'be', st2_q6: 'ad',
+    st2_q7: 'be', st2_q8: 'be', st2_q9: 'ad', st2_q10: 'bd', st2_q11: 'ae', st2_q12: 'cd', st2_q13: 'bc',
+    st3_q1: 'e', st3_q2: 'e', st3_q3: 'e', st3_q4: 'b', st3_q5: 'c', st3_q6: 'd',
+    st3_q7: 'e', st3_q8: 'e', st3_q9: 'a', st3_q10: 'a', st3_q11: 'f', st3_q12: 'c', st3_q13: 'c',
+    st4_q1: 'b', st4_q2: 'a', st4_q3: 'd', st4_q4: 'd', st4_q5: 'a',
+    st4_q6: 'b', st4_q7: 'c', st4_q8: 'd', st4_q9: 'a', st4_q10: 'd',
+  };
+
+  // Shared tail for both dev-fill hotkeys: skip the intro/instruction screens, fill
+  // every question in the active subtest via `pickAnswer`, then advance/submit.
+  function devFillAndAdvance(pickAnswer: (q: CfitQuestion, key: string) => string) {
     if (loading) return;
     if (!introDone) {
       introDone = true;
@@ -195,22 +210,12 @@
     if (st) {
       for (const q of st.questions) {
         const key = fieldKey(q);
-        const n = q.optionImages.length;
-        if (n === 0) continue;
+        if (q.optionImages.length === 0) continue;
+        const answer = pickAnswer(q, key);
         if (q.subtestNo === 2) {
-          const indices = [...Array(n).keys()];
-          for (let i = indices.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [indices[i], indices[j]] = [indices[j], indices[i]];
-          }
-          checkedOptions[key] = indices.slice(0, Math.min(2, n)).map(optionLetter);
+          checkedOptions[key] = answer.split('');
         } else {
-          const letter = optionLetter(Math.floor(Math.random() * n));
-          selectedAnswers[key] = letter;
-          const radio = formEl?.querySelector<HTMLInputElement>(
-            `input[type="radio"][name="${key}"][value="${letter}"]`
-          );
-          if (radio) radio.checked = true;
+          selectedAnswers[key] = answer;
         }
       }
     }
@@ -221,11 +226,41 @@
     }
   }
 
+  // "x": fills every question in the current subtest tab with a random option and
+  // advances, so manual QA can blast through all 4 subtests without clicking through
+  // every image.
+  function devFillRandomAndAdvance() {
+    devFillAndAdvance((q) => {
+      if (q.subtestNo === 2) {
+        const indices = [...Array(q.optionImages.length).keys()];
+        for (let i = indices.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [indices[i], indices[j]] = [indices[j], indices[i]];
+        }
+        return indices.slice(0, Math.min(2, q.optionImages.length)).map(optionLetter).join('');
+      }
+      return optionLetter(Math.floor(Math.random() * q.optionImages.length));
+    });
+  }
+
+  // "y": fills every question in the current subtest tab with the REAL correct answer
+  // and advances, so a full run produces the maximum possible score — the only way to
+  // manually QA the high end of the IQ conversion table (V20__cfit_real_iq_norms.sql)
+  // without a real 49/49 test-taker, since "x" is random and averages a low score.
+  function devFillCorrectAndAdvance() {
+    devFillAndAdvance((q, key) => CFIT_CORRECT_ANSWERS[key] ?? optionLetter(0));
+  }
+
   function handleDevKeydown(e: KeyboardEvent) {
     if (!dev) return;
-    if (e.key.toLowerCase() !== 'x') return;
-    e.preventDefault();
-    devFillRandomAndAdvance();
+    const key = e.key.toLowerCase();
+    if (key === 'x') {
+      e.preventDefault();
+      devFillRandomAndAdvance();
+    } else if (key === 'y') {
+      e.preventDefault();
+      devFillCorrectAndAdvance();
+    }
   }
 </script>
 
@@ -240,7 +275,7 @@
     </p>
     {#if dev}
       <p class="mt-1 text-xs text-amber-600">
-        Dev mode: tekan <kbd class="rounded border px-1">X</kbd> untuk mengisi subtes ini secara acak dan lanjut otomatis.
+        Dev mode: tekan <kbd class="rounded border px-1">X</kbd> untuk mengisi subtes ini secara acak dan lanjut otomatis, atau <kbd class="rounded border px-1">Y</kbd> untuk mengisi dengan jawaban benar (skor maksimal).
       </p>
     {/if}
   </div>
