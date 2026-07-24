@@ -161,12 +161,21 @@
     }
   }
 
-  let subtest2Complete = $derived(
-    subtests
-      .flatMap((st) => st.questions)
-      .filter((q) => q.subtestNo === 2)
-      .every((q) => (checkedOptions[fieldKey(q)] ?? []).length === 2)
-  );
+  // Tracks the radio pick per question (every subtest except 2) so "Selanjutnya"/submit
+  // can be disabled until the active subtest's every item has an answer.
+  let selectedAnswers: Record<string, string> = $state({});
+
+  // Whether every item in the currently-active subtest has been answered — gates both
+  // "Selanjutnya" and the final "Kirim Semua Jawaban" button, since students must not be
+  // able to skip past unanswered items in any of the 4 subtests.
+  let currentSubtestComplete = $derived.by(() => {
+    const st = subtests[activeSubtest];
+    if (!st) return false;
+    if (st.subtestNo === 2) {
+      return st.questions.every((q) => (checkedOptions[fieldKey(q)] ?? []).length === 2);
+    }
+    return st.questions.every((q) => !!selectedAnswers[fieldKey(q)]);
+  });
 
   // Dev-only helper: pressing "x" fills every question in the current subtest
   // tab with a random option and advances, so manual QA can blast through
@@ -197,6 +206,7 @@
           checkedOptions[key] = indices.slice(0, Math.min(2, n)).map(optionLetter);
         } else {
           const letter = optionLetter(Math.floor(Math.random() * n));
+          selectedAnswers[key] = letter;
           const radio = formEl?.querySelector<HTMLInputElement>(
             `input[type="radio"][name="${key}"][value="${letter}"]`
           );
@@ -359,7 +369,14 @@
                           onchange={(e) => toggleOption(key, letter, e.currentTarget.checked)}
                         />
                       {:else}
-                        <input type="radio" name={key} value={letter} class="size-4 shrink-0" />
+                        <input
+                          type="radio"
+                          name={key}
+                          value={letter}
+                          class="size-4 shrink-0"
+                          checked={selectedAnswers[key] === letter}
+                          onchange={() => (selectedAnswers[key] = letter)}
+                        />
                       {/if}
                       <img src={optImg} alt="Opsi {letter}" class="h-16 w-auto rounded border" />
                       <span>{letter}</span>
@@ -374,16 +391,21 @@
 
       <div class="flex items-center justify-end">
         {#if activeSubtest < total - 1}
-          <Button type="button" onclick={() => goToSubtest(activeSubtest + 1)}>
-            Selanjutnya
-          </Button>
+          <div class="flex flex-col items-end gap-1">
+            <Button type="button" onclick={() => goToSubtest(activeSubtest + 1)} disabled={!currentSubtestComplete}>
+              Selanjutnya
+            </Button>
+            {#if !currentSubtestComplete}
+              <span class="text-muted-foreground text-xs">Jawab semua soal di subtes ini terlebih dahulu.</span>
+            {/if}
+          </div>
         {:else}
           <div class="flex flex-col items-end gap-1">
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || !currentSubtestComplete}>
               {loading ? 'Mengirim...' : 'Kirim Semua Jawaban'}
             </Button>
-            {#if !subtest2Complete}
-              <span class="text-muted-foreground text-xs">Beberapa soal Subtes 2 belum lengkap (2 gambar per soal) — tetap bisa dikirim, soal yang belum lengkap dihitung salah.</span>
+            {#if !currentSubtestComplete}
+              <span class="text-muted-foreground text-xs">Jawab semua soal di subtes ini terlebih dahulu.</span>
             {/if}
           </div>
         {/if}
