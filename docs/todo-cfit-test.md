@@ -39,50 +39,40 @@ what to replace and where.
   `isCorrect` into the HTML `value` attribute at render time, which leaked
   the answer key into the page source before submission — not carried over.
 
-## What's missing (blockers)
+## Resolved
 
-### The actual answer key
+### The full item bank + real answer key — DONE (2026-07-24)
 
-Neither the legacy migrations nor any data dump in this workspace contains
-the real `jawaban`/`jawaban2` values — Laravel migrations only define
-schema, and `database/seeds/` never touches `soal_i_q_s`. The production
-answer key only ever lived in the old MySQL rows, which don't exist here.
+The user obtained the official answer key (via a Scribd copy of "Kunci
+Jawaban Tes Psikotes CFIT", cross-checked item-by-item against a photographed
+physical booklet in `~/Downloads/Soal CFIT/{Soal,Jawaban}/`) and asked to
+discard the old placeholder set entirely.
 
-**What we did instead:** migrated a small **sample** of 12 real images (3
-per subtest) from `/upload` into `frontend/static/cfit/` and seeded
-`cfit_questions` (`V15__cfit_image_rework.sql`) with them, using a
-placeholder answer key — always option "a" (and "b" for Subtest 2's second
-pick). The images are real; the correct answers are **not**.
+**What we did:** confirmed by direct visual comparison that the legacy
+`/upload/fotosoal/` + `/upload/fotoopsi/` corpus (50 stem images, 332 option
+images — same corpus V15 only sampled 12 items from) is the *exact same*
+physical CFIT Skala 3 Bentuk B booklet as the user's new photos, just
+already cropped per stem/option instead of full-page photos. Grouped the
+corpus by upload timestamp into per-item stem+option sets, matched each
+group's content against the new booklet's item order to confirm sequencing,
+copied the full set into `frontend/static/cfit/{fotosoal,fotoopsi}/`, and
+wrote `V19__cfit_real_answers.sql` (`DELETE FROM cfit_questions` + full
+re-seed) using the real answer key.
 
-**To fix:** get the real answer key from a psychologist (or the original
-CFIT test manual, since this is a standard published instrument — Cattell's
-Culture Fair Intelligence Test — and the manual's scoring key may already be
-available independent of the old production DB). Then:
-1. Replace the placeholder `correct_answer`/`correct_answer2` values in
-   `V15__cfit_image_rework.sql`.
-2. Optionally migrate more of the ~50/332 images in `/upload` into
-   `frontend/static/cfit/` and add the corresponding rows — the schema
-   already supports the full set, we only seeded a sample.
+Final item counts seeded: Subtest 1 = 13, Subtest 2 = **13 of 14** (item
+14's images were never uploaded to the legacy corpus, and the new photo set
+also didn't capture that page — a genuine source gap, not a transcription
+error), Subtest 3 = 13, Subtest 4 = 10. Total 49 items (up from 12).
+
+**Still open:** Subtest 2 item 14 has no source images at all. If the user
+later photographs that page (TES 2, continuation past item 6), add it as
+`(2, 14, NULL, [...5 option paths...], 'a', 'b')` in a new migration — the
+answer for it (from the Scribd key) is **A & B**.
 
 ### Score → IQ band calibration
 
 `cfit_descriptions` (score ranges → IQ/category) still holds the placeholder
 bands from `V8__seed_sample_data.sql`, calibrated for the *full* ~45-item
-instrument. With only 12 sample items seeded, a perfect score won't reach
-the "Sangat Tinggi" band — this is expected until the full item bank (with
-a real answer key) is in place. No fix needed for the sample; re-verify
-once the real answer key + full item set are seeded.
-
-## How to replace
-
-1. Edit `backend/src/main/resources/db/migration/V15__cfit_image_rework.sql`
-   (or add a new migration — Flyway migrations already applied to a running
-   DB shouldn't be edited in place; add `V16__cfit_real_answers.sql` instead
-   once there's a real answer key).
-2. Copy any additional images from `/Users/eko/dev/SuperApp/assessment/upload/`
-   into `frontend/static/cfit/fotosoal/` and `.../fotoopsi/`, referenced by
-   `/cfit/fotosoal/<file>` / `/cfit/fotoopsi/<file>` paths in `option_images`
-   / `stem_image_url`.
-3. No Java or frontend code changes are needed — `CfitQuestion`,
-   `CfitScoringService`, and the exam UI already work against the real
-   per-subtest structure; only the seeded rows need updating.
+instrument — now close to accurate given 49 real items are seeded, but not
+re-verified against a real scoring manual. Re-check if a psychologist
+provides the real IQ conversion table.
