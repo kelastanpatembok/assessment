@@ -134,3 +134,42 @@ here for a future pass; not touched to avoid scope creep beyond what was request
 3. No Java or frontend code changes needed for SE/WA/AN/RA/ZR/ME — `IstQuestion`,
    `IstScoringService`, and the exam UI already work against the real per-subtest
    structure; only the seeded rows need updating.
+
+## RESOLVED (2026-07-24): the question booklet was found
+
+The user supplied `~/Downloads/Soal IST` (18 photographed booklet pages — one
+instruction/example page + one item page per subtest, plus an extra page for ME's
+memorization list) and `KUNCI JAWABAN IST (2).docx` (same answer key as `ist-result.docx`
+above, cross-verified identical). `V21__ist_real_question_content.sql` replaced:
+
+- **SE/WA/AN** (V18's placeholder "Pilihan A/B/C..." text) with the real sentences/word
+  lists/analogies and real 5-option text. `correct_answer` unchanged (was already real).
+- **GE/RA/ZR/ME** (V8's tiny 2-4 item fake samples, wrong item numbering) with the
+  complete, correctly-numbered 16/20/20/20-item real sets.
+
+Every RA answer (77-96) and 12 of 20 ZR answers (97-116) were independently
+re-derived by hand from the transcribed word problem / number sequence and matched the
+docx key exactly — high confidence the whole transcription is accurate (see the
+migration's header comment for the full verification note).
+
+**Two things in V21 are still NOT fully sourced** — flagged in the migration header too:
+
+1. **GE correct answers** — `ist-result.docx` has no GE column (GE is free-text "name a
+   word that covers both given words," which has no single fixed answer). The 16
+   `correct_answer` values are reasonable single-word guesses, not an official key.
+   Scoring is still plain exact-string match (`scoreStandard`), so real students'
+   equally-valid synonyms will likely score 0 — this is the pre-existing "GE tiered
+   scoring" gap below, now compounded by an unverified answer, not a new problem.
+2. **ME's letter-to-item mapping** — the booklet page only shows the real 25-word/
+   5-category memorization list and 2 worked examples (letters Q and Z); it doesn't show
+   which letter each of the real 20 items (157-176) actually asks about. The per-item
+   *answer letter* (a-e) is real (from the docx); which specific starting letter is
+   asked in each item is a reconstruction (each category used exactly 4 times, matching
+   the real answer distribution, cross-checked so no letter collides across categories).
+
+Frontend (`student-ist/+page.svelte`) also gained student-cfit's untimed
+instruction/example screen before each of the 9 subtests (timer only starts on "Mulai
+Subtes"), transcribed from the same booklet pages. ME's "menghafal" (memorize) phase now
+shows the real 5-category word list instead of looping over the test items themselves
+(the old placeholder behavior, which was structurally wrong — the real menghafal phase
+studies the category word list, not the questions being tested).

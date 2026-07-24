@@ -21,9 +21,101 @@
   const ME_MENGHAFAL_SEC = 180;
   const ME_MENGERJAKAN_SEC = 360;
 
+  // Each subtest is preceded by an untimed instruction screen (the tester's spoken
+  // instructions + worked examples, transcribed from the physical IST booklet). The
+  // countdown only starts once the student leaves that screen — matching student-cfit's
+  // pattern, since the timer must never run while they're still reading instructions.
+  let subtestPhase: 'instruction' | 'testing' = $state('instruction');
   let mePhase: 'menghafal' | 'mengerjakan' = $state('menghafal');
   let remainingSeconds = $state(SUBTEST_DURATIONS_SEC.SE);
   let autoAdvancing = $state(false);
+
+  // Real memorization word list for ME (Subtes 09), transcribed from the booklet's
+  // "Halaman 17" — shown during the untimed instruction AND the timed 3-minute
+  // menghafal phase. ME's actual 20 test items (157-176) ask which category a given
+  // starting letter belongs to (see V21__ist_real_question_content.sql).
+  const ME_WORD_LIST: { category: string; words: string }[] = [
+    { category: 'BUNGA', words: 'Soka - Larat - Flamboyan - Yasmin - Dahlia' },
+    { category: 'PERKAKAS', words: 'Wajan - Jarum - Kikir - Cangkul - Palu' },
+    { category: 'BURUNG', words: 'Itik - Elang - Walet - Tekukur - Nuri' },
+    { category: 'KESENIAN', words: 'Quintet - Arca - Opera - Gamelan - Ukiran' },
+    { category: 'BINATANG', words: 'Musang - Rusa - Beruang - Zebra - Harimau' },
+  ];
+
+  const SUBTEST_INSTRUCTIONS: Record<string, { title: string; paragraphs: string[] }> = {
+    SE: {
+      title: 'Instruksi Subtes SE (Soal-soal No. 01-20)',
+      paragraphs: [
+        'Soal-soal 01-20 terdiri atas kalimat-kalimat. Pada setiap kalimat satu kata hilang dan disediakan 5 (lima) kata pilihan sebagai penggantinya. Pilihlah kata yang tepat yang dapat menyempurnakan kalimat itu!',
+        'Contoh 01: "Seekor kuda mempunyai kesamaan terbanyak dengan seekor ......" — a) kucing b) bajing c) keledai d) lembu e) anjing. Jawaban yang benar ialah c) keledai.',
+        'Contoh berikutnya: Lawannya "harapan" ialah ...... — a) duka b) putus asa c) sengsara d) cinta e) benci. Jawabannya ialah b) putus asa.',
+      ],
+    },
+    WA: {
+      title: 'Instruksi Subtes WA (Soal-soal No. 21-40)',
+      paragraphs: [
+        'Ditentukan 5 kata. Pada 4 dari 5 kata itu terdapat suatu kesamaan. Carilah kata yang kelima yang tidak memiliki kesamaan dengan keempat kata itu.',
+        'Contoh 02: a) meja b) kursi c) burung d) lemari e) tempat tidur. a), b), d), dan e) ialah perabot rumah (meubel); c) burung bukan perabot rumah, sehingga tidak memiliki kesamaan dengan keempat kata itu. Jawaban yang benar ialah c) burung.',
+        'Contoh berikutnya: a) duduk b) berbaring c) berdiri d) berjalan e) berjongkok. Pada a), b), c), dan e) orang berada dalam keadaan tidak bergerak, sedangkan d) orang dalam keadaan bergerak. Maka jawaban yang benar ialah d) berjalan.',
+      ],
+    },
+    AN: {
+      title: 'Instruksi Subtes AN (Soal-soal No. 41-60)',
+      paragraphs: [
+        'Ditentukan 3 (tiga) kata. Antara kata pertama dan kata kedua terdapat suatu hubungan tertentu. Carilah, di antara lima kata pilihan, kata yang mempunyai hubungan yang sama itu dengan kata ketiga.',
+        'Contoh 03: Hutan : pohon = ? : tembok — a) batu bata b) rumah c) semen d) putih e) dinding. Hutan terdiri atas pohon-pohon, maka tembok terdiri atas batu-batu bata. Jawaban yang benar ialah a) batu bata.',
+        'Contoh berikutnya: Gelap : terang = basah : ? — a) hujan b) hari c) lembab d) angin e) kering. Gelap ialah lawannya terang, maka lawannya basah ialah kering. Jawaban yang benar ialah e) kering.',
+      ],
+    },
+    GE: {
+      title: 'Instruksi Subtes GE (Soal-soal No. 61-76)',
+      paragraphs: [
+        'Ditentukan dua kata. Carilah satu perkataan yang meliputi pengertian kedua kata tadi, lalu tuliskan perkataan itu pada kotak jawaban yang sesuai.',
+        'Contoh 04: "Ayam - itik" — jawabannya ialah "burung".',
+        'Contoh berikutnya: "Gaun - celana" — jawabannya ialah "pakaian".',
+      ],
+    },
+    RA: {
+      title: 'Instruksi Subtes RA (Soal-soal No. 77-96)',
+      paragraphs: [
+        'Persoalan berikutnya ialah soal-soal hitungan. Kerjakan setiap soal dan tuliskan jawabannya berupa angka.',
+        'Contoh 05: "Sebatang pensil harganya 25 rupiah. Berapakah harga 3 batang?" Jawabannya ialah 75.',
+        'Contoh lain: "Dengan sepeda Husin dapat mencapai 15 km dalam waktu 1 jam. Berapa km-kah yang dapat ia capai dalam waktu 4 jam?" Jawabannya ialah 60.',
+      ],
+    },
+    ZR: {
+      title: 'Instruksi Subtes ZR (Soal-soal No. 97-116)',
+      paragraphs: [
+        'Pada persoalan berikut akan diberikan deret angka. Setiap deret tersusun menurut suatu aturan tertentu dan dapat dilanjutkan menurut aturan itu. Carilah untuk setiap deret, angka berikutnya yang sesuai.',
+        'Contoh 06: 2 4 6 8 10 12 14 ? — jawabannya ialah 16 (deret ini selalu didapat jika angka didepannya ditambah dengan 2).',
+        'Contoh berikutnya: 9 7 10 8 11 9 12 ? — jawabannya ialah 10 (deret ini selalu berganti-ganti dikurangi dengan 2 dan ditambah dengan 3).',
+      ],
+    },
+    FA: {
+      title: 'Instruksi Subtes FA (Soal-soal No. 117-136)',
+      paragraphs: [
+        'Setiap soal memperlihatkan sesuatu bentuk tertentu yang terpotong menjadi beberapa bagian. Carilah di antara bentuk-bentuk pilihan (a, b, c, d, e) bentuk yang dapat dibangun dengan menyusun potongan-potongan itu, sehingga tidak ada kelebihan sudut atau ruang di antaranya.',
+        'Contoh 07: potongan-potongan pada contoh, jika disusun (digabungkan), menghasilkan bentuk a.',
+        'Contoh berikutnya: potongan-potongan contoh kedua, jika disusun, menghasilkan bentuk e.',
+      ],
+    },
+    WU: {
+      title: 'Instruksi Subtes WU (Soal-soal No. 137-156)',
+      paragraphs: [
+        'Ditentukan 5 (lima) buah kubus a, b, c, d, e yang masing-masing berbeda susunan tandanya. Setiap soal memperlihatkan salah satu kubus itu dalam kedudukan yang berbeda (diputar dan/atau digulingkan dalam pikiran Anda). Carilah kubus yang dimaksudkan itu.',
+        'Contoh 08: kubus kedua pada contoh adalah kubus e.',
+        'Contoh berikutnya: kubus ketiga adalah kubus b, kubus keempat adalah kubus c, dan kubus kelima adalah kubus d.',
+      ],
+    },
+    ME: {
+      title: 'Instruksi Subtes ME (Soal-soal No. 157-176)',
+      paragraphs: [
+        'Pada subtes ini akan diajukan sejumlah pertanyaan mengenai kata-kata yang telah Anda hafalkan. Sebelum menjawab, Anda akan diberi waktu 3 menit untuk menghafalkan sekelompok kata yang dikelompokkan menjadi 5 jenis: BUNGA, PERKAKAS, BURUNG, KESENIAN, dan BINATANG.',
+        'Contoh 09: "Kata yang mempunyai huruf permulaan Q adalah suatu ......" — a) bunga b) perkakas c) burung d) kesenian e) binatang. Quintet termasuk dalam jenis kesenian, sehingga jawaban yang benar ialah d) kesenian.',
+        'Contoh berikutnya: "Kata yang mempunyai huruf permulaan Z adalah suatu ......" Jawabannya ialah e) binatang, karena Zebra termasuk dalam jenis binatang.',
+      ],
+    },
+  };
 
   function formatTime(sec: number): string {
     const m = Math.floor(sec / 60);
@@ -39,8 +131,13 @@
 
   function goToSubtest(index: number) {
     activeSubtest = index;
+    subtestPhase = 'instruction';
     mePhase = 'menghafal';
     remainingSeconds = durationFor(index);
+  }
+
+  function startSubtestTesting() {
+    subtestPhase = 'testing';
   }
 
   function startMeMengerjakan() {
@@ -64,7 +161,7 @@
 
   onMount(() => {
     const id = setInterval(() => {
-      if (loading || autoAdvancing || subtests.length === 0) return;
+      if (loading || autoAdvancing || subtests.length === 0 || subtestPhase !== 'testing') return;
       if (remainingSeconds <= 1) {
         remainingSeconds = 0;
         advanceOrSubmit();
@@ -105,6 +202,10 @@
   // subtests without answering each one by hand.
   function devFillRandomAndAdvance() {
     if (loading) return;
+    if (subtestPhase === 'instruction') {
+      startSubtestTesting();
+      return;
+    }
     const st = subtests[activeSubtest];
     if (st?.key === 'ME' && mePhase === 'menghafal') {
       startMeMengerjakan();
@@ -162,7 +263,7 @@
     </p>
     {#if dev}
       <p class="mt-1 text-xs text-amber-600">
-        Dev mode: tekan <kbd class="rounded border px-1">X</kbd> untuk mengisi subtes ini secara acak dan lanjut otomatis.
+        Dev mode: tekan <kbd class="rounded border px-1">X</kbd> untuk melewati instruksi / mengisi subtes ini secara acak dan lanjut otomatis.
       </p>
     {/if}
   </div>
@@ -190,13 +291,49 @@
           >{st.key}</span>
         {/each}
       </div>
-      <div class="font-mono text-lg font-semibold {remainingSeconds <= 30 ? 'text-destructive' : ''}">
-        {formatTime(remainingSeconds)}
-        {#if subtests[activeSubtest]?.key === 'ME'}
-          <span class="text-muted-foreground text-xs font-normal">({mePhase === 'menghafal' ? 'menghafal' : 'mengerjakan'})</span>
-        {/if}
-      </div>
+      {#if subtestPhase === 'testing'}
+        <div class="font-mono text-lg font-semibold {remainingSeconds <= 30 ? 'text-destructive' : ''}">
+          {formatTime(remainingSeconds)}
+          {#if subtests[activeSubtest]?.key === 'ME'}
+            <span class="text-muted-foreground text-xs font-normal">({mePhase === 'menghafal' ? 'menghafal' : 'mengerjakan'})</span>
+          {/if}
+        </div>
+      {:else}
+        <div class="text-muted-foreground text-sm">Waktu belum dimulai</div>
+      {/if}
     </div>
+
+    {#if subtestPhase === 'instruction'}
+      <!-- Untimed instruction screen for the active subtest, transcribed from the
+           physical IST booklet's own instruction+example page. The countdown for this
+           subtest only starts once "Mulai Subtes" is clicked below. -->
+      <Card>
+        <CardContent class="flex flex-col gap-4 pt-6">
+          {@const instr = SUBTEST_INSTRUCTIONS[subtests[activeSubtest]?.key ?? '']}
+          {#if instr}
+            <h3 class="text-base font-semibold">{instr.title}</h3>
+            <div class="flex flex-col gap-2">
+              {#each instr.paragraphs as p}
+                <p class="text-sm leading-relaxed">{p}</p>
+              {/each}
+            </div>
+          {/if}
+          {#if subtests[activeSubtest]?.key === 'ME'}
+            <div class="bg-muted/50 flex flex-col gap-1 rounded-lg border p-3">
+              <p class="text-xs font-medium">Daftar kata yang akan dihafalkan (3 menit):</p>
+              {#each ME_WORD_LIST as group}
+                <p class="text-sm"><span class="font-medium">{group.category}</span>: {group.words}</p>
+              {/each}
+            </div>
+          {/if}
+          <div class="flex justify-end">
+            <Button type="button" onclick={startSubtestTesting}>
+              Mulai Subtes {subtests[activeSubtest]?.key ?? ''}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    {/if}
 
     <form
       method="POST"
@@ -209,7 +346,7 @@
           await update();
         };
       }}
-      class="flex flex-col gap-4"
+      class={subtestPhase === 'instruction' ? 'hidden' : 'flex flex-col gap-4'}
     >
       <input type="hidden" name="assignmentId" value={data.assignmentId ?? 0} />
       {#each subtests as st, si}
@@ -220,15 +357,14 @@
             </CardHeader>
             <CardContent>
               {#if st.key === 'ME' && mePhase === 'menghafal'}
-                <!-- ME menghafal phase: read-only study view, no inputs yet.
-                     Real ME content/pairs aren't sourced yet (see docs/todo-ist-test.md),
-                     so this is a timed read-through of the placeholder items. -->
+                <!-- ME menghafal phase: read-only study view of the real 5-category
+                     word list (also shown on the instruction screen), no inputs yet. -->
                 <p class="text-muted-foreground mb-4 text-sm">
-                  Bacalah dan ingat soal-soal berikut. Anda akan menjawabnya setelah waktu menghafal habis.
+                  Bacalah dan hafalkan kata-kata berikut. Anda akan menjawab soal mengenainya setelah waktu menghafal habis.
                 </p>
                 <div class="flex flex-col gap-2">
-                  {#each st.questions as q, qi}
-                    <p class="text-sm">{qi + 1}. {q.questionText ?? ''}</p>
+                  {#each ME_WORD_LIST as group}
+                    <p class="text-sm"><span class="font-medium">{group.category}</span>: {group.words}</p>
                   {/each}
                 </div>
               {:else}
