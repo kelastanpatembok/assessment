@@ -33,33 +33,33 @@ where.
   one example test-taker (all 20 values sum to 90). `PapiScoringService`'s
   simple tally-per-trait algorithm is therefore correct as-is.
 
-## What's missing from the source documents (blockers)
+## Resolved
 
-### 1. The pair → trait answer key
+### The pair → trait answer key — DONE (2026-07-22)
 
-Neither `papi.pdf` nor `papi-result.xls` states which trait each pair's
-option A and option B actually score toward. `papi.pdf` has statement text
-only; `papi-result.xls`'s `DATA` tab has raw picks for only 2 test-takers
-(and only 1–2 questions filled in per person) — not enough to reverse-engineer
-a 90-item key from 20 aggregate totals.
+`papi.pdf` and `papi-result.xls` never stated which trait each pair's option
+A and option B score toward, so the initial build used a structurally-balanced
+generated placeholder (every trait appearing in exactly 9 of 90 pairs, but the
+*specific* assignment was algorithmic, not sourced).
 
-**What we did instead:** generated a structurally-balanced placeholder key
-(`backend/scripts/initial-setup.sh`, the `papi_questions` INSERT block). Every
-trait appears as an option in exactly 9 of the 90 pairs (built from a
-9-regular circulant graph over the 20 traits), so scores land in the correct
-0–9 range and the scoring pipeline works end-to-end — but the **specific**
-trait assigned to each pair's A/B option is **not the real Kostick answer
-key**. It was assigned by a deterministic algorithm, not sourced from an
-official document.
+**What replaced it:** the user photographed the official PAPI Kostick manual
+scoring key/stencil (the diagonal answer-sheet grid used for manual scoring)
+and a filled-in worked example. The item→trait-pair assignment was transcribed
+row by row directly from the user reading the physical sheet (not OCR/guessed
+from the photos — the photos alone were too small/ambiguous to read reliably;
+the user read out each row's arrows explicitly). Verified with a checksum:
+every one of the 20 traits appears in exactly 9 of the 90 pairs (matches the
+structural requirement), and the worked example's per-trait totals matched
+what the transcribed key would produce.
 
-**To fix:** get the official PAPI Kostick scoring key (which trait each of
-the 90 items' A and B option maps to) from the psychologist, then replace the
-`INSERT INTO papi_questions (...)` block in `backend/scripts/initial-setup.sh`
-with the real trait codes (keep the same statement text — that part is
-already correct) and rerun the script. No schema or backend code changes are
-needed for this.
+`backend/scripts/initial-setup.sh`'s `papi_questions` INSERT block now has the
+real trait codes (statement text unchanged — it was already correct). Rerun
+the script to load it into the DB (`papi_results` gets truncated alongside,
+same as any reseed).
 
-### 2. Per-score interpretive text ("Uraian")
+## What's still missing from the source documents (blockers)
+
+### Per-score interpretive text ("Uraian")
 
 `URAIAN PAPIKOSTIK` in `papi-result.xls` shows only **one example paragraph
 per trait**, for whatever score that one test-taker happened to get (e.g.

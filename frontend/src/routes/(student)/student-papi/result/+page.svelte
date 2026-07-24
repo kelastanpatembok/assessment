@@ -94,7 +94,7 @@
               <CardTitle class="text-base">{t.traitName}</CardTitle>
             </div>
             <Badge class={t.band === 'TINGGI' ? '' : 'bg-muted-foreground/70'}>
-              {t.band === 'TINGGI' ? 'Tinggi' : 'Rendah'} ({t.score}/{MAX_SCORE})
+              {t.band === 'TINGGI' ? 'Tinggi' : 'Rendah'} ({t.score})
             </Badge>
           </div>
         </CardHeader>
