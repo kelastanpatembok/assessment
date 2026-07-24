@@ -69,10 +69,30 @@ later photographs that page (TES 2, continuation past item 6), add it as
 `(2, 14, NULL, [...5 option paths...], 'a', 'b')` in a new migration — the
 answer for it (from the Scribd key) is **A & B**.
 
-### Score → IQ band calibration
+### Score → IQ band calibration — DONE (2026-07-24)
 
-`cfit_descriptions` (score ranges → IQ/category) still holds the placeholder
-bands from `V8__seed_sample_data.sql`, calibrated for the *full* ~45-item
-instrument — now close to accurate given 49 real items are seeded, but not
-re-verified against a real scoring manual. Re-check if a psychologist
-provides the real IQ conversion table.
+The user provided the official scoring tool, "Software Skorings CFIT Skala
+3A & 3B.xls", a live raw-score-in / IQ-out spreadsheet with one worked
+sample already filled in (raw score 9 → IQ 60). Its `C70` cell computes IQ
+via a lookup against a 51-row raw-score→IQ norm table at `AB16:AC66` (RS
+0–50 → IQ 38–183); `D70` computes the classification label from that IQ
+("Mentally Retardation" for the sample).
+
+**What we did:** transcribed the full RS(0–50)→IQ norm table verbatim
+(confirmed exact: RS=9 → IQ=60 matches the file's own sample result) and
+replaced the placeholder Indonesian 5-band `cfit_descriptions` seed
+(`V8__seed_sample_data.sql`) with `V20__cfit_real_iq_norms.sql` — 51 exact
+rows (`score_min = score_max = RS`, `iq_min = iq_max = IQ`), using the
+existing `CfitDescriptionRepository` range-lookup method unchanged since
+exact-match rows satisfy it directly. No Java changes needed.
+
+**Caveat on the classification labels:** only the `<70 → "Mentally
+Retardation"` band was directly confirmed against the file's one sample row.
+The other 6 band thresholds (Borderline/Low Average/Average/High Average/
+Superior/Very Superior at 70/80/90/110/120/130) follow the standard
+published CFIT/Wechsler-style classification scheme rather than being
+independently re-derived cell-by-cell — the sheet had no separate
+classification table, `D70` is presumably a nested-IF formula we couldn't
+extract as text (xlrd can't recover formula source, only cached values).
+If a psychologist flags a different threshold, only this migration's
+`category` values need correcting — the IQ numbers themselves are exact.
