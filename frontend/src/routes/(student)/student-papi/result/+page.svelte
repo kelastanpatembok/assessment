@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
+  import PapiRadarChart from '$lib/components/PapiRadarChart.svelte';
 
   let { data } = $props();
   let r = $derived(data.result);
@@ -53,6 +54,21 @@
       {r?.studentName} · {r?.schoolName ?? '-'}
     </p>
   </div>
+
+  <!-- Radar Chart Visualization -->
+  <Card>
+    <CardHeader>
+      <CardTitle class="text-base">Diagram Profil PAPI Kostick</CardTitle>
+      <p class="text-muted-foreground text-xs">
+        Visualisasi 20 trait kepribadian dalam bentuk radar chart (skala 0-9)
+      </p>
+    </CardHeader>
+    <CardContent>
+      <div class="mx-auto max-w-xl">
+        <PapiRadarChart {traitDetails} />
+      </div>
+    </CardContent>
+  </Card>
 
   <Card>
     <CardHeader><CardTitle class="text-base">Profil Skor (0–9 per trait)</CardTitle></CardHeader>
