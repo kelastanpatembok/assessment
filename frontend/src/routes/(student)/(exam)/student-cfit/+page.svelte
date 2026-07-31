@@ -46,7 +46,7 @@
 
   const SUBTEST_INSTRUCTIONS: Record<
     number,
-    { title: string; paragraphs: string[]; exampleImage?: string }
+    { title: string; paragraphs: string[]; exampleImages?: string[] }
   > = {
     1: {
       title: 'Instruksi Subtes 1',
@@ -55,7 +55,7 @@
         'Contoh ke 2, pada kotak pertama terlihat ada 1 garis, kotak kedua ada dua garis, kotak ketiga terdapat tiga garis, maka jawaban yang paling tepat adalah....E.',
         'Pada contoh soal ke tiga, terlihat kotak yang paling kanan ada gambar titik di atas X, kotak kedua, X dan titiknya bergerak berputar searah jarum jam sebanyak 45 derajat, kotak ketiga pun kembali berputar 45 derajat, maka pada kotak yang keempat, jawaban yang tepat adalah...E.',
       ],
-      exampleImage: '/cfit/examples/1.webp',
+      exampleImages: ['/cfit/examples/1.webp'],
     },
     2: {
       title: 'Instruksi Subtes 2',
@@ -64,7 +64,7 @@
         'Contoh: Pada contoh pertama, dapatkah anda melihat 2 gambar yang berbeda dari 3 gambar lainnya? Terlihat gambar pada kotak B dan D berbeda dari 3 gambar di kotak lainnya. Maka jawabannya adalah B dan D.',
         'Pada contoh ke 2, mana 2 gambar yang berbeda dari 3 gambar yang lainnya. Terlihat pada kotak C dan E gambarnya berbeda dengan 3 kotak lainnya. Segi empat pada kotak ini memiliki isi/buram/ada titik-titiknya, sedangkan pada 3 kotak lainnya, lingkarannya tidak berisi apa-apa.',
       ],
-      exampleImage: '/cfit/examples/3.webp',
+      exampleImages: ['/cfit/examples/3.webp'],
     },
     3: {
       title: 'Instruksi Subtes 3',
@@ -74,7 +74,11 @@
         'Contoh no 2, ada gambar tangan saling bertolak belakang di 2 kotak atas, di kotak kiri bawah, ada gambar tangan dengan titik-titik hitam di badannya. Maka jawaban untuk kotak yang kosong yang paling tepat adalah...C.',
         'Contoh ke 3, ada 1 segiempat pada kotak atas dengan warna gelap, dan bawah sebelah kiri tanpa warna dan 2 segiempat pada kotak kanan atas berwarna gelap. Maka gambar kotak kanan bawah yang paling tepat adalah...A.',
       ],
-      exampleImage: '/cfit/examples/5.webp',
+      exampleImages: [
+        '/cfit/revisi/examples/t3-1.jpg',
+        '/cfit/revisi/examples/t3-2.jpg',
+        '/cfit/revisi/examples/t3-3.jpg',
+      ],
     },
     4: {
       title: 'Instruksi Subtes 4',
@@ -84,7 +88,7 @@
         'Contoh kedua, posisi titik berada dalam area dua buah segitiga yang saling berpotongan. Maka jawaban yang benar adalah D, karena posisi titik masih bisa ditempatkan dalam dua buah segitiga.',
         'Contoh ketiga, posisi titik berada di atas garis lengkung dan berada di dalam segiempat. Maka jawaban yang benar adalah B, karena titik masih dapat ditempatkan di atas garis lengkung dan di dalam segiempat.',
       ],
-      exampleImage: '/cfit/examples/6.webp',
+      exampleImages: ['/cfit/examples/6.webp'],
     },
   };
 
@@ -346,14 +350,16 @@
           {#if instr}
             <h3 class="text-base font-semibold">{instr.title}</h3>
             
-            {#if instr.exampleImage}
+            {#if instr.exampleImages?.length}
               <div class="bg-muted my-2 overflow-hidden rounded-lg border">
-                <img
-                  src={instr.exampleImage}
-                  alt="Contoh soal {instr.title}"
-                  class="h-auto w-full object-contain"
-                  loading="lazy"
-                />
+                {#each instr.exampleImages as exampleImage, index}
+                  <img
+                    src={exampleImage}
+                    alt="Contoh {index + 1} {instr.title}"
+                    class="h-auto w-full object-contain {index > 0 ? 'border-t' : ''}"
+                    loading="lazy"
+                  />
+                {/each}
               </div>
             {/if}
 
