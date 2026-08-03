@@ -15,9 +15,10 @@ ct:
 
 expose:
   enabled: true
-  hostname: assessment.ktt.my.id
+  hostname: assessment.jogjaitcamp.com
   service: assessment-frontend
   proxy_ct: proxy
+  cloudflare_account: jogjaitcamp
 
 deploy:
   github:
