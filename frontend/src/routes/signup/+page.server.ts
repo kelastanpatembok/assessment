@@ -1,8 +1,9 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { PUBLIC_AUTH_URL } from '$env/static/public';
+import { PUBLIC_AUTH_URL, PUBLIC_PROFILE_URL } from '$env/static/public';
 import type { Actions, PageServerLoad } from './$types';
 
 const AUTH_BASE = (PUBLIC_AUTH_URL || 'http://127.0.0.1:1007/api').replace(/\/+$/, '');
+const PROFILE_BASE = (PUBLIC_PROFILE_URL || 'http://127.0.0.1:1008/api').replace(/\/+$/, '');
 
 export const load: PageServerLoad = async ({ locals }) => {
   if (locals.user) redirect(302, '/tes-gratis');
@@ -29,6 +30,7 @@ export const actions: Actions = {
 
     // No separate username: the account username is the email address itself.
     let token: string;
+    let userId: string;
     try {
       const params = new URLSearchParams({
         username: email,
@@ -44,12 +46,28 @@ export const actions: Actions = {
           data?.message || data?.error || 'Pendaftaran gagal. Username atau email mungkin sudah dipakai.'
         );
       }
-      token = (await res.json()).token;
+      const json = await res.json();
+      token = json.token;
+      userId = json.user?.id;
     } catch (e) {
       return fail(409, { error: e instanceof Error ? e.message : 'Pendaftaran gagal' });
     }
-    if (!token) {
+    if (!token || !userId) {
       return fail(409, { error: 'Pendaftaran gagal. Silakan coba lagi.' });
+    }
+
+    // Persist the profile part (name) into the reusable `profile` domain,
+    // mirroring how the profile page updates a user. Best-effort: the profile
+    // domain also hydrates identity from auth on read, so a failed write here
+    // must not block account creation.
+    try {
+      await fetch(`${PROFILE_BASE}/users/${encodeURIComponent(userId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name })
+      });
+    } catch {
+      // ignored — profile hydrates from auth lazily
     }
 
     cookies.set('assessment_token', token, {
