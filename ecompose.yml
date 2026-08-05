@@ -30,7 +30,7 @@ deploy:
 
 storage:
   minio:
-    ct: minio
+    ct: storage
     region: us-east-1
 
 shared_tools:
