@@ -2,7 +2,7 @@
   import type { Action } from 'svelte/action';
   import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, OG_IMAGE, OG_LOCALE } from '$lib/site.js';
   import SiteFooter from '$lib/components/site/SiteFooter.svelte';
-  import UserMenu from '$lib/components/site/UserMenu.svelte';
+  import SiteHeader from '$lib/components/site/SiteHeader.svelte';
 
   let { data } = $props();
   const signedIn = $derived(!!data.user);
@@ -51,23 +51,7 @@
 </svelte:head>
 
 <div class="landing">
-  <header class="site-head">
-    <div class="site-head-inner">
-      <a href="#beranda" class="brand">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-name">Asesmen</span>
-      </a>
-      <nav class="site-nav" aria-label="Navigasi utama">
-        <a href="#layanan">Layanan</a>
-        <a href="#instrumen">Instrumen</a>
-        <a href="#alur">Alur</a>
-        <a href="#faq">FAQ</a>
-      </nav>
-      <UserMenu user={data.user} profile={data.profile}>
-        <a href="/signin" class="btn btn-primary btn-sm">Masuk</a>
-      </UserMenu>
-    </div>
-  </header>
+  <SiteHeader user={data.user} profile={data.profile} />
 
   <section class="audience-band" aria-label="Pengguna platform">
     <div class="audience-inner">
@@ -363,7 +347,6 @@
     text-decoration: none;
   }
 
-  .landing :global(.site-head-inner),
   .landing :global(.audience-inner),
   .landing :global(.hero),
   .landing :global(.instruments),
@@ -379,74 +362,6 @@
     max-width: var(--lp-maxw);
     margin-inline: auto;
     padding-inline: clamp(1.25rem, 4vw, 2.5rem);
-  }
-
-  /* ---------- Header · sticky warm bar ---------- */
-
-  .site-head {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: color-mix(in oklab, var(--lp-paper) 88%, transparent);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--lp-rule);
-  }
-
-  .site-head-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem;
-    padding-block: 0.9rem;
-  }
-
-  .brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    white-space: nowrap;
-  }
-
-  .brand-mark {
-    width: 0.7rem;
-    height: 0.7rem;
-    background: var(--lp-accent);
-    flex: none;
-  }
-
-  .brand-name {
-    font-family: var(--lp-font-display);
-    font-size: 1.35rem;
-    font-weight: 620;
-    letter-spacing: -0.02em;
-    line-height: 1;
-  }
-
-  .site-nav {
-    display: flex;
-    align-items: center;
-    gap: clamp(1rem, 2.5vw, 2rem);
-  }
-
-  .site-nav a {
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    font-variant-caps: all-small-caps;
-    color: var(--lp-ink-2);
-    padding-block: 0.75rem;
-    background-image: linear-gradient(var(--lp-accent-deep), var(--lp-accent-deep));
-    background-size: 0 1px;
-    background-repeat: no-repeat;
-    background-position: 50% 100%;
-    transition: color 150ms var(--lp-ease-out), background-size 200ms var(--lp-ease-out);
-    white-space: nowrap;
-  }
-
-  .site-nav a:hover {
-    color: var(--lp-ink);
-    background-size: 100% 1px;
   }
 
   /* ---------- Buttons · pill ---------- */
@@ -1005,10 +920,6 @@
     .fitem summary {
       min-height: 3.25rem;
     }
-
-    .site-nav a {
-      padding-block: 1rem;
-    }
   }
 
   /* ---------- Responsive ---------- */
@@ -1030,10 +941,6 @@
   }
 
   @media (max-width: 40rem) {
-    .site-nav {
-      display: none;
-    }
-
     .hero h1 {
       font-size: clamp(2.35rem, 10vw, 3rem);
     }
