@@ -23,6 +23,11 @@
   let submitting = $state(false);
   let failMsg = $state<string | null>(null);
 
+  // Only ever one pending auto-advance. Without this, fast taps stack
+  // timers that each do `idx + 1`, skipping questions and leaving their
+  // answers unrecorded (=> backend "answer all questions" error).
+  let advanceTimer: ReturnType<typeof setTimeout> | undefined;
+
   async function load() {
     loading = true;
     error = null;
@@ -46,7 +51,11 @@
     if (!current) return;
     answers = { ...answers, [current.no]: value };
     if (idx < questions.length - 1) {
-      setTimeout(() => (idx = idx + 1), 220);
+      const from = idx;
+      clearTimeout(advanceTimer);
+      advanceTimer = setTimeout(() => {
+        if (idx === from) idx = from + 1;
+      }, 220);
     } else {
       submitAll();
     }
@@ -58,6 +67,11 @@
 
   async function submitAll() {
     if (submitting) return;
+    const missing = questions.find((q) => answers[q.no] === undefined);
+    if (missing) {
+      idx = questions.findIndex((q) => q.no === missing.no);
+      return;
+    }
     submitting = true;
     failMsg = null;
     try {
