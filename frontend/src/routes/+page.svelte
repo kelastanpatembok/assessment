@@ -90,6 +90,14 @@
 
   <main>
     <section class="hero" id="beranda">
+      <img
+        class="hero-photo"
+        src="/psikolog.webp"
+        alt="Seorang psikolog profesional sedang tersenyum ramah"
+        width="1536"
+        height="1024"
+        fetchpriority="high"
+      />
       <div class="hero-copy">
         <h1>Memahami potensi. <em>Melangkah dengan yakin.</em></h1>
         <p class="hero-lede">
@@ -104,44 +112,36 @@
           <a href="#layanan" class="btn btn-ghost">Pelajari Layanan</a>
         </div>
       </div>
+    </section>
 
-      <aside class="hero-products" id="instrumen">
-        <img
-          class="hero-photo"
-          src="/psikolog.webp"
-          alt="Seorang psikolog profesional sedang tersenyum ramah"
-          width="1536"
-          height="1024"
-          fetchpriority="high"
-        />
-        <ul class="inst-grid">
-          <li class="icard icard-amber">
-            <span class="icode">DISC</span>
-            <span class="iname">Profil kepribadian</span>
-            <span class="idesc">Empat dimensi perilaku (D–I–S–C) yang mengungkap gaya komunikasi dan cara mengambil keputusan.</span>
-          </li>
-          <li class="icard icard-sage">
-            <span class="icode">Holland RIASEC</span>
-            <span class="iname">Minat karier</span>
-            <span class="idesc">Enam tipe minat (R–I–A–S–E–C) untuk memetakan arah studi dan profesi yang paling sesuai.</span>
-          </li>
-          <li class="icard icard-clay">
-            <span class="icode">PAPI Kostick</span>
-            <span class="iname">Kepribadian kerja</span>
-            <span class="idesc">Dua puluh dimensi karakteristik yang menggambarkan perilaku dan gaya bekerja seseorang.</span>
-          </li>
-          <li class="icard icard-cold">
-            <span class="icode">IQ CFIT</span>
-            <span class="iname">Tes kecerdasan</span>
-            <span class="idesc">Empat subtes bebas budaya yang mengukur kemampuan penalaran nonverbal.</span>
-          </li>
-          <li class="icard icard-grey">
-            <span class="icode">IQ IST</span>
-            <span class="iname">Tes kecerdasan</span>
-            <span class="idesc">Sembilan subtes yang mengukur berbagai kemampuan intelektual secara menyeluruh.</span>
-          </li>
-        </ul>
-      </aside>
+    <section class="instruments" id="instrumen">
+      <ul class="inst-grid">
+        <li class="icard icard-amber">
+          <span class="icode">DISC</span>
+          <span class="iname">Profil kepribadian</span>
+          <span class="idesc">Empat dimensi perilaku (D–I–S–C) yang mengungkap gaya komunikasi dan cara mengambil keputusan.</span>
+        </li>
+        <li class="icard icard-sage">
+          <span class="icode">Holland RIASEC</span>
+          <span class="iname">Minat karier</span>
+          <span class="idesc">Enam tipe minat (R–I–A–S–E–C) untuk memetakan arah studi dan profesi yang paling sesuai.</span>
+        </li>
+        <li class="icard icard-clay">
+          <span class="icode">PAPI Kostick</span>
+          <span class="iname">Kepribadian kerja</span>
+          <span class="idesc">Dua puluh dimensi karakteristik yang menggambarkan perilaku dan gaya bekerja seseorang.</span>
+        </li>
+        <li class="icard icard-cold">
+          <span class="icode">IQ CFIT</span>
+          <span class="iname">Tes kecerdasan</span>
+          <span class="idesc">Empat subtes bebas budaya yang mengukur kemampuan penalaran nonverbal.</span>
+        </li>
+        <li class="icard icard-grey">
+          <span class="icode">IQ IST</span>
+          <span class="iname">Tes kecerdasan</span>
+          <span class="idesc">Sembilan subtes yang mengukur berbagai kemampuan intelektual secara menyeluruh.</span>
+        </li>
+      </ul>
     </section>
 
     <section class="free-cta">
@@ -366,6 +366,7 @@
   .landing :global(.site-head-inner),
   .landing :global(.audience-inner),
   .landing :global(.hero),
+  .landing :global(.instruments),
   .landing :global(.free-cta),
   .landing :global(.stages-head),
   .landing :global(.spanel),
@@ -563,10 +564,20 @@
 
   .hero {
     display: grid;
-    grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
     gap: clamp(2rem, 5vw, 4.5rem);
     align-items: center;
     padding-block: clamp(3.5rem, 8vw, 6rem) clamp(3rem, 7vw, 4.5rem);
+  }
+
+  .hero-photo {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+    -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 98%);
+    mask-image: linear-gradient(180deg, #000 55%, transparent 98%);
   }
 
   .hero h1 {
@@ -601,28 +612,17 @@
     gap: 0.85rem;
   }
 
-  .hero-products {
-    background: var(--lp-paper);
-    display: grid;
-    gap: 1.1rem;
-  }
-
-  .hero-photo {
-    width: 100%;
-    aspect-ratio: 3 / 2;
-    object-fit: cover;
-    object-position: center;
-    border-radius: 1.5rem;
-    border: 1px solid var(--lp-rule);
-  }
-
   .inst-grid {
     list-style: none;
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+
+  .instruments {
+    padding-block: clamp(0.5rem, 2vw, 1.5rem) clamp(2.5rem, 6vw, 4rem);
   }
 
   .icard {
@@ -1018,8 +1018,10 @@
       grid-template-columns: minmax(0, 1fr);
     }
 
-    .hero-products {
-      order: 2;
+    .hero-photo {
+      max-height: 20rem;
+      object-fit: cover;
+      object-position: center 20%;
     }
 
     .step-grid {
