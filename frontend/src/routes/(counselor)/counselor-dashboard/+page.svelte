@@ -10,160 +10,233 @@
     LinearScale,
     ArcElement,
   } from 'chart.js';
-  import * as Card from '$lib/components/ui/card';
 
   ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ArcElement);
 
   let { data } = $props();
-  const { summary } = data;
+  const summary = $derived(data.summary);
 
-  // Chart options
   const barOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false
-      }
-    }
+    plugins: { legend: { display: false } }
   };
 
   const doughnutOptions = {
     responsive: true,
-    maintainAspectRatio: false,
+    maintainAspectRatio: false
   };
 
-  // DISC Data
-  const discLabels = Object.keys(summary.discProfileDistribution);
-  const discDataValues = Object.values(summary.discProfileDistribution);
-  
-  const discData = {
-    labels: discLabels,
+  const discData = $derived({
+    labels: Object.keys(summary.discProfileDistribution),
     datasets: [
       {
         label: 'Jumlah Siswa',
-        data: discDataValues,
-        backgroundColor: 'rgba(59, 130, 246, 0.8)',
-        borderColor: 'rgba(59, 130, 246, 1)',
+        data: Object.values(summary.discProfileDistribution),
+        backgroundColor: 'rgba(163, 84, 42, 0.82)',
+        borderColor: 'rgba(163, 84, 42, 1)',
         borderWidth: 1,
-        borderRadius: 4,
+        borderRadius: 6,
       }
     ]
+  });
+
+  const hollandNames: Record<string, string> = {
+    R: 'Realistic',
+    I: 'Investigative',
+    A: 'Artistic',
+    S: 'Social',
+    E: 'Enterprising',
+    C: 'Conventional'
   };
 
-  // Holland Data
-  const hollandLabels = Object.keys(summary.hollandTypeDistribution).map(k => {
-    const names: Record<string, string> = {
-      'R': 'Realistic',
-      'I': 'Investigative',
-      'A': 'Artistic',
-      'S': 'Social',
-      'E': 'Enterprising',
-      'C': 'Conventional'
-    };
-    return names[k] || k;
-  });
-  const hollandDataValues = Object.values(summary.hollandTypeDistribution);
-
-  const hollandData = {
-    labels: hollandLabels,
+  const hollandData = $derived({
+    labels: Object.keys(summary.hollandTypeDistribution).map((k) => hollandNames[k] || k),
     datasets: [
       {
-        data: hollandDataValues,
+        data: Object.values(summary.hollandTypeDistribution),
         backgroundColor: [
-          'rgba(239, 68, 68, 0.8)',   // R - Red
-          'rgba(245, 158, 11, 0.8)',  // I - Orange
-          'rgba(16, 185, 129, 0.8)',  // A - Green
-          'rgba(59, 130, 246, 0.8)',  // S - Blue
-          'rgba(139, 92, 246, 0.8)',  // E - Purple
-          'rgba(236, 72, 153, 0.8)'   // C - Pink
+          'rgba(201, 123, 84, 0.85)',
+          'rgba(217, 154, 61, 0.85)',
+          'rgba(122, 158, 110, 0.85)',
+          'rgba(94, 139, 155, 0.85)',
+          'rgba(138, 107, 168, 0.85)',
+          'rgba(192, 106, 126, 0.85)'
         ],
         borderWidth: 0,
       }
     ]
-  };
+  });
 </script>
 
-<svelte:head>
-  <title>Dashboard Guru BK - Assessment</title>
-</svelte:head>
+<svelte:head><title>Dashboard Guru BK — Asesmen</title></svelte:head>
 
-<div class="flex-1 space-y-6 p-8 pt-6">
-  <div class="flex items-center justify-between space-y-2">
-    <h2 class="text-3xl font-bold tracking-tight">Dashboard Hasil Evaluasi</h2>
+<div class="cdash">
+  <section class="cdash-hero">
+    <p class="cdash-kicker">Panel Guru BK</p>
+    <h2 class="cdash-title">Hasil evaluasi.</h2>
+    <p class="cdash-lede">Pantau perkembangan asesmen siswa di sekolah Anda.</p>
+  </section>
+
+  <div class="kpi-grid">
+    <article class="kpi kpi-amber">
+      <p class="kpi-label">Total Siswa</p>
+      <p class="kpi-num">{summary.totalStudents}</p>
+      <p class="kpi-sub">Siswa terdaftar di sekolah ini</p>
+    </article>
+    <article class="kpi kpi-sage">
+      <p class="kpi-label">Tes Selesai</p>
+      <p class="kpi-num">{summary.completedTests}</p>
+      <p class="kpi-sub">Modul asesmen yang diselesaikan</p>
+    </article>
+    <article class="kpi kpi-clay">
+      <p class="kpi-label">Rata-rata IQ (Estimasi)</p>
+      <p class="kpi-num">{summary.averageIq}</p>
+      <p class="kpi-sub">Berdasarkan hasil IST / CFIT</p>
+    </article>
   </div>
 
-  <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-    <!-- Total Students KPI -->
-    <Card.Root class="bg-gradient-to-br from-blue-50 to-white shadow-sm border-blue-100">
-      <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-        <Card.Title class="text-sm font-medium">Total Siswa</Card.Title>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      </Card.Header>
-      <Card.Content>
-        <div class="text-3xl font-bold text-blue-700">{summary.totalStudents}</div>
-        <p class="text-xs text-muted-foreground mt-1">
-          Siswa terdaftar di sekolah ini
-        </p>
-      </Card.Content>
-    </Card.Root>
-
-    <!-- Completed Tests KPI -->
-    <Card.Root class="bg-gradient-to-br from-green-50 to-white shadow-sm border-green-100">
-      <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-        <Card.Title class="text-sm font-medium">Tes Selesai</Card.Title>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-      </Card.Header>
-      <Card.Content>
-        <div class="text-3xl font-bold text-green-700">{summary.completedTests}</div>
-        <p class="text-xs text-muted-foreground mt-1">
-          Modul asesmen diselesaikan
-        </p>
-      </Card.Content>
-    </Card.Root>
-
-    <!-- Average IQ KPI -->
-    <Card.Root class="bg-gradient-to-br from-purple-50 to-white shadow-sm border-purple-100">
-      <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-        <Card.Title class="text-sm font-medium">Rata-rata IQ (Estimasi)</Card.Title>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-500"><path d="M2 12h4l3-9 5 18 3-9h5"/></svg>
-      </Card.Header>
-      <Card.Content>
-        <div class="text-3xl font-bold text-purple-700">{summary.averageIq}</div>
-        <p class="text-xs text-muted-foreground mt-1">
-          Berdasarkan hasil IST / CFIT
-        </p>
-      </Card.Content>
-    </Card.Root>
-  </div>
-
-  <div class="grid gap-6 md:grid-cols-2">
-    <!-- DISC Chart -->
-    <Card.Root class="shadow-md">
-      <Card.Header>
-        <Card.Title>Distribusi Profil Kepribadian (DISC)</Card.Title>
-        <Card.Description>
-          Mayoritas gaya kerja dan komunikasi siswa.
-        </Card.Description>
-      </Card.Header>
-      <Card.Content class="h-[350px]">
+  <div class="chart-grid">
+    <section class="chart-card">
+      <h3 class="chart-title">Distribusi Profil Kepribadian (DISC)</h3>
+      <p class="chart-sub">Mayoritas gaya kerja dan komunikasi siswa.</p>
+      <div class="chart-box">
         <Bar data={discData} options={barOptions} />
-      </Card.Content>
-    </Card.Root>
+      </div>
+    </section>
 
-    <!-- Holland Chart -->
-    <Card.Root class="shadow-md">
-      <Card.Header>
-        <Card.Title>Distribusi Minat Karier (Holland RIASEC)</Card.Title>
-        <Card.Description>
-          Kecenderungan bidang vokasional dominan siswa.
-        </Card.Description>
-      </Card.Header>
-      <Card.Content class="h-[350px] flex items-center justify-center">
-        <div class="w-full max-w-[300px] h-full">
+    <section class="chart-card">
+      <h3 class="chart-title">Distribusi Minat Karier (Holland RIASEC)</h3>
+      <p class="chart-sub">Kecenderungan bidang vokasional dominan siswa.</p>
+      <div class="chart-box chart-box-doughnut">
+        <div class="chart-doughnut">
           <Doughnut data={hollandData} options={doughnutOptions} />
         </div>
-      </Card.Content>
-    </Card.Root>
+      </div>
+    </section>
   </div>
 </div>
+
+<style>
+  .cdash {
+    display: grid;
+    gap: clamp(1.5rem, 3vw, 2.25rem);
+  }
+
+  .cdash-hero {
+    max-width: 40rem;
+  }
+
+  .cdash-kicker {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-variant-caps: all-small-caps;
+    color: var(--lp-accent-deep);
+    margin: 0 0 0.5rem;
+  }
+
+  .cdash-title {
+    font-family: var(--lp-font-display);
+    font-size: clamp(1.7rem, 3vw + 0.6rem, 2.3rem);
+    font-weight: 560;
+    letter-spacing: -0.02em;
+    line-height: 1.12;
+    margin: 0 0 0.6rem;
+  }
+
+  .cdash-lede {
+    color: var(--lp-ink-2);
+    margin: 0;
+  }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 1rem;
+  }
+
+  .kpi {
+    border: 1px solid var(--lp-rule);
+    border-radius: 1.25rem;
+    padding: 1.4rem 1.5rem;
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .kpi-amber { background: var(--lp-tint-amber); }
+  .kpi-sage { background: var(--lp-tint-sage); }
+  .kpi-clay { background: var(--lp-tint-clay); }
+
+  .kpi-label {
+    font-size: 0.8rem;
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--lp-ink-2);
+    margin: 0;
+  }
+
+  .kpi-num {
+    font-family: var(--lp-font-display);
+    font-size: clamp(2.2rem, 4vw, 3rem);
+    font-weight: 560;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .kpi-sub {
+    color: var(--lp-muted);
+    font-size: 0.85rem;
+    margin: 0;
+  }
+
+  .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    gap: 1rem;
+  }
+
+  .chart-card {
+    border: 1px solid var(--lp-rule);
+    border-radius: 1.25rem;
+    background: var(--lp-paper);
+    padding: 1.4rem 1.5rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .chart-title {
+    font-family: var(--lp-font-display);
+    font-size: 1.15rem;
+    font-weight: 560;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .chart-sub {
+    color: var(--lp-muted);
+    font-size: 0.85rem;
+    margin: 0 0 0.75rem;
+  }
+
+  .chart-box {
+    height: 20rem;
+    min-width: 0;
+  }
+
+  .chart-box-doughnut {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .chart-doughnut {
+    width: 100%;
+    max-width: 18rem;
+    height: 100%;
+  }
+</style>
