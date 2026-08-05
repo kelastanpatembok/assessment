@@ -1,5 +1,5 @@
 import { redirect } from '@sveltejs/kit';
-import { getAuthProfile } from '$lib/server/profile';
+import { getProfile } from '$lib/server/profile';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -14,6 +14,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 	if (role === 'siswa') redirect(302, '/student-dashboard');
 
 	// Free/member users get a personalized landing page.
-	const profile = await getAuthProfile(locals.user.userId, locals.token ?? '');
+	const profile = await getProfile(locals.user.userId, locals.token ?? '');
 	return { user: locals.user, profile };
 };
