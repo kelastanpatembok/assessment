@@ -15,6 +15,6 @@
 
 <svelte:head><title>Panel Siswa — Asesmen</title></svelte:head>
 
-<DashboardShell title="Panel Siswa" roleLabel="Siswa" navLinks={navLinks} user={data.user}>
+<DashboardShell roleLabel="Siswa" navLinks={navLinks} user={data.user} profile={data.profile}>
   {@render children()}
 </DashboardShell>

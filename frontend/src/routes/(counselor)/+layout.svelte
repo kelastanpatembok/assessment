@@ -12,6 +12,6 @@
 
 <svelte:head><title>Panel Guru BK — Asesmen</title></svelte:head>
 
-<DashboardShell title="Panel Guru BK" roleLabel="Guru BK" navLinks={navLinks} user={data.user}>
+<DashboardShell roleLabel="Guru BK" navLinks={navLinks} user={data.user} profile={data.profile}>
   {@render children()}
 </DashboardShell>

@@ -11,6 +11,6 @@
 
 <svelte:head><title>Panel Afiliator — Asesmen</title></svelte:head>
 
-<DashboardShell title="Panel Afiliator" roleLabel="Afiliator" navLinks={navLinks} user={data.user}>
+<DashboardShell roleLabel="Afiliator" navLinks={navLinks} user={data.user} profile={data.profile}>
   {@render children()}
 </DashboardShell>

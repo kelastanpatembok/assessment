@@ -17,6 +17,6 @@
 
 <svelte:head><title>Panel Admin — Asesmen</title></svelte:head>
 
-<DashboardShell title="Panel Admin" roleLabel="Superadmin" navLinks={navLinks} user={data.user}>
+<DashboardShell roleLabel="Superadmin" navLinks={navLinks} user={data.user} profile={data.profile}>
   {@render children()}
 </DashboardShell>
