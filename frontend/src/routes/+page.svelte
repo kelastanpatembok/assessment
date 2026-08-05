@@ -2,6 +2,10 @@
   import type { Action } from 'svelte/action';
   import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, OG_IMAGE, OG_LOCALE } from '$lib/site.js';
   import SiteFooter from '$lib/components/site/SiteFooter.svelte';
+  import UserMenu from '$lib/components/site/UserMenu.svelte';
+
+  let { data } = $props();
+  const signedIn = $derived(!!data.user);
 
   /* Hallmark · genre: editorial-warm · macrostructure: Split Studio (diptych hero + tinted feature panels)
    * theme: studied-DNA (source: jenjang.com — public competitor reference) adapted warm:
@@ -59,7 +63,9 @@
         <a href="#alur">Alur</a>
         <a href="#faq">FAQ</a>
       </nav>
-      <a href="/signin" class="btn btn-primary btn-sm">Masuk</a>
+      <UserMenu user={data.user} profile={data.profile}>
+        <a href="/signin" class="btn btn-primary btn-sm">Masuk</a>
+      </UserMenu>
     </div>
   </header>
 
@@ -74,9 +80,8 @@
           <span class="apill-label">Psikolog</span>
           <span class="apill-sub">asesmen klien profesional</span>
         </a>
-        <a href="#masyarakat" class="apill apill-soon">
+        <a href="#masyarakat" class="apill apill-on">
           <span class="apill-label">Masyarakat</span>
-          <span class="badge-soon">Segera hadir</span>
           <span class="apill-sub">mengenal diri sendiri</span>
         </a>
       </div>
@@ -93,33 +98,39 @@
           tervalidasi secara ilmiah.
         </p>
         <div class="hero-cta">
-          <a href="/signin" class="btn btn-primary">Masuk ke Platform</a>
+          <a href={signedIn ? '/tes-gratis' : '/signup'} class="btn btn-primary">
+            {signedIn ? 'Ikuti Tes Gratis' : 'Masuk ke Platform'}
+          </a>
           <a href="#layanan" class="btn btn-ghost">Pelajari Layanan</a>
         </div>
       </div>
 
       <aside class="hero-products" id="instrumen">
-        <p class="panel-title">Instrumen yang tersedia</p>
         <ul class="inst-grid">
           <li class="icard icard-amber">
             <span class="icode">DISC</span>
-            <span class="iname">Tes kepribadian</span>
+            <span class="iname">Profil kepribadian</span>
+            <span class="idesc">Empat dimensi perilaku (D–I–S–C) yang mengungkap gaya komunikasi dan cara mengambil keputusan.</span>
           </li>
           <li class="icard icard-sage">
             <span class="icode">Holland RIASEC</span>
-            <span class="iname">Tes minat karier</span>
+            <span class="iname">Minat karier</span>
+            <span class="idesc">Enam tipe minat (R–I–A–S–E–C) untuk memetakan arah studi dan profesi yang paling sesuai.</span>
           </li>
           <li class="icard icard-clay">
             <span class="icode">PAPI Kostick</span>
             <span class="iname">Kepribadian kerja</span>
+            <span class="idesc">Dua puluh dimensi karakteristik yang menggambarkan perilaku dan gaya bekerja seseorang.</span>
           </li>
           <li class="icard icard-cold">
             <span class="icode">IQ CFIT</span>
             <span class="iname">Tes kecerdasan</span>
+            <span class="idesc">Empat subtes bebas budaya yang mengukur kemampuan penalaran nonverbal.</span>
           </li>
           <li class="icard icard-grey">
             <span class="icode">IQ IST</span>
             <span class="iname">Tes kecerdasan</span>
+            <span class="idesc">Sembilan subtes yang mengukur berbagai kemampuan intelektual secara menyeluruh.</span>
           </li>
         </ul>
       </aside>
@@ -128,13 +139,12 @@
     <section class="free-cta">
       <div class="free-cta-card">
         <div class="free-cta-copy">
-          <p class="free-cta-kicker">Tes gratis untuk semua</p>
           <h2>Penasaran dengan kepribadianmu?</h2>
           <p class="free-cta-text">
             Daftar dengan email, lalu mulai — 30 pertanyaan singkat dengan hasil instan.
           </p>
         </div>
-        <a href="/signup" class="btn btn-primary free-cta-btn">Ikuti Tes Gratis</a>
+        <a href={signedIn ? '/tes-gratis' : '/signup'} class="btn btn-primary free-cta-btn">Ikuti Tes Gratis</a>
       </div>
     </section>
 
@@ -154,7 +164,6 @@
             <h3>Sekolah</h3>
             <p class="stage-sub">Penilaian potensi untuk para siswa</p>
           </div>
-          <span class="status status-on">Tersedia</span>
         </div>
         <div class="spanel-body">
           <p>
@@ -177,19 +186,28 @@
             <h3>Psikolog &amp; Konsultan</h3>
             <p class="stage-sub">Asesmen klien untuk praktik profesional</p>
           </div>
-          <span class="status status-on">Tersedia</span>
         </div>
-        <div class="spanel-body">
-          <p>
-            Psikolog dan afiliator menggunakan instrumen untuk menilai kecerdasan, kepribadian, dan
-            karakteristik kerja klien — dengan hasil yang terstruktur untuk mendukung rekomendasi
-            profesional.
-          </p>
-          <ul class="spanel-list">
-            <li>Daftarkan klien dan kelola riwayat asesmen</li>
-            <li>Ukur kecerdasan (CFIT, IST) dan kepribadian (DISC, PAPI)</li>
-            <li>Unduh hasil dalam bentuk laporan</li>
-          </ul>
+        <div class="spanel-content">
+          <div class="spanel-body">
+            <p>
+              Psikolog dan afiliator menggunakan instrumen untuk menilai kecerdasan, kepribadian, dan
+              karakteristik kerja klien — dengan hasil yang terstruktur untuk mendukung rekomendasi
+              profesional.
+            </p>
+            <ul class="spanel-list">
+              <li>Daftarkan klien dan kelola riwayat asesmen</li>
+              <li>Ukur kecerdasan (CFIT, IST) dan kepribadian (DISC, PAPI)</li>
+              <li>Unduh hasil dalam bentuk laporan</li>
+            </ul>
+          </div>
+          <img
+            class="spanel-fig"
+            src="/psikolog.webp"
+            alt="Ilustrasi psikolog yang ramah"
+            width="640"
+            height="640"
+            loading="lazy"
+          />
         </div>
       </article>
 
@@ -200,21 +218,20 @@
             <h3>Masyarakat Umum</h3>
             <p class="stage-sub">Mengenal diri sendiri, secara mandiri</p>
           </div>
-          <span class="status status-soon">Dalam pengembangan</span>
         </div>
         <div class="spanel-body">
           <p>
-            Ke depan, setiap orang dapat mengikuti tes untuk memahami kepribadian, minat, dan potensi
-            dirinya — tanpa perlu terdaftar di sekolah atau berstatus klien. Layanan ini sedang kami
-            kembangkan.
+            Setiap orang kini dapat mengikuti tes untuk memahami kepribadian, minat, dan potensi
+            dirinya — tanpa perlu terdaftar di sekolah atau berstatus klien. Mulailah dengan Tes
+            Kepribadian Gratis yang tersedia untuk semua.
           </p>
           <ul class="spanel-list">
             <li>Ikuti tes secara mandiri dari mana saja</li>
             <li>Terima hasil yang dapat dimaknai dengan pendampingan</li>
           </ul>
           <div class="spanel-note">
-            <p>Kini tersedia: tes kepribadian gratis untuk semua orang.</p>
-            <a href="/signup" class="btn btn-ghost btn-sm">Coba Tes Gratis</a>
+            <p>Mulai sekarang — tidak perlu mendaftar di sekolah.</p>
+            <a href={signedIn ? '/tes-gratis' : '/signup'} class="btn btn-ghost btn-sm">Coba Tes Gratis</a>
           </div>
         </div>
       </article>
@@ -251,7 +268,7 @@
         </li>
       </ol>
       <div class="alur-cta">
-        <a href="/signin" class="btn btn-primary">Masuk ke Platform</a>
+        <a href={signedIn ? '/tes-gratis' : '/signup'} class="btn btn-primary">Masuk ke Platform</a>
       </div>
     </section>
 
@@ -441,7 +458,7 @@
     justify-content: center;
     min-height: 3rem;
     padding: 0.7rem 1.6rem;
-    border-radius: 999px;
+    border-radius: 0.625rem;
     font-weight: 600;
     letter-spacing: 0.01em;
     cursor: pointer;
@@ -534,15 +551,6 @@
     border-color: var(--lp-accent);
   }
 
-  .apill-soon {
-    opacity: 0.62;
-  }
-
-  .apill-soon:hover {
-    opacity: 0.9;
-    border-color: var(--lp-rule-2);
-  }
-
   .apill-label {
     font-weight: 650;
     font-size: 0.95rem;
@@ -551,21 +559,6 @@
   .apill-sub {
     color: var(--lp-muted);
     font-size: 0.78rem;
-  }
-
-  .badge-soon {
-    display: inline-flex;
-    align-items: center;
-    font-size: 0.66rem;
-    font-weight: 650;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    font-variant-caps: all-small-caps;
-    color: var(--lp-accent-deep);
-    background: color-mix(in oklab, var(--lp-accent) 18%, transparent);
-    border-radius: 999px;
-    padding: 0.18rem 0.6rem;
-    white-space: nowrap;
   }
 
   /* ---------- Hero · H2 split diptych ---------- */
@@ -614,27 +607,6 @@
     background: var(--lp-paper);
   }
 
-  .panel-title {
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    font-variant-caps: all-small-caps;
-    color: var(--lp-muted);
-    margin: 0 0 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-  }
-
-  .panel-title::before {
-    content: '';
-    width: 0.5rem;
-    height: 0.5rem;
-    background: var(--lp-accent);
-    flex: none;
-  }
-
   .inst-grid {
     list-style: none;
     margin: 0;
@@ -647,9 +619,9 @@
   .icard {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.45rem;
     border-radius: 1.25rem;
-    padding: 1.1rem 1.25rem;
+    padding: 1.15rem 1.25rem;
     border: 1px solid var(--lp-rule);
   }
 
@@ -682,8 +654,16 @@
   }
 
   .iname {
+    color: var(--lp-ink);
+    font-weight: 650;
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
+
+  .idesc {
     color: var(--lp-ink-2);
-    font-size: 0.82rem;
+    font-size: 0.8rem;
+    line-height: 1.5;
   }
 
   /* ---------- Free-test CTA band ---------- */
@@ -702,16 +682,6 @@
     border: 1px solid var(--lp-rule);
     border-radius: 1.5rem;
     padding: clamp(1.75rem, 4vw, 2.5rem);
-  }
-
-  .free-cta-kicker {
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    font-variant-caps: all-small-caps;
-    color: var(--lp-accent-deep);
-    margin: 0 0 0.6rem;
   }
 
   .free-cta-copy h2 {
@@ -822,47 +792,6 @@
     margin: 0;
   }
 
-  .status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    font-variant-caps: all-small-caps;
-    padding: 0.4rem 0.8rem;
-    border: 1px solid var(--lp-rule-2);
-    border-radius: 999px;
-    background: color-mix(in oklab, var(--lp-paper) 55%, transparent);
-    white-space: nowrap;
-  }
-
-  .status::before {
-    content: '';
-    width: 0.4rem;
-    height: 0.4rem;
-    border-radius: 999px;
-    flex: none;
-  }
-
-  .status-on {
-    color: var(--lp-accent-deep);
-    border-color: var(--lp-accent);
-  }
-
-  .status-on::before {
-    background: var(--lp-accent);
-  }
-
-  .status-soon {
-    color: var(--lp-muted);
-  }
-
-  .status-soon::before {
-    background: var(--lp-rule-2);
-  }
-
   .spanel-body {
     max-width: 62ch;
     color: var(--lp-ink-2);
@@ -909,6 +838,19 @@
 
   .spanel-note p {
     margin: 0;
+  }
+
+  .spanel-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 15rem);
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .spanel-fig {
+    width: 100%;
+    height: auto;
+    border-radius: 1.5rem;
   }
 
   /* ---------- Alur · step cards ---------- */
@@ -1123,6 +1065,15 @@
 
     .spanel-title h3 {
       margin-top: 0.25rem;
+    }
+
+    .spanel-content {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .spanel-fig {
+      max-width: 16rem;
+      margin-inline: auto;
     }
 
     .free-cta-card {
