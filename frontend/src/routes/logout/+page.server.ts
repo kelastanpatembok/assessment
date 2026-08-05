@@ -3,5 +3,5 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ cookies }) => {
   cookies.delete('assessment_token', { path: '/' });
-  redirect(302, '/login');
+  redirect(302, '/signin');
 };

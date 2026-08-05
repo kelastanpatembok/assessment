@@ -1,5 +1,5 @@
 <script lang="ts">
-  let { loginHref = '/login', loginLabel = 'Masuk' } = $props();
+  let { loginHref = '/signin', loginLabel = 'Masuk' } = $props();
 </script>
 
 <header class="site-head">

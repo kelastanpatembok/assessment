@@ -104,7 +104,7 @@
     <div class="hasil-saved">
       <h1>Hasilmu telah tersimpan.</h1>
       <p>Silakan masuk kembali untuk melihat hasil kepribadianmu.</p>
-      <a href="/login" class="hasil-cta">Masuk</a>
+      <a href="/signin" class="hasil-cta">Masuk</a>
     </div>
   {/if}
 </div>

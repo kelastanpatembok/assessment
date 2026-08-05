@@ -104,7 +104,7 @@
 
 			<p class="mt-6 text-center text-sm text-slate-600">
 				Sudah punya akun?
-				<a href="/login" class="font-medium text-blue-600 hover:underline">Masuk</a>
+				<a href="/signin" class="font-medium text-blue-600 hover:underline">Masuk</a>
 			</p>
 		</CardContent>
 	</Card>

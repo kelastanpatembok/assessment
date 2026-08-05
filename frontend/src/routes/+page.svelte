@@ -59,7 +59,7 @@
         <a href="#alur">Alur</a>
         <a href="#faq">FAQ</a>
       </nav>
-      <a href="/login" class="btn btn-primary btn-sm">Masuk</a>
+      <a href="/signin" class="btn btn-primary btn-sm">Masuk</a>
     </div>
   </header>
 
@@ -93,7 +93,7 @@
           tervalidasi secara ilmiah.
         </p>
         <div class="hero-cta">
-          <a href="/login" class="btn btn-primary">Masuk ke Platform</a>
+          <a href="/signin" class="btn btn-primary">Masuk ke Platform</a>
           <a href="#layanan" class="btn btn-ghost">Pelajari Layanan</a>
         </div>
       </div>
@@ -251,7 +251,7 @@
         </li>
       </ol>
       <div class="alur-cta">
-        <a href="/login" class="btn btn-primary">Masuk ke Platform</a>
+        <a href="/signin" class="btn btn-primary">Masuk ke Platform</a>
       </div>
     </section>
 
@@ -303,7 +303,7 @@
       <p>
         Masuk ke platform untuk memulai — bagi sekolah, psikolog, maupun siswa yang telah terdaftar.
       </p>
-      <a href="/login" class="btn btn-primary">Masuk ke Platform</a>
+      <a href="/signin" class="btn btn-primary">Masuk ke Platform</a>
     </section>
   </main>
 
