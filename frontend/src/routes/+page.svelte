@@ -124,6 +124,19 @@
       </aside>
     </section>
 
+    <section class="free-cta">
+      <div class="free-cta-card">
+        <div class="free-cta-copy">
+          <p class="free-cta-kicker">Tes gratis untuk semua</p>
+          <h2>Penasaran dengan kepribadianmu?</h2>
+          <p class="free-cta-text">
+            30 pertanyaan singkat, hasil instan — tanpa perlu mendaftar untuk memulai.
+          </p>
+        </div>
+        <a href="/tes-gratis" class="btn btn-primary free-cta-btn">Ikuti Tes Gratis</a>
+      </div>
+    </section>
+
     <section class="stages" id="layanan">
       <header class="stages-head" use:reveal>
         <h2>Melayani tiga tujuan.</h2>
@@ -343,6 +356,7 @@
   .landing :global(.site-head-inner),
   .landing :global(.audience-inner),
   .landing :global(.hero),
+  .landing :global(.free-cta),
   .landing :global(.stages-head),
   .landing :global(.spanel),
   .landing :global(.alur-head),
@@ -676,6 +690,54 @@
   .iname {
     color: var(--lp-ink-2);
     font-size: 0.82rem;
+  }
+
+  /* ---------- Free-test CTA band ---------- */
+
+  .free-cta {
+    padding-bottom: clamp(1.5rem, 3vw, 2rem);
+  }
+
+  .free-cta-card {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem 2rem;
+    background: linear-gradient(100deg, var(--lp-tint-amber) 0%, var(--lp-tint-clay) 100%);
+    border: 1px solid var(--lp-rule);
+    border-radius: 1.5rem;
+    padding: clamp(1.75rem, 4vw, 2.5rem);
+  }
+
+  .free-cta-kicker {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-variant-caps: all-small-caps;
+    color: var(--lp-accent-deep);
+    margin: 0 0 0.6rem;
+  }
+
+  .free-cta-copy h2 {
+    font-family: var(--lp-font-display);
+    font-size: clamp(1.6rem, 3vw + 1rem, 2.2rem);
+    font-weight: 560;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin: 0 0 0.6rem;
+    overflow-wrap: anywhere;
+  }
+
+  .free-cta-text {
+    color: var(--lp-ink-2);
+    margin: 0;
+    max-width: 42ch;
+  }
+
+  .free-cta-btn {
+    flex: none;
   }
 
   /* ---------- Stages · tinted panels ---------- */
@@ -1103,6 +1165,15 @@
 
     .spanel-title h3 {
       margin-top: 0.25rem;
+    }
+
+    .free-cta-card {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .free-cta-btn {
+      width: 100%;
     }
   }
 </style>
