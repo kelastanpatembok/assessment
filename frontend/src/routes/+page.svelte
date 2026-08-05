@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Action } from 'svelte/action';
+  import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, OG_IMAGE, OG_LOCALE } from '$lib/site.js';
 
   /* Hallmark · genre: editorial-warm · macrostructure: Split Studio (diptych hero + tinted feature panels)
    * theme: studied-DNA (source: jenjang.com — public competitor reference) adapted warm:
@@ -28,10 +29,20 @@
 
 <svelte:head>
   <title>Asesmen — Platform Asesmen Psikometri</title>
-  <meta
-    name="description"
-    content="Platform asesmen psikometri untuk sekolah, psikolog, dan masyarakat — tes kepribadian, minat karier, dan kecerdasan yang tervalidasi secara ilmiah."
-  />
+  <meta name="description" content={SITE_DESCRIPTION} />
+  <meta property="og:title" content="Asesmen — Platform Asesmen Psikometri" />
+  <meta property="og:description" content={SITE_DESCRIPTION} />
+  <meta property="og:url" content={SITE_URL} />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content={OG_LOCALE} />
+  <meta property="og:site_name" content={SITE_NAME} />
+  <meta property="og:image" content={OG_IMAGE} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Asesmen — Platform Asesmen Psikometri" />
+  <meta name="twitter:description" content={SITE_DESCRIPTION} />
+  <meta name="twitter:image" content={OG_IMAGE} />
 </svelte:head>
 
 <div class="landing">
@@ -297,11 +308,11 @@
     --lp-paper-2: oklch(0.95 0.02 75);
     --lp-ink: oklch(0.24 0.025 55);
     --lp-ink-2: oklch(0.4 0.02 55);
-    --lp-muted: oklch(0.45 0.02 55);
+    --lp-muted: oklch(0.43 0.02 55);
     --lp-rule: oklch(0.88 0.02 75);
     --lp-rule-2: oklch(0.79 0.025 75);
     --lp-accent: oklch(0.6 0.14 42);
-    --lp-accent-deep: oklch(0.44 0.12 38);
+    --lp-accent-deep: oklch(0.42 0.12 38);
     --lp-focus: oklch(0.55 0.15 40);
     /* Pastel tints — low chroma, warm family */
     --lp-tint-amber: oklch(0.965 0.035 78);
