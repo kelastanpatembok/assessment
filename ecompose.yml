@@ -40,7 +40,16 @@ shared_tools:
   - jq
   - ca-certificates
 
+domains:
+  - email-manager
+
 services:
+  email-manager-backend:
+    path: email-manager/backend
+    runtimes:
+      - rust
+      - mongodb@7
+
   auth-backend:
     path: auth/backend
     runtimes:
