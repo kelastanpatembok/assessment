@@ -187,27 +187,17 @@
             <p class="stage-sub">Asesmen klien untuk praktik profesional</p>
           </div>
         </div>
-        <div class="spanel-content">
-          <div class="spanel-body">
-            <p>
-              Psikolog dan afiliator menggunakan instrumen untuk menilai kecerdasan, kepribadian, dan
-              karakteristik kerja klien — dengan hasil yang terstruktur untuk mendukung rekomendasi
-              profesional.
-            </p>
-            <ul class="spanel-list">
-              <li>Daftarkan klien dan kelola riwayat asesmen</li>
-              <li>Ukur kecerdasan (CFIT, IST) dan kepribadian (DISC, PAPI)</li>
-              <li>Unduh hasil dalam bentuk laporan</li>
-            </ul>
-          </div>
-          <img
-            class="spanel-fig"
-            src="/psikolog.webp"
-            alt="Ilustrasi psikolog yang ramah"
-            width="640"
-            height="640"
-            loading="lazy"
-          />
+        <div class="spanel-body">
+          <p>
+            Psikolog dan afiliator menggunakan instrumen untuk menilai kecerdasan, kepribadian, dan
+            karakteristik kerja klien — dengan hasil yang terstruktur untuk mendukung rekomendasi
+            profesional.
+          </p>
+          <ul class="spanel-list">
+            <li>Daftarkan klien dan kelola riwayat asesmen</li>
+            <li>Ukur kecerdasan (CFIT, IST) dan kepribadian (DISC, PAPI)</li>
+            <li>Unduh hasil dalam bentuk laporan</li>
+          </ul>
         </div>
       </article>
 
@@ -840,19 +830,6 @@
     margin: 0;
   }
 
-  .spanel-content {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 15rem);
-    gap: 2rem;
-    align-items: center;
-  }
-
-  .spanel-fig {
-    width: 100%;
-    height: auto;
-    border-radius: 1.5rem;
-  }
-
   /* ---------- Alur · step cards ---------- */
 
   .alur {
@@ -1065,15 +1042,6 @@
 
     .spanel-title h3 {
       margin-top: 0.25rem;
-    }
-
-    .spanel-content {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .spanel-fig {
-      max-width: 16rem;
-      margin-inline: auto;
     }
 
     .free-cta-card {
