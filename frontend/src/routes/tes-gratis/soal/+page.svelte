@@ -63,8 +63,8 @@
     try {
       const res = await fetch('/tes-gratis/soal?/save', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(answers)
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ answers: JSON.stringify(answers) })
       });
       if (res.status === 401) {
         goto('/signup');
@@ -73,7 +73,13 @@
       const body = await res.json().catch(() => null);
       const data = body && typeof body.data === 'string' ? parse(body.data) : body?.data;
       if (!res.ok || body?.type === 'failure') {
-        throw new Error(data?.error || body?.error || 'Gagal menyimpan hasil');
+        const reason =
+          typeof data?.error === 'string'
+            ? data.error
+            : typeof body?.error === 'string'
+              ? body.error
+              : 'Gagal menyimpan hasil';
+        throw new Error(reason);
       }
       const result = data;
       sessionStorage.setItem('big5_result', JSON.stringify(result));
