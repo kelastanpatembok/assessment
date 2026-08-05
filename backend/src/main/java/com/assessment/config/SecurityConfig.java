@@ -38,6 +38,8 @@ public class SecurityConfig {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/health", "/actuator/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/big5/questions").permitAll()
+                .requestMatchers(HttpMethod.POST, "/big5/submit").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()
             )

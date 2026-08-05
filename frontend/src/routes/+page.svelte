@@ -198,9 +198,10 @@
             <li>Ikuti tes secara mandiri dari mana saja</li>
             <li>Terima hasil yang dapat dimaknai dengan pendampingan</li>
           </ul>
-          <p class="spanel-note">
-            Sementara itu, Anda dapat mencoba layanan sekolah atau psikolog yang telah tersedia.
-          </p>
+          <div class="spanel-note">
+            <p>Kini tersedia: tes kepribadian gratis untuk semua orang.</p>
+            <a href="/tes-gratis" class="btn btn-ghost btn-sm">Coba Tes Gratis</a>
+          </div>
         </div>
       </article>
     </section>
@@ -841,10 +842,17 @@
   .spanel-note {
     color: var(--lp-muted);
     font-size: 0.92rem;
-    font-style: italic;
     border-top: 1px solid var(--lp-rule);
     padding-top: 1rem;
     margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+  }
+
+  .spanel-note p {
+    margin: 0;
   }
 
   /* ---------- Alur · step cards ---------- */
