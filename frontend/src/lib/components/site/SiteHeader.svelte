@@ -1,5 +1,10 @@
 <script lang="ts">
-  let { loginHref = '/signin', loginLabel = 'Masuk' } = $props();
+  import UserMenu from './UserMenu.svelte';
+
+  let { user, profile } = $props<{
+    user?: { userId: string; username: string; role: string } | null;
+    profile?: { name: string; avatarUrl: string | null } | null;
+  }>();
 </script>
 
 <header class="site-head">
@@ -8,7 +13,9 @@
       <span class="site-mark" aria-hidden="true"></span>
       <span class="site-name">Asesmen</span>
     </a>
-    <a href={loginHref} class="site-login">{loginLabel}</a>
+    <UserMenu {user} {profile}>
+      <a href="/signin" class="site-login">Masuk</a>
+    </UserMenu>
   </div>
 </header>
 

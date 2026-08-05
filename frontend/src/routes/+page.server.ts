@@ -1,18 +1,19 @@
 import { redirect } from '@sveltejs/kit';
+import { getAuthProfile } from '$lib/server/profile';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals, cookies }) => {
-  // Anonymous visitors see the public landing page.
-  if (!locals.user) return {};
+export const load: PageServerLoad = async ({ locals }) => {
+	// Anonymous visitors see the public landing page.
+	if (!locals.user) return { user: null, profile: null };
 
-  // Authenticated users go straight to their role dashboard.
-  const role = locals.user.role;
-  if (role === 'superadmin') redirect(302, '/admin-dashboard');
-  if (role === 'gurubk') redirect(302, '/counselor-dashboard');
-  if (role === 'afiliator') redirect(302, '/afiliator-dashboard');
-  if (role === 'siswa') redirect(302, '/student-dashboard');
+	// Role users go straight to their panel.
+	const role = locals.user.role;
+	if (role === 'superadmin') redirect(302, '/admin-dashboard');
+	if (role === 'gurubk') redirect(302, '/counselor-dashboard');
+	if (role === 'afiliator') redirect(302, '/afiliator-dashboard');
+	if (role === 'siswa') redirect(302, '/student-dashboard');
 
-  // If role is invalid or not mapped, clear the token to prevent infinite redirect loop
-  cookies.delete('assessment_token', { path: '/' });
-  return {};
+	// Free/member users get a personalized landing page.
+	const profile = await getAuthProfile(locals.user.userId, locals.token ?? '');
+	return { user: locals.user, profile };
 };

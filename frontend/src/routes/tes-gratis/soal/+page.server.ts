@@ -1,12 +1,7 @@
-import { fail, redirect } from '@sveltejs/kit';
-import type { Actions, PageServerLoad } from './$types';
+import { fail } from '@sveltejs/kit';
+import type { Actions } from './$types';
 
 const API_BASE = (process.env.PUBLIC_API_URL || 'http://127.0.0.1:1005/api').replace(/\/+$/, '');
-
-export const load: PageServerLoad = async ({ locals }) => {
-  if (!locals.user) redirect(302, '/signup');
-  return {};
-};
 
 export const actions: Actions = {
   /** Persists the finished quiz to the logged-in user's account. */

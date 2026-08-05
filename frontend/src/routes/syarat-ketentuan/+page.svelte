@@ -1,6 +1,8 @@
 <script lang="ts">
   import SiteHeader from '$lib/components/site/SiteHeader.svelte';
   import SiteFooter from '$lib/components/site/SiteFooter.svelte';
+
+  let { data } = $props();
 </script>
 
 <svelte:head>
@@ -12,7 +14,7 @@
 </svelte:head>
 
 <div class="terms">
-  <SiteHeader />
+  <SiteHeader user={data.user} profile={data.profile} />
 
   <main class="terms-body">
     <p class="terms-kicker">Dokumen resmi</p>

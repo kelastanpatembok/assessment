@@ -3,7 +3,7 @@
   import SiteHeader from '$lib/components/site/SiteHeader.svelte';
   import SiteFooter from '$lib/components/site/SiteFooter.svelte';
 
-  let { children } = $props();
+  let { children, data } = $props();
 </script>
 
 <svelte:head>
@@ -15,7 +15,7 @@
 </svelte:head>
 
 <div class="free">
-  <SiteHeader />
+  <SiteHeader user={data.user} profile={data.profile} />
   <main class="free-body">
     {@render children()}
   </main>
