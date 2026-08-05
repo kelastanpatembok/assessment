@@ -1,5 +1,6 @@
 <script lang="ts">
-  /* Formal terms-of-use document for the assessment platform. */
+  import SiteHeader from '$lib/components/site/SiteHeader.svelte';
+  import SiteFooter from '$lib/components/site/SiteFooter.svelte';
 </script>
 
 <svelte:head>
@@ -11,12 +12,7 @@
 </svelte:head>
 
 <div class="terms">
-  <header class="terms-head">
-    <a href="/" class="terms-brand">
-      <span class="terms-mark" aria-hidden="true"></span>
-      <span class="terms-name">Asesmen</span>
-    </a>
-  </header>
+  <SiteHeader />
 
   <main class="terms-body">
     <p class="terms-kicker">Dokumen resmi</p>
@@ -126,60 +122,27 @@
       </p>
     </section>
   </main>
+
+  <SiteFooter />
 </div>
 
 <style>
   .terms {
-    --lp-paper: oklch(0.972 0.012 75);
-    --lp-paper-2: oklch(0.95 0.02 75);
-    --lp-ink: oklch(0.24 0.025 55);
-    --lp-ink-2: oklch(0.4 0.02 55);
-    --lp-muted: oklch(0.43 0.02 55);
-    --lp-rule: oklch(0.88 0.02 75);
-    --lp-accent: oklch(0.6 0.14 42);
-    --lp-accent-deep: oklch(0.42 0.12 38);
-    --lp-font-display: 'Fraunces Variable', Georgia, serif;
-
     background: var(--lp-paper);
     color: var(--lp-ink);
     font-family: Figtree, ui-sans-serif, system-ui, sans-serif;
     font-size: 1rem;
     line-height: 1.7;
     min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
     -webkit-font-smoothing: antialiased;
   }
 
-  .terms-head {
-    border-bottom: 1px solid var(--lp-rule);
-  }
-
-  .terms-brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    max-width: 48rem;
-    margin-inline: auto;
-    padding: 0.9rem clamp(1.25rem, 4vw, 2rem);
-    white-space: nowrap;
-  }
-
-  .terms-mark {
-    width: 0.65rem;
-    height: 0.65rem;
-    background: var(--lp-accent);
-    flex: none;
-  }
-
-  .terms-name {
-    font-family: var(--lp-font-display);
-    font-size: 1.3rem;
-    font-weight: 620;
-    letter-spacing: -0.02em;
-    line-height: 1;
-  }
-
   .terms-body {
+    flex: 1;
     max-width: 44rem;
+    width: 100%;
     margin-inline: auto;
     padding: clamp(2.5rem, 7vw, 4rem) clamp(1.25rem, 4vw, 2rem) 4rem;
   }

@@ -75,6 +75,23 @@
 	--sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Warm public-palette tokens shared by public pages (signup, login, terms, free-test flow). */
+:root {
+	--lp-paper: oklch(0.972 0.012 75);
+	--lp-paper-2: oklch(0.95 0.02 75);
+	--lp-ink: oklch(0.24 0.025 55);
+	--lp-ink-2: oklch(0.4 0.02 55);
+	--lp-muted: oklch(0.43 0.02 55);
+	--lp-rule: oklch(0.88 0.02 75);
+	--lp-rule-2: oklch(0.79 0.025 75);
+	--lp-accent: oklch(0.6 0.14 42);
+	--lp-accent-deep: oklch(0.42 0.12 38);
+	--lp-accent-bg: oklch(0.7 0.12 45);
+	--lp-focus: oklch(0.55 0.15 40);
+	--lp-font-display: 'Fraunces Variable', Georgia, serif;
+	--lp-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 @theme inline {
 	--font-sans: 'Figtree Variable', sans-serif;
 	--color-sidebar-ring: var(--sidebar-ring);
