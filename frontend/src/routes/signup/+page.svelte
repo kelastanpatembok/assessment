@@ -66,6 +66,14 @@
         </button>
       </div>
 
+      <label class="signup-agree">
+        <input type="checkbox" name="agree" value="yes" aria-label="Menyetujui Syarat dan Ketentuan" />
+        <span>
+          Saya menyetujui
+          <a href="/syarat-ketentuan" target="_blank" rel="noopener">Syarat &amp; Ketentuan</a>
+        </span>
+      </label>
+
       <button type="submit" class="signup-cta">Buat Akun &amp; Mulai Tes</button>
     </form>
 
@@ -191,6 +199,30 @@
 
   .signup-password {
     position: relative;
+  }
+
+  .signup-agree {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    cursor: pointer;
+    font-size: 0.88rem;
+    color: var(--lp-ink-2);
+    line-height: 1.5;
+  }
+
+  .signup-agree input {
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-top: 0.15rem;
+    accent-color: var(--lp-accent-deep);
+    flex: none;
+  }
+
+  .signup-agree a {
+    color: var(--lp-accent-deep);
+    font-weight: 600;
+    text-decoration: underline;
   }
 
   .signup-password input {

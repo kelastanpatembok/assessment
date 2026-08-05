@@ -15,12 +15,16 @@ export const actions: Actions = {
     const name = (form.get('name') as string)?.trim() ?? '';
     const email = (form.get('email') as string)?.trim() ?? '';
     const password = (form.get('password') as string) ?? '';
+    const agree = (form.get('agree') as string) ?? '';
 
     if (!name || !email || !password) {
       return fail(400, { error: 'Lengkapi seluruh kolom yang wajib diisi.' });
     }
     if (password.length < 6) {
       return fail(400, { error: 'Kata sandi minimal 6 karakter.' });
+    }
+    if (agree !== 'yes') {
+      return fail(400, { error: 'Anda harus menyetujui Syarat & Ketentuan untuk mendaftar.' });
     }
 
     // No separate username: the account username is the email address itself.
