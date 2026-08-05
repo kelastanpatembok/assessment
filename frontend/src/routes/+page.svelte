@@ -313,6 +313,7 @@
     --lp-rule-2: oklch(0.79 0.025 75);
     --lp-accent: oklch(0.6 0.14 42);
     --lp-accent-deep: oklch(0.42 0.12 38);
+    --lp-accent-bg: oklch(0.7 0.12 45);
     --lp-focus: oklch(0.55 0.15 40);
     /* Pastel tints — low chroma, warm family */
     --lp-tint-amber: oklch(0.965 0.035 78);
@@ -447,14 +448,14 @@
   }
 
   .btn-primary {
-    background: var(--lp-accent-deep);
-    color: var(--lp-paper);
-    border: 1px solid var(--lp-accent-deep);
+    background: var(--lp-accent-bg);
+    color: var(--lp-ink);
+    border: 1px solid var(--lp-accent-bg);
   }
 
   .btn-primary:hover {
-    background: var(--lp-ink);
-    border-color: var(--lp-ink);
+    background: var(--lp-accent);
+    border-color: var(--lp-accent);
     transform: translateY(-1px);
   }
 
