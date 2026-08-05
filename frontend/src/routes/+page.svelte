@@ -106,6 +106,14 @@
       </div>
 
       <aside class="hero-products" id="instrumen">
+        <img
+          class="hero-photo"
+          src="/psikolog.webp"
+          alt="Seorang psikolog profesional sedang tersenyum ramah"
+          width="1536"
+          height="1024"
+          fetchpriority="high"
+        />
         <ul class="inst-grid">
           <li class="icard icard-amber">
             <span class="icode">DISC</span>
@@ -595,6 +603,17 @@
 
   .hero-products {
     background: var(--lp-paper);
+    display: grid;
+    gap: 1.1rem;
+  }
+
+  .hero-photo {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 1.5rem;
+    border: 1px solid var(--lp-rule);
   }
 
   .inst-grid {
