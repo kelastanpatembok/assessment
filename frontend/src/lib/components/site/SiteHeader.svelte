@@ -36,7 +36,7 @@
   }
 
   .site-head-inner {
-    max-width: 75rem;
+    max-width: 64rem;
     margin-inline: auto;
     padding: 0.9rem clamp(1.25rem, 4vw, 2.5rem);
     display: flex;

@@ -330,7 +330,7 @@
     --lp-tint-cold: oklch(0.96 0.018 220);
     --lp-tint-grey: oklch(0.952 0.014 70);
     --lp-font-display: 'Fraunces Variable', Georgia, serif;
-    --lp-maxw: 75rem;
+    --lp-maxw: 64rem;
     --lp-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
     background: var(--lp-paper);

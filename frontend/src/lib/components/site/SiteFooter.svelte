@@ -16,7 +16,7 @@
   }
 
   .foot-inner {
-    max-width: 75rem;
+    max-width: 64rem;
     margin-inline: auto;
     padding-inline: clamp(1.25rem, 4vw, 2.5rem);
   }
