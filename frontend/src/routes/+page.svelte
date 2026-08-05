@@ -1,9 +1,29 @@
 <script lang="ts">
-  /* Hallmark · genre: editorial · macrostructure: Narrative Workflow ·
-   * theme: Linen-warm (custom: cream paper · terracotta accent · warm-brown ink) ·
-   * enrichment: none (typography + proof panel) · nav: N6 Masthead · footer: Ft1 Mast-headed ·
-   * audience: schools / psychologists / general public · use: login (primary) + learn (secondary) ·
-   * tone: warm · formal Indonesian */
+  import type { Action } from 'svelte/action';
+
+  /* Hallmark · genre: editorial-warm · macrostructure: Split Studio (diptych hero + tinted feature panels)
+   * theme: studied-DNA (source: jenjang.com — public competitor reference) adapted warm:
+   *   pastel-tint card system · pill buttons · audience-pill band · one-shot reveal
+   * audience: schools / psychologists / general public · use: login (primary) + learn (secondary)
+   * tone: warm · formal Indonesian
+   * nav: sticky warm header (wordmark + links + Masuk pill) · footer: Ft1 Mast-headed */
+
+  const reveal: Action = (node) => {
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    node.classList.add('reveal');
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          node.classList.add('reveal-in');
+          io.disconnect();
+        }
+      },
+      { threshold: 0.12 }
+    );
+    io.observe(node);
+    return { destroy: () => io.disconnect() };
+  };
 </script>
 
 <svelte:head>
@@ -15,19 +35,41 @@
 </svelte:head>
 
 <div class="landing">
-  <header class="mast">
-    <div class="mast-inner">
-      <p class="mast-line">Asesmen psikometri untuk Indonesia</p>
-      <p class="mast-name">Asesmen</p>
-      <nav class="mast-nav" aria-label="Navigasi utama">
+  <header class="site-head">
+    <div class="site-head-inner">
+      <a href="#beranda" class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">Asesmen</span>
+      </a>
+      <nav class="site-nav" aria-label="Navigasi utama">
         <a href="#layanan">Layanan</a>
         <a href="#instrumen">Instrumen</a>
         <a href="#alur">Alur</a>
-        <a href="/login" class="mast-cta">Masuk&nbsp;→</a>
+        <a href="#faq">FAQ</a>
       </nav>
+      <a href="/login" class="btn btn-primary btn-sm">Masuk</a>
     </div>
-    <hr class="mast-rule" aria-hidden="true" />
   </header>
+
+  <section class="audience-band" aria-label="Pengguna platform">
+    <div class="audience-inner">
+      <div class="audience-pills">
+        <a href="#sekolah" class="apill apill-on">
+          <span class="apill-label">Sekolah</span>
+          <span class="apill-sub">menilai potensi siswa</span>
+        </a>
+        <a href="#psikolog" class="apill apill-on">
+          <span class="apill-label">Psikolog</span>
+          <span class="apill-sub">asesmen klien profesional</span>
+        </a>
+        <a href="#masyarakat" class="apill apill-soon">
+          <span class="apill-label">Masyarakat</span>
+          <span class="badge-soon">Segera hadir</span>
+          <span class="apill-sub">mengenal diri sendiri</span>
+        </a>
+      </div>
+    </div>
+  </section>
 
   <main>
     <section class="hero" id="beranda">
@@ -40,53 +82,39 @@
         </p>
         <div class="hero-cta">
           <a href="/login" class="btn btn-primary">Masuk ke Platform</a>
-          <a href="#layanan" class="link-arrow">Pelajari Layanan&nbsp;↓</a>
+          <a href="#layanan" class="btn btn-ghost">Pelajari Layanan</a>
         </div>
-        <ul class="who-strip">
-          <li>
-            <span class="who-k">Sekolah</span>
-            <span class="who-v">menilai potensi siswa</span>
-          </li>
-          <li>
-            <span class="who-k">Psikolog</span>
-            <span class="who-v">mendampingi klien</span>
-          </li>
-          <li>
-            <span class="who-k">Masyarakat</span>
-            <span class="who-v">mengenal diri sendiri</span>
-          </li>
-        </ul>
       </div>
 
-      <aside class="hero-panel" id="instrumen">
+      <aside class="hero-products" id="instrumen">
         <p class="panel-title">Instrumen yang tersedia</p>
-        <ul class="instruments">
-          <li class="inst">
-            <span class="inst-code">DISC</span>
-            <span class="inst-name">Tes kepribadian</span>
+        <ul class="inst-grid">
+          <li class="icard icard-amber">
+            <span class="icode">DISC</span>
+            <span class="iname">Tes kepribadian</span>
           </li>
-          <li class="inst">
-            <span class="inst-code">Holland RIASEC</span>
-            <span class="inst-name">Tes minat karier</span>
+          <li class="icard icard-sage">
+            <span class="icode">Holland RIASEC</span>
+            <span class="iname">Tes minat karier</span>
           </li>
-          <li class="inst">
-            <span class="inst-code">PAPI Kostick</span>
-            <span class="inst-name">Tes kepribadian kerja</span>
+          <li class="icard icard-clay">
+            <span class="icode">PAPI Kostick</span>
+            <span class="iname">Kepribadian kerja</span>
           </li>
-          <li class="inst">
-            <span class="inst-code">IQ CFIT</span>
-            <span class="inst-name">Tes kecerdasan</span>
+          <li class="icard icard-cold">
+            <span class="icode">IQ CFIT</span>
+            <span class="iname">Tes kecerdasan</span>
           </li>
-          <li class="inst">
-            <span class="inst-code">IQ IST</span>
-            <span class="inst-name">Tes kecerdasan</span>
+          <li class="icard icard-grey">
+            <span class="icode">IQ IST</span>
+            <span class="iname">Tes kecerdasan</span>
           </li>
         </ul>
       </aside>
     </section>
 
     <section class="stages" id="layanan">
-      <header class="stages-head">
+      <header class="stages-head" use:reveal>
         <h2>Melayani tiga tujuan.</h2>
         <p class="stages-lede">
           Satu platform, tiga kebutuhan yang berbeda. Kami hadir untuk setiap langkah — dari sekolah
@@ -94,22 +122,22 @@
         </p>
       </header>
 
-      <article class="stage">
-        <div class="stage-head">
+      <article class="spanel spanel-amber" id="sekolah" use:reveal>
+        <div class="spanel-top">
           <span class="stage-num" aria-hidden="true">01</span>
-          <div class="stage-title">
+          <div class="spanel-title">
             <h3>Sekolah</h3>
             <p class="stage-sub">Penilaian potensi untuk para siswa</p>
           </div>
           <span class="status status-on">Tersedia</span>
         </div>
-        <div class="stage-body">
+        <div class="spanel-body">
           <p>
             Sekolah dan guru bimbingan konseling menyelenggarakan asesmen psikologi bagi siswa secara
             terjadwal — mulai dari penjadwalan tes, pemantauan pengerjaan, hingga interpretasi hasil
             yang dapat ditindaklanjuti.
           </p>
-          <ul class="stage-list">
+          <ul class="spanel-list">
             <li>Jadwalkan tes per kelas atau per angkatan</li>
             <li>Pantau pengerjaan dan kelengkapan tiap siswa</li>
             <li>Akses hasil beserta interpretasi untuk tiap siswa</li>
@@ -117,22 +145,22 @@
         </div>
       </article>
 
-      <article class="stage">
-        <div class="stage-head">
+      <article class="spanel spanel-sage" id="psikolog" use:reveal>
+        <div class="spanel-top">
           <span class="stage-num" aria-hidden="true">02</span>
-          <div class="stage-title">
+          <div class="spanel-title">
             <h3>Psikolog &amp; Konsultan</h3>
             <p class="stage-sub">Asesmen klien untuk praktik profesional</p>
           </div>
           <span class="status status-on">Tersedia</span>
         </div>
-        <div class="stage-body">
+        <div class="spanel-body">
           <p>
             Psikolog dan afiliator menggunakan instrumen untuk menilai kecerdasan, kepribadian, dan
             karakteristik kerja klien — dengan hasil yang terstruktur untuk mendukung rekomendasi
             profesional.
           </p>
-          <ul class="stage-list">
+          <ul class="spanel-list">
             <li>Daftarkan klien dan kelola riwayat asesmen</li>
             <li>Ukur kecerdasan (CFIT, IST) dan kepribadian (DISC, PAPI)</li>
             <li>Unduh hasil dalam bentuk laporan</li>
@@ -140,26 +168,26 @@
         </div>
       </article>
 
-      <article class="stage">
-        <div class="stage-head">
+      <article class="spanel spanel-grey" id="masyarakat" use:reveal>
+        <div class="spanel-top">
           <span class="stage-num" aria-hidden="true">03</span>
-          <div class="stage-title">
+          <div class="spanel-title">
             <h3>Masyarakat Umum</h3>
             <p class="stage-sub">Mengenal diri sendiri, secara mandiri</p>
           </div>
           <span class="status status-soon">Dalam pengembangan</span>
         </div>
-        <div class="stage-body">
+        <div class="spanel-body">
           <p>
             Ke depan, setiap orang dapat mengikuti tes untuk memahami kepribadian, minat, dan potensi
             dirinya — tanpa perlu terdaftar di sekolah atau berstatus klien. Layanan ini sedang kami
             kembangkan.
           </p>
-          <ul class="stage-list">
+          <ul class="spanel-list">
             <li>Ikuti tes secara mandiri dari mana saja</li>
             <li>Terima hasil yang dapat dimaknai dengan pendampingan</li>
           </ul>
-          <p class="stage-note">
+          <p class="spanel-note">
             Sementara itu, Anda dapat mencoba layanan sekolah atau psikolog yang telah tersedia.
           </p>
         </div>
@@ -167,39 +195,33 @@
     </section>
 
     <section class="alur" id="alur">
-      <header class="alur-head">
+      <header class="alur-head" use:reveal>
         <h2>Bagaimana cara kerjanya.</h2>
       </header>
-      <ol class="steps">
-        <li class="step">
+      <ol class="step-grid">
+        <li class="scard" use:reveal>
           <span class="step-num" aria-hidden="true">1.0</span>
-          <div class="step-copy">
-            <h3>Pendaftaran</h3>
-            <p>
-              Sekolah atau psikolog mendaftar, membuat akun, menyiapkan daftar siswa atau klien, dan
-              menetapkan jadwal pengerjaan tes.
-            </p>
-          </div>
+          <h3>Pendaftaran</h3>
+          <p>
+            Sekolah atau psikolog mendaftar, membuat akun, menyiapkan daftar siswa atau klien, dan
+            menetapkan jadwal pengerjaan tes.
+          </p>
         </li>
-        <li class="step">
+        <li class="scard" use:reveal>
           <span class="step-num" aria-hidden="true">2.0</span>
-          <div class="step-copy">
-            <h3>Pengerjaan</h3>
-            <p>
-              Siswa atau klien mengerjakan tes sesuai jadwal yang telah ditetapkan. Setiap jawaban
-              tersimpan dengan aman dan rahasia.
-            </p>
-          </div>
+          <h3>Pengerjaan</h3>
+          <p>
+            Siswa atau klien mengerjakan tes sesuai jadwal yang telah ditetapkan. Setiap jawaban
+            tersimpan dengan aman dan rahasia.
+          </p>
         </li>
-        <li class="step">
+        <li class="scard" use:reveal>
           <span class="step-num" aria-hidden="true">3.0</span>
-          <div class="step-copy">
-            <h3>Hasil &amp; interpretasi</h3>
-            <p>
-              Skor diolah secara ilmiah dan disajikan sebagai laporan hasil beserta interpretasi untuk
-              tiap instrumen.
-            </p>
-          </div>
+          <h3>Hasil &amp; interpretasi</h3>
+          <p>
+            Skor diolah secara ilmiah dan disajikan sebagai laporan hasil beserta interpretasi untuk
+            tiap instrumen.
+          </p>
         </li>
       </ol>
       <div class="alur-cta">
@@ -207,13 +229,55 @@
       </div>
     </section>
 
-    <section class="closing">
+    <section class="faq" id="faq">
+      <header class="faq-head" use:reveal>
+        <h2>Pertanyaan yang sering diajukan.</h2>
+      </header>
+      <div class="faq-list">
+        <details class="fitem" use:reveal>
+          <summary>Bagaimana cara sekolah memulai menggunakan platform?</summary>
+          <p>
+            Sekolah menghubungi administrator untuk pendaftaran, kemudian menetapkan jadwal asesmen
+            dan mendaftarkan siswa melalui akun guru bimbingan konseling.
+          </p>
+        </details>
+        <details class="fitem" use:reveal>
+          <summary>Apakah hasil tes dapat digunakan untuk keperluan profesional psikolog?</summary>
+          <p>
+            Ya. Instrumen disajikan dengan skor mentah dan interpretasi yang terstruktur, sehingga
+            dapat menjadi bahan bagi psikolog atau konsultan dalam menyusun rekomendasi.
+          </p>
+        </details>
+        <details class="fitem" use:reveal>
+          <summary>Bagaimana platform menjaga kerahasiaan data siswa dan klien?</summary>
+          <p>
+            Data pribadi dan hasil asesmen disimpan secara terpisah, hanya dapat diakses oleh pihak
+            yang berwenang, dan tidak digunakan untuk keperluan lain tanpa persetujuan.
+          </p>
+        </details>
+        <details class="fitem" use:reveal>
+          <summary>Apakah layanan untuk masyarakat umum sudah tersedia?</summary>
+          <p>
+            Belum. Layanan mandiri untuk masyarakat umum sedang dalam pengembangan dan akan diumumkan
+            melalui laman ini.
+          </p>
+        </details>
+        <details class="fitem" use:reveal>
+          <summary>Perangkat apa saja yang dibutuhkan untuk mengerjakan tes?</summary>
+          <p>
+            Cukup perangkat dengan akses internet dan peramban web terkini — komputer, laptop, atau
+            ponsel. Tidak diperlukan pemasangan aplikasi.
+          </p>
+        </details>
+      </div>
+    </section>
+
+    <section class="closing" use:reveal>
       <h2>Siap mengenal diri lebih dalam?</h2>
       <p>
         Masuk ke platform untuk memulai — bagi sekolah, psikolog, maupun siswa yang telah terdaftar.
       </p>
       <a href="/login" class="btn btn-primary">Masuk ke Platform</a>
-      <a href="#beranda" class="link-arrow">Kembali ke atas&nbsp;↑</a>
     </section>
   </main>
 
@@ -228,17 +292,23 @@
 
 <style>
   .landing {
-    /* Warm editorial palette — scoped to the landing page. */
-    --lp-paper: oklch(0.965 0.015 75);
-    --lp-paper-2: oklch(0.94 0.02 75);
+    /* Warm editorial palette + pastel-tint system (studied-DNA adaptation) */
+    --lp-paper: oklch(0.972 0.012 75);
+    --lp-paper-2: oklch(0.95 0.02 75);
     --lp-ink: oklch(0.24 0.025 55);
     --lp-ink-2: oklch(0.4 0.02 55);
     --lp-muted: oklch(0.45 0.02 55);
-    --lp-rule: oklch(0.86 0.02 75);
-    --lp-rule-2: oklch(0.78 0.025 75);
+    --lp-rule: oklch(0.88 0.02 75);
+    --lp-rule-2: oklch(0.79 0.025 75);
     --lp-accent: oklch(0.6 0.14 42);
     --lp-accent-deep: oklch(0.44 0.12 38);
     --lp-focus: oklch(0.55 0.15 40);
+    /* Pastel tints — low chroma, warm family */
+    --lp-tint-amber: oklch(0.965 0.035 78);
+    --lp-tint-clay: oklch(0.962 0.03 55);
+    --lp-tint-sage: oklch(0.958 0.028 145);
+    --lp-tint-cold: oklch(0.96 0.018 220);
+    --lp-tint-grey: oklch(0.952 0.014 70);
     --lp-font-display: 'Fraunces Variable', Georgia, serif;
     --lp-maxw: 75rem;
     --lp-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -257,22 +327,16 @@
     text-decoration: none;
   }
 
-  .landing :global(.mast),
-  .landing :global(.hero),
-  .landing :global(.stages),
-  .landing :global(.alur),
-  .landing :global(.closing),
-  .landing :global(.foot) {
-    width: 100%;
-  }
-
-  .landing :global(.mast-inner),
+  .landing :global(.site-head-inner),
+  .landing :global(.audience-inner),
   .landing :global(.hero),
   .landing :global(.stages-head),
-  .landing :global(.stage),
+  .landing :global(.spanel),
   .landing :global(.alur-head),
-  .landing :global(.steps),
+  .landing :global(.step-grid),
   .landing :global(.alur-cta),
+  .landing :global(.faq-head),
+  .landing :global(.faq-list),
   .landing :global(.closing),
   .landing :global(.foot) {
     max-width: var(--lp-maxw);
@@ -280,48 +344,57 @@
     padding-inline: clamp(1.25rem, 4vw, 2.5rem);
   }
 
-  /* ---------- Nav · N6 masthead ---------- */
+  /* ---------- Header · sticky warm bar ---------- */
 
-  .mast {
-    text-align: center;
+  .site-head {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in oklab, var(--lp-paper) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--lp-rule);
   }
 
-  .mast-inner {
-    padding-top: clamp(1.5rem, 3vw, 2.25rem);
-    padding-bottom: clamp(1rem, 2vw, 1.5rem);
+  .site-head-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-block: 0.9rem;
   }
 
-  .mast-line {
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    font-variant-caps: all-small-caps;
-    color: var(--lp-muted);
-    margin: 0 0 0.4rem;
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    white-space: nowrap;
   }
 
-  .mast-name {
+  .brand-mark {
+    width: 0.7rem;
+    height: 0.7rem;
+    background: var(--lp-accent);
+    flex: none;
+  }
+
+  .brand-name {
     font-family: var(--lp-font-display);
-    font-size: clamp(1.9rem, 4vw, 2.5rem);
+    font-size: 1.35rem;
     font-weight: 620;
     letter-spacing: -0.02em;
     line-height: 1;
-    margin: 0 0 0.75rem;
   }
 
-  .mast-nav {
-    display: inline-flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: baseline;
-    gap: clamp(1rem, 3vw, 2.25rem);
+  .site-nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(1rem, 2.5vw, 2rem);
   }
 
-  .mast-nav a {
+  .site-nav a {
     font-size: 0.72rem;
     font-weight: 600;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     font-variant-caps: all-small-caps;
     color: var(--lp-ink-2);
@@ -334,31 +407,154 @@
     white-space: nowrap;
   }
 
-  .mast-nav a:hover {
+  .site-nav a:hover {
     color: var(--lp-ink);
     background-size: 100% 1px;
   }
 
-  .mast-cta {
-    color: var(--lp-accent-deep) !important;
+  /* ---------- Buttons · pill ---------- */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3rem;
+    padding: 0.7rem 1.6rem;
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 200ms var(--lp-ease-out), color 200ms var(--lp-ease-out),
+      transform 200ms var(--lp-ease-out), border-color 200ms var(--lp-ease-out);
   }
 
-  .mast-rule {
-    border: 0;
-    border-top: 1px solid var(--lp-rule-2);
-    border-bottom: 1px solid var(--lp-rule-2);
-    height: 3px;
-    margin: 0;
+  .btn-sm {
+    min-height: 2.5rem;
+    padding: 0.45rem 1.15rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-primary {
+    background: var(--lp-accent-deep);
+    color: var(--lp-paper);
+    border: 1px solid var(--lp-accent-deep);
+  }
+
+  .btn-primary:hover {
+    background: var(--lp-ink);
+    border-color: var(--lp-ink);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--lp-ink);
+    border: 1px solid var(--lp-rule-2);
+  }
+
+  .btn-ghost:hover {
+    background: var(--lp-paper-2);
+    border-color: var(--lp-ink-2);
+  }
+
+  .btn-ghost:active {
+    transform: translateY(0);
+  }
+
+  /* ---------- Audience band · gradient pills ---------- */
+
+  .audience-band {
+    background: linear-gradient(
+      90deg,
+      var(--lp-tint-amber) 0%,
+      var(--lp-tint-clay) 50%,
+      var(--lp-tint-sage) 100%
+    );
+    border-bottom: 1px solid var(--lp-rule);
+  }
+
+  .audience-inner {
+    padding-block: 1rem;
+  }
+
+  .audience-pills {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .apill {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    border-radius: 999px;
+    padding: 0.6rem 1.25rem;
+    border: 1px solid var(--lp-rule);
+    background: transparent;
+    color: var(--lp-ink);
+    transition: background-color 200ms var(--lp-ease-out), border-color 200ms var(--lp-ease-out),
+      opacity 200ms var(--lp-ease-out);
+    white-space: nowrap;
+  }
+
+  .apill-on {
+    background: var(--lp-paper);
+    border-color: var(--lp-paper);
+    box-shadow: 0 1px 2px oklch(0.3 0.03 40 / 0.08);
+  }
+
+  .apill-on:hover {
+    border-color: var(--lp-accent);
+  }
+
+  .apill-soon {
+    opacity: 0.62;
+  }
+
+  .apill-soon:hover {
+    opacity: 0.9;
+    border-color: var(--lp-rule-2);
+  }
+
+  .apill-label {
+    font-weight: 650;
+    font-size: 0.95rem;
+  }
+
+  .apill-sub {
+    color: var(--lp-muted);
+    font-size: 0.78rem;
+  }
+
+  .badge-soon {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.66rem;
+    font-weight: 650;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-variant-caps: all-small-caps;
+    color: var(--lp-accent-deep);
+    background: color-mix(in oklab, var(--lp-accent) 18%, transparent);
+    border-radius: 999px;
+    padding: 0.18rem 0.6rem;
+    white-space: nowrap;
   }
 
   /* ---------- Hero · H2 split diptych ---------- */
 
   .hero {
     display: grid;
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
     gap: clamp(2rem, 5vw, 4.5rem);
     align-items: center;
-    padding-block: clamp(3.5rem, 8vw, 6.5rem) clamp(3rem, 7vw, 5rem);
+    padding-block: clamp(3.5rem, 8vw, 6rem) clamp(3rem, 7vw, 4.5rem);
   }
 
   .hero h1 {
@@ -382,7 +578,7 @@
     color: var(--lp-ink-2);
     font-size: 1.05rem;
     line-height: 1.65;
-    max-width: 58ch;
+    max-width: 54ch;
     margin: 0 0 1.75rem;
   }
 
@@ -390,95 +586,11 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
+    gap: 0.85rem;
   }
 
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 3rem;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.375rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background-color 200ms var(--lp-ease-out), transform 200ms var(--lp-ease-out);
-  }
-
-  .btn-primary {
-    background: var(--lp-ink);
-    color: var(--lp-paper);
-  }
-
-  .btn-primary:hover {
-    background: var(--lp-accent-deep);
-    transform: translateY(-1px);
-  }
-
-  .btn-primary:active {
-    transform: translateY(0);
-  }
-
-  .link-arrow {
-    color: var(--lp-accent-deep);
-    font-weight: 600;
-    padding-block: 0.75rem;
-    background-image: linear-gradient(var(--lp-accent-deep), var(--lp-accent-deep));
-    background-size: 100% 1px;
-    background-repeat: no-repeat;
-    background-position: 50% 100%;
-    transition: color 150ms var(--lp-ease-out), background-size 200ms var(--lp-ease-out);
-    white-space: nowrap;
-  }
-
-  .link-arrow:hover {
-    color: var(--lp-ink);
-    background-size: 0 1px;
-  }
-
-  .who-strip {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0;
-    border-top: 1px solid var(--lp-rule);
-    border-bottom: 1px solid var(--lp-rule);
-  }
-
-  .who-strip li {
-    flex: 1 1 0;
-    min-width: 0;
-    padding: 1rem 1.25rem 1rem 0;
-  }
-
-  .who-strip li + li {
-    border-left: 1px solid var(--lp-rule);
-    padding-left: 1.25rem;
-  }
-
-  .who-k {
-    display: block;
-    font-weight: 650;
-    font-size: 0.95rem;
-    margin-bottom: 0.15rem;
-  }
-
-  .who-v {
-    display: block;
-    color: var(--lp-muted);
-    font-size: 0.82rem;
-    line-height: 1.45;
-  }
-
-  .hero-panel {
-    background: var(--lp-paper-2);
-    border: 1px solid var(--lp-rule);
-    padding: clamp(1.5rem, 3vw, 2.25rem);
+  .hero-products {
+    background: var(--lp-paper);
   }
 
   .panel-title {
@@ -488,7 +600,7 @@
     text-transform: uppercase;
     font-variant-caps: all-small-caps;
     color: var(--lp-muted);
-    margin: 0 0 1.25rem;
+    margin: 0 0 1rem;
     display: flex;
     align-items: center;
     gap: 0.6rem;
@@ -502,46 +614,70 @@
     flex: none;
   }
 
-  .instruments {
+  .inst-grid {
     list-style: none;
     margin: 0;
     padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
   }
 
-  .inst {
+  .icard {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
-    padding-block: 0.8rem;
-    border-top: 1px solid var(--lp-rule);
+    flex-direction: column;
+    gap: 0.35rem;
+    border-radius: 1.25rem;
+    padding: 1.1rem 1.25rem;
+    border: 1px solid var(--lp-rule);
   }
 
-  .inst-code {
+  .icard-amber {
+    background: var(--lp-tint-amber);
+  }
+
+  .icard-sage {
+    background: var(--lp-tint-sage);
+  }
+
+  .icard-clay {
+    background: var(--lp-tint-clay);
+  }
+
+  .icard-cold {
+    background: var(--lp-tint-cold);
+  }
+
+  .icard-grey {
+    background: var(--lp-tint-grey);
+  }
+
+  .icode {
     font-family: var(--lp-font-display);
     font-size: 1.05rem;
     font-weight: 580;
     letter-spacing: -0.01em;
+    line-height: 1.1;
   }
 
-  .inst-name {
+  .iname {
     color: var(--lp-ink-2);
-    font-size: 0.85rem;
-    text-align: right;
+    font-size: 0.82rem;
   }
 
-  /* ---------- Stages · Narrative Workflow (the three goals) ---------- */
+  /* ---------- Stages · tinted panels ---------- */
 
   .stages {
-    padding-block: clamp(3.5rem, 8vw, 6rem) clamp(3rem, 7vw, 5rem);
+    padding-block: clamp(1rem, 2vw, 1.5rem) clamp(3rem, 7vw, 5rem);
   }
 
   .stages-head {
-    margin-bottom: clamp(2.5rem, 5vw, 4rem);
+    margin-bottom: clamp(2rem, 4vw, 3rem);
   }
 
   .stages-head h2,
   .alur-head h2,
+  .faq-head h2,
   .closing h2 {
     font-family: var(--lp-font-display);
     font-size: clamp(1.9rem, 3vw + 1rem, 3rem);
@@ -560,28 +696,36 @@
     margin: 0;
   }
 
-  .stage {
-    border-top: 1px solid var(--lp-rule-2);
-    padding-block: clamp(2rem, 4vw, 3rem);
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.5rem;
+  .spanel {
+    border-radius: 1.5rem;
+    border: 1px solid var(--lp-rule);
+    padding: clamp(1.75rem, 4vw, 2.5rem);
+    margin-bottom: 1.25rem;
   }
 
-  .stage:last-child {
-    border-bottom: 1px solid var(--lp-rule-2);
+  .spanel-amber {
+    background: var(--lp-tint-amber);
   }
 
-  .stage-head {
+  .spanel-sage {
+    background: var(--lp-tint-sage);
+  }
+
+  .spanel-grey {
+    background: var(--lp-tint-grey);
+  }
+
+  .spanel-top {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
     gap: 1.25rem 2rem;
+    margin-bottom: 1.25rem;
   }
 
   .stage-num {
     font-family: var(--lp-font-display);
-    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    font-size: clamp(2rem, 4vw, 2.75rem);
     font-weight: 440;
     font-style: italic;
     line-height: 0.9;
@@ -589,18 +733,18 @@
     flex: none;
   }
 
-  .stage-title {
+  .spanel-title {
     flex: 1 1 0;
     min-width: 12rem;
   }
 
-  .stage-title h3 {
+  .spanel-title h3 {
     font-family: var(--lp-font-display);
-    font-size: clamp(1.45rem, 2vw + 1rem, 2rem);
+    font-size: clamp(1.4rem, 2vw + 1rem, 1.9rem);
     font-weight: 560;
     letter-spacing: -0.01em;
     line-height: 1.15;
-    margin: 0.35rem 0 0.35rem;
+    margin: 0.3rem 0 0.3rem;
   }
 
   .stage-sub {
@@ -618,9 +762,10 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     font-variant-caps: all-small-caps;
-    padding: 0.4rem 0.75rem;
+    padding: 0.4rem 0.8rem;
     border: 1px solid var(--lp-rule-2);
-    border-radius: 0.25rem;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--lp-paper) 55%, transparent);
     white-space: nowrap;
   }
 
@@ -649,48 +794,48 @@
     background: var(--lp-rule-2);
   }
 
-  .stage-body {
+  .spanel-body {
     max-width: 62ch;
     color: var(--lp-ink-2);
-    margin-top: 0.25rem;
   }
 
-  .stage-body > p {
+  .spanel-body > p {
     margin: 0 0 1rem;
   }
 
-  .stage-list {
+  .spanel-list {
     list-style: none;
     margin: 0 0 1rem;
     padding: 0;
   }
 
-  .stage-list li {
+  .spanel-list li {
     position: relative;
     padding-left: 1.5rem;
     margin-bottom: 0.5rem;
   }
 
-  .stage-list li::before {
+  .spanel-list li::before {
     content: '';
     position: absolute;
     left: 0.1rem;
     top: 0.6em;
-    width: 0.55rem;
-    height: 0.55rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
     background: var(--lp-accent);
-    transform: rotate(45deg);
   }
 
-  .stage-note {
+  .spanel-note {
     color: var(--lp-muted);
     font-size: 0.92rem;
     font-style: italic;
     border-top: 1px solid var(--lp-rule);
     padding-top: 1rem;
+    margin-top: 1rem;
   }
 
-  /* ---------- Alur · F4 step sequence ---------- */
+  /* ---------- Alur · step cards ---------- */
 
   .alur {
     background: var(--lp-paper-2);
@@ -703,58 +848,109 @@
     margin-bottom: clamp(2rem, 4vw, 3rem);
   }
 
-  .steps {
+  .step-grid {
     list-style: none;
     margin: 0;
     padding: 0;
-    counter-reset: step;
-  }
-
-  .step {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.75rem;
-    padding-block: 1.75rem;
-    border-top: 1px solid var(--lp-rule);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
   }
 
-  .steps li:first-child {
-    border-top: 0;
+  .scard {
+    background: var(--lp-paper);
+    border: 1px solid var(--lp-rule);
+    border-radius: 1.5rem;
+    padding: 1.75rem;
   }
 
-  .step-num {
-    font-family: var(--lp-font-display);
-    font-size: 1.4rem;
-    font-weight: 460;
-    font-style: italic;
-    color: var(--lp-accent-deep);
-    line-height: 1;
+  .scard .step-num {
+    display: block;
+    font-size: 1.35rem;
+    margin-bottom: 1.1rem;
   }
 
-  .step-copy h3 {
+  .scard h3 {
     font-size: 1.1rem;
     font-weight: 650;
     letter-spacing: -0.01em;
-    margin: 0 0 0.4rem;
+    margin: 0 0 0.5rem;
   }
 
-  .step-copy p {
+  .scard p {
     color: var(--lp-ink-2);
-    max-width: 60ch;
+    font-size: 0.95rem;
     margin: 0;
   }
 
   .alur-cta {
     display: flex;
     justify-content: center;
-    padding-top: clamp(2rem, 4vw, 3rem);
+    padding-top: clamp(2rem, 4vw, 2.75rem);
+  }
+
+  /* ---------- FAQ ---------- */
+
+  .faq {
+    padding-block: clamp(3.5rem, 8vw, 6rem);
+  }
+
+  .faq-head {
+    margin-bottom: clamp(1.75rem, 3vw, 2.5rem);
+  }
+
+  .fitem {
+    border-top: 1px solid var(--lp-rule);
+  }
+
+  .fitem:last-child {
+    border-bottom: 1px solid var(--lp-rule);
+  }
+
+  .fitem summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.15rem 0;
+    font-weight: 650;
+    font-size: 1rem;
+    cursor: pointer;
+    list-style: none;
+    min-height: 3rem;
+  }
+
+  .fitem summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .fitem summary::after {
+    content: '+';
+    font-family: var(--lp-font-display);
+    font-size: 1.4rem;
+    font-weight: 420;
+    line-height: 1;
+    color: var(--lp-accent-deep);
+    flex: none;
+    transition: transform 250ms var(--lp-ease-out);
+  }
+
+  .fitem[open] summary::after {
+    transform: rotate(45deg);
+  }
+
+  .fitem p {
+    color: var(--lp-ink-2);
+    max-width: 60ch;
+    margin: 0;
+    padding: 0 0 1.25rem;
   }
 
   /* ---------- Closing CTA ---------- */
 
   .closing {
     text-align: center;
-    padding-block: clamp(4rem, 9vw, 7rem);
+    padding-block: clamp(4rem, 9vw, 6.5rem) clamp(3.5rem, 8vw, 5.5rem);
   }
 
   .closing h2 {
@@ -765,15 +961,6 @@
     color: var(--lp-ink-2);
     max-width: 52ch;
     margin: 0 auto 2rem;
-  }
-
-  .closing .btn {
-    margin-bottom: 1.5rem;
-  }
-
-  .closing .link-arrow {
-    display: inline-block;
-    margin-inline: auto;
   }
 
   /* ---------- Footer · Ft1 mast-headed ---------- */
@@ -812,21 +999,37 @@
     margin: 0 0 0.25rem;
   }
 
+  /* ---------- Reveal-on-scroll · one-shot ---------- */
+
+  .landing :global(.reveal) {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  .landing :global(.reveal-in) {
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.5s var(--lp-ease-out), transform 0.5s var(--lp-ease-out);
+  }
+
   /* ---------- Focus & accessibility ---------- */
 
   .landing :global(a):focus-visible,
-  .landing :global(button):focus-visible {
+  .landing :global(button):focus-visible,
+  .landing :global(summary):focus-visible {
     outline: 2px solid var(--lp-focus);
     outline-offset: 3px;
   }
 
   @media (hover: none), (pointer: coarse) {
-    .btn {
+    .btn,
+    .apill,
+    .fitem summary {
       min-height: 3.25rem;
     }
 
-    .mast-nav a {
-      padding-block: 0.9rem;
+    .site-nav a {
+      padding-block: 1rem;
     }
   }
 
@@ -837,18 +1040,18 @@
       grid-template-columns: minmax(0, 1fr);
     }
 
-    .hero-panel {
+    .hero-products {
       order: 2;
+    }
+
+    .step-grid {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 
   @media (max-width: 40rem) {
-    .mast-nav a:not(.mast-cta) {
+    .site-nav {
       display: none;
-    }
-
-    .mast-nav {
-      gap: 0;
     }
 
     .hero h1 {
@@ -857,30 +1060,28 @@
 
     .hero-cta {
       flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
+      align-items: stretch;
     }
 
-    .who-strip {
-      display: block;
+    .hero-cta .btn {
+      width: 100%;
     }
 
-    .who-strip li {
-      padding: 0.9rem 0;
-    }
-
-    .who-strip li + li {
-      border-left: 0;
-      border-top: 1px solid var(--lp-rule);
-      padding-left: 0;
-    }
-
-    .stage-head {
+    .audience-pills {
       flex-direction: column;
-      gap: 0.5rem;
+      align-items: stretch;
     }
 
-    .stage-title h3 {
+    .apill {
+      justify-content: center;
+    }
+
+    .spanel-top {
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .spanel-title h3 {
       margin-top: 0.25rem;
     }
   }
