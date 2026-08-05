@@ -930,6 +930,7 @@
     }
 
     .hero-photo {
+      height: auto;
       max-height: 20rem;
       object-fit: cover;
       object-position: center 20%;
