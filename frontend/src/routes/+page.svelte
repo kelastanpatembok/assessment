@@ -130,10 +130,10 @@
           <p class="free-cta-kicker">Tes gratis untuk semua</p>
           <h2>Penasaran dengan kepribadianmu?</h2>
           <p class="free-cta-text">
-            30 pertanyaan singkat, hasil instan — tanpa perlu mendaftar untuk memulai.
+            Daftar dengan email, lalu mulai — 30 pertanyaan singkat dengan hasil instan.
           </p>
         </div>
-        <a href="/tes-gratis" class="btn btn-primary free-cta-btn">Ikuti Tes Gratis</a>
+        <a href="/signup" class="btn btn-primary free-cta-btn">Ikuti Tes Gratis</a>
       </div>
     </section>
 
@@ -213,7 +213,7 @@
           </ul>
           <div class="spanel-note">
             <p>Kini tersedia: tes kepribadian gratis untuk semua orang.</p>
-            <a href="/tes-gratis" class="btn btn-ghost btn-sm">Coba Tes Gratis</a>
+            <a href="/signup" class="btn btn-ghost btn-sm">Coba Tes Gratis</a>
           </div>
         </div>
       </article>

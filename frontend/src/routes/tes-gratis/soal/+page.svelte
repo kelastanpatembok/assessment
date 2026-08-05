@@ -1,6 +1,7 @@
 <script lang="ts">
   import { PUBLIC_API_URL } from '$env/static/public';
   import { goto } from '$app/navigation';
+  import { parse } from 'devalue';
 
   const BASE = (PUBLIC_API_URL || 'http://127.0.0.1:1005/api').replace(/\/+$/, '');
 
@@ -60,19 +61,24 @@
     submitting = true;
     failMsg = null;
     try {
-      const res = await fetch(`${BASE}/big5/submit`, {
+      const res = await fetch('/tes-gratis/soal?/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(answers)
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.message || 'Gagal mengolah jawaban');
+      if (res.status === 401) {
+        goto('/signup');
+        return;
       }
-      const result = await res.json();
+      const body = await res.json().catch(() => null);
+      const data = body && typeof body.data === 'string' ? parse(body.data) : body?.data;
+      if (!res.ok || body?.type === 'failure') {
+        throw new Error(data?.error || body?.error || 'Gagal menyimpan hasil');
+      }
+      const result = data;
       sessionStorage.setItem('big5_result', JSON.stringify(result));
       sessionStorage.setItem('big5_answers', JSON.stringify(answers));
-      goto('/tes-gratis/hasil');
+      goto('/tes-gratis/hasil?saved=1');
     } catch (e) {
       failMsg = e instanceof Error ? e.message : 'Terjadi kesalahan';
       idx = questions.length - 1;

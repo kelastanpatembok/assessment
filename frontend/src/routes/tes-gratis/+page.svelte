@@ -22,7 +22,7 @@
     </ul>
 
     <a href="/tes-gratis/soal" class="intro-cta">Mulai Tes Gratis</a>
-    <p class="intro-note">Sekitar 3–5 menit · tersimpan jika kamu membuat akun</p>
+    <p class="intro-note">Sekitar 3–5 menit · hasil tersimpan otomatis di akunmu</p>
   </div>
 </div>
 

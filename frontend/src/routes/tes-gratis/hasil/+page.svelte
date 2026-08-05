@@ -3,13 +3,10 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
 
-  let { form, data } = $props();
-
   type Trait = { key: string; label: string; value: number; level: string; description: string };
   type Result = { headline: string; traits: Trait[] };
 
   let result = $state<Result | null>(null);
-  let answers = $state<string>('');
   let ready = $state(false);
   let saved = $state(false);
   let copied = $state(false);
@@ -19,11 +16,9 @@
 
   onMount(() => {
     const raw = sessionStorage.getItem('big5_result');
-    const rawAnswers = sessionStorage.getItem('big5_answers');
     if (raw) {
       try {
         result = JSON.parse(raw);
-        if (rawAnswers) answers = rawAnswers;
       } catch {
         result = null;
       }
@@ -67,12 +62,6 @@
 <div class="hasil">
   {#if !ready}
     <p class="hasil-status">Memuat hasil…</p>
-  {:else if saved && !result}
-    <div class="hasil-saved">
-      <h1>Hasilmu telah tersimpan.</h1>
-      <p>Silakan masuk kembali untuk melihat riwayat hasilmu.</p>
-      <a href="/tes-gratis" class="hasil-cta">Kerjakan Tes Lain</a>
-    </div>
   {:else if result}
     <header class="hasil-head">
       <p class="hasil-kicker">Hasil tes kepribadian</p>
@@ -105,55 +94,18 @@
       </button>
     </div>
 
-    <section class="hasil-save">
-      {#if saved}
-        <div class="hasil-saved-box">
-          <p>Hasilmu sudah tersimpan di akunmu.</p>
-          <a href="/" class="hasil-cta">Kembali ke Beranda</a>
-        </div>
-      {:else if data.user}
-        <h2>Simpan hasilmu</h2>
-        <p class="hasil-save-note">Hasil akan tersimpan di akunmu agar bisa dilihat kembali.</p>
-        {#if form?.error}
-          <p class="hasil-fail">{form.error}</p>
-        {/if}
-        <form method="POST" action="?/save">
-          <input type="hidden" name="answers" value={answers} />
-          <button type="submit" class="hasil-cta">Simpan Hasil</button>
-        </form>
-      {:else}
-        <h2>Simpan hasil &amp; dapatkan profil lengkap</h2>
-        <p class="hasil-save-note">
-          Buat akun gratis — hasilmu tersimpan dan dapat kamu lihat kembali kapan saja.
-        </p>
-        {#if form?.error}
-          <p class="hasil-fail">{form.error}</p>
-        {/if}
-        <form method="POST" action="?/register" class="hasil-form">
-          <input type="hidden" name="answers" value={answers} />
-          <label class="hasil-field">
-            <span>Nama Lengkap</span>
-            <input type="text" name="name" placeholder="Nama kamu" required />
-          </label>
-          <label class="hasil-field">
-            <span>Email</span>
-            <input type="email" name="email" placeholder="nama@contoh.id" required />
-          </label>
-          <label class="hasil-field">
-            <span>Username</span>
-            <input type="text" name="username" placeholder="username" required />
-          </label>
-          <label class="hasil-field">
-            <span>Kata Sandi</span>
-            <input type="password" name="password" placeholder="Minimal 6 karakter" required />
-          </label>
-          <button type="submit" class="hasil-cta">Buat Akun &amp; Simpan</button>
-        </form>
-        <p class="hasil-save-alt">
-          Sudah punya akun? <a href="/login">Masuk</a> lalu kembali ke halaman ini.
-        </p>
-      {/if}
+    <section class="hasil-saved-box">
+      <p>{saved ? 'Hasilmu sudah tersimpan di akunmu dan dapat dilihat kembali.' : 'Hasil tesmu sudah lengkap.'}</p>
+      <div class="hasil-links">
+        <a href="/" class="hasil-cta">Kembali ke Beranda</a>
+      </div>
     </section>
+  {:else}
+    <div class="hasil-saved">
+      <h1>Hasilmu telah tersimpan.</h1>
+      <p>Silakan masuk kembali untuk melihat hasil kepribadianmu.</p>
+      <a href="/login" class="hasil-cta">Masuk</a>
+    </div>
   {/if}
 </div>
 
@@ -273,54 +225,24 @@
     background: var(--lp-accent-bg);
   }
 
-  .hasil-save {
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--lp-rule);
-  }
-
-  .hasil-save h2 {
-    font-family: var(--lp-font-display);
-    font-size: 1.6rem;
-    font-weight: 560;
-    letter-spacing: -0.01em;
-    margin: 0 0 0.5rem;
-  }
-
-  .hasil-save-note {
-    color: var(--lp-ink-2);
-    margin: 0 0 1.25rem;
-  }
-
-  .hasil-form {
+  .hasil-saved-box {
+    margin-top: 2.5rem;
+    background: var(--lp-paper-2);
+    border: 1px solid var(--lp-rule);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
     display: grid;
     gap: 1rem;
   }
 
-  .hasil-field {
-    display: grid;
-    gap: 0.4rem;
+  .hasil-saved-box p {
+    margin: 0;
   }
 
-  .hasil-field span {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--lp-ink-2);
-  }
-
-  .hasil-field input {
-    min-height: 3rem;
-    padding: 0.7rem 1rem;
-    border-radius: 0.75rem;
-    border: 1px solid var(--lp-rule-2);
-    background: var(--lp-paper);
-    font-size: 1rem;
-    color: var(--lp-ink);
-  }
-
-  .hasil-field input:focus-visible {
-    outline: 2px solid var(--lp-focus);
-    outline-offset: 2px;
+  .hasil-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
 
   .hasil-cta {
@@ -342,35 +264,5 @@
   .hasil-cta:hover {
     background: var(--lp-accent);
     transform: translateY(-1px);
-  }
-
-  .hasil-save-alt {
-    color: var(--lp-muted);
-    font-size: 0.85rem;
-    margin: 1rem 0 0;
-  }
-
-  .hasil-save-alt a {
-    color: var(--lp-accent-deep);
-    text-decoration: underline;
-  }
-
-  .hasil-fail {
-    color: oklch(0.55 0.18 25);
-    background: oklch(0.96 0.03 25);
-    border: 1px solid oklch(0.85 0.06 25);
-    border-radius: 0.75rem;
-    padding: 0.8rem 1rem;
-    font-size: 0.9rem;
-    margin: 0 0 1.25rem;
-  }
-
-  .hasil-saved-box {
-    background: var(--lp-paper-2);
-    border: 1px solid var(--lp-rule);
-    border-radius: 1.25rem;
-    padding: 1.5rem;
-    display: grid;
-    gap: 1rem;
   }
 </style>
