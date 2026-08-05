@@ -28,6 +28,11 @@ deploy:
     webhook_port: 8790
     webhook_path: /__eco/github/deploy
 
+storage:
+  minio:
+    ct: minio
+    region: us-east-1
+
 shared_tools:
   - git
   - openssh-client
@@ -41,6 +46,17 @@ services:
     runtimes:
       - java@17
       - maven
+      - mongodb@7
+
+  photos-backend:
+    path: photos/backend
+    runtimes:
+      - rust
+
+  profile-backend:
+    path: profile/backend
+    runtimes:
+      - rust
       - mongodb@7
 
   assessment-backend:

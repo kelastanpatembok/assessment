@@ -1,6 +1,6 @@
-import { PUBLIC_AUTH_URL } from '$env/static/public';
+import { PUBLIC_PROFILE_URL } from '$env/static/public';
 
-const AUTH_BASE = (PUBLIC_AUTH_URL || 'http://127.0.0.1:1007/api').replace(/\/+$/, '');
+const PROFILE_BASE = (PUBLIC_PROFILE_URL || 'http://127.0.0.1:1008/api').replace(/\/+$/, '');
 
 export type AuthProfile = {
 	id: string;
@@ -11,15 +11,13 @@ export type AuthProfile = {
 };
 
 /**
- * Fetches the current user's public profile (name, email, avatar) from the
- * shared auth domain. Returns null when the profile can't be resolved.
+ * Fetches the current user's profile (name, email, avatar) from the reusable
+ * `profile` domain. The domain syncs identity fields (name/avatar) from the
+ * `auth` domain on every read, so they are always fresh.
  */
-export async function getAuthProfile(
-	userId: string,
-	token: string
-): Promise<AuthProfile | null> {
+export async function getProfile(userId: string, token: string): Promise<AuthProfile | null> {
 	try {
-		const res = await fetch(`${AUTH_BASE}/users/${encodeURIComponent(userId)}`, {
+		const res = await fetch(`${PROFILE_BASE}/users/${encodeURIComponent(userId)}`, {
 			headers: { Authorization: `Bearer ${token}` }
 		});
 		if (!res.ok) return null;
