@@ -15,20 +15,21 @@
 
 	onMount(() => {
 		window.__ASSESSMENT_USER__ = data.user ?? null;
-		window.SupportWidgetConfig = {
-			ragUrl: import.meta.env.PUBLIC_RAG_URL || '/api/rag',
-			siteName: 'Assessment',
-			requireLogin: true,
-			signInUrl: '/signin/',
-			signUpUrl: '/signup/',
-			sessionMode: 'windowGlobal',
-			sessionKey: '__ASSESSMENT_USER__'
-		};
-		if (window.__SUPPORT_WIDGET_LOADED__) return;
-		const script = document.createElement('script');
-		script.src = '/support-widget.js';
-		script.defer = true;
-		document.body.appendChild(script);
+		// Support widget disabled alongside the rag domain (see ecompose.yml).
+		// window.SupportWidgetConfig = {
+		// 	ragUrl: import.meta.env.PUBLIC_RAG_URL || '/api/rag',
+		// 	siteName: 'Assessment',
+		// 	requireLogin: true,
+		// 	signInUrl: '/signin/',
+		// 	signUpUrl: '/signup/',
+		// 	sessionMode: 'windowGlobal',
+		// 	sessionKey: '__ASSESSMENT_USER__'
+		// };
+		// if (window.__SUPPORT_WIDGET_LOADED__) return;
+		// const script = document.createElement('script');
+		// script.src = '/support-widget.js';
+		// script.defer = true;
+		// document.body.appendChild(script);
 	});
 </script>
 

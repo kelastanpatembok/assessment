@@ -21,8 +21,9 @@ expose:
   cloudflare_account: jogjaitcamp
   gateway_port: 26674
   additional:
-    - hostname: rag.jogjaitcamp.com
-      service: rag-backend
+    # rag.jogjaitcamp.com disabled with the rag-backend service.
+    # - hostname: rag.jogjaitcamp.com
+    #   service: rag-backend
 
 deploy:
   github:
@@ -46,8 +47,10 @@ shared_tools:
 
 domains:
   - email-manager
-  - rag:
-      dev: optional
+  # Disabled temporarily: rag-backend hogged RAM/CPU and caused 524 timeouts.
+  # Remove comments to re-enable.
+  # - rag:
+  #     dev: optional
 
 services:
   email-manager-backend:
@@ -56,12 +59,13 @@ services:
       - rust
       - mongodb@7
 
-  rag-backend:
-    path: rag/backend
-    runtimes:
-      - rust
-      - mongodb@7
-      - onnxruntime
+  # rag-backend disabled with the rag domain (see domains: above).
+  # rag-backend:
+  #   path: rag/backend
+  #   runtimes:
+  #     - rust
+  #     - mongodb@7
+  #     - onnxruntime
 
   auth-backend:
     path: auth/backend
