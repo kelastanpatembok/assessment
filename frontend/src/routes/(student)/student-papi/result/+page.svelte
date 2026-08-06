@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
-  import { Badge } from '$lib/components/ui/badge/index.js';
   import PapiRadarChart from '$lib/components/PapiRadarChart.svelte';
 
   let { data } = $props();
@@ -41,88 +39,79 @@
 
 <svelte:head><title>Hasil PAPI Kostick</title></svelte:head>
 
-<div class="flex max-w-2xl flex-col gap-6">
-  <nav aria-label="Breadcrumb" class="text-muted-foreground flex items-center gap-1.5 text-sm">
-    <a href="/student-dashboard" class="hover:text-foreground hover:underline">Dashboard</a>
+<div class="lp-wrap flex flex-col gap-6">
+  <nav aria-label="Breadcrumb" class="lp-crumbs">
+    <a href="/student-dashboard">Dashboard</a>
     <span aria-hidden="true">/</span>
-    <span class="text-foreground">Hasil Tes PAPI Kostick</span>
+    <span>Hasil Tes PAPI Kostick</span>
   </nav>
 
-  <div>
-    <h2 class="text-2xl font-bold">Hasil Tes PAPI Kostick</h2>
-    <p class="text-muted-foreground mt-1 text-sm">
-      {r?.studentName} · {r?.schoolName ?? '-'}
-    </p>
+  <header class="flex flex-col gap-1">
+    <p class="lp-kicker">Profil Kepribadian Kerja PAPI Kostick</p>
+    <h2 class="lp-display text-3xl sm:text-4xl">Hasil Tes PAPI Kostick</h2>
+    <p class="lp-lead text-sm">{r?.studentName} · {r?.schoolName ?? '-'}</p>
+  </header>
+
+  <div class="lp-card lp-card-pad flex flex-col gap-3">
+    <div class="flex flex-col gap-0.5">
+      <h3 class="text-base font-semibold">Diagram Profil PAPI Kostick</h3>
+      <p class="lp-muted text-xs">Visualisasi 20 trait kepribadian dalam bentuk radar chart (skala 0-9)</p>
+    </div>
+    <div class="mx-auto w-full max-w-xl">
+      <PapiRadarChart {traitDetails} />
+    </div>
   </div>
 
-  <!-- Radar Chart Visualization -->
-  <Card>
-    <CardHeader>
-      <CardTitle class="text-base">Diagram Profil PAPI Kostick</CardTitle>
-      <p class="text-muted-foreground text-xs">
-        Visualisasi 20 trait kepribadian dalam bentuk radar chart (skala 0-9)
-      </p>
-    </CardHeader>
-    <CardContent>
-      <div class="mx-auto max-w-xl">
-        <PapiRadarChart {traitDetails} />
-      </div>
-    </CardContent>
-  </Card>
-
-  <Card>
-    <CardHeader><CardTitle class="text-base">Profil Skor (0–9 per trait)</CardTitle></CardHeader>
-    <CardContent>
-      <div class="flex flex-col gap-5">
-        {#each groupedCategories as cat}
-          <div>
-            <p class="text-muted-foreground mb-2 text-xs font-semibold uppercase tracking-wide">{cat.label}</p>
-            <div class="flex flex-col gap-2">
-              {#each cat.traits as t}
-                <div>
-                  <div class="mb-1 flex items-center justify-between text-sm">
-                    <span class="font-medium">{t.traitCode} — {t.traitName}</span>
-                    <span class="text-muted-foreground text-xs">{t.score}</span>
-                  </div>
-                  <div class="bg-muted h-2.5 w-full overflow-hidden rounded-full">
-                    <div
-                      class="h-full rounded-full {t.band === 'TINGGI' ? 'bg-primary' : 'bg-muted-foreground/50'}"
-                      style="width: {Math.round((t.score / MAX_SCORE) * 100)}%"
-                    ></div>
-                  </div>
+  <div class="lp-card lp-card-pad flex flex-col gap-4">
+    <h3 class="text-base font-semibold">Profil Skor (0–9 per trait)</h3>
+    <div class="flex flex-col gap-4">
+      {#each groupedCategories as cat}
+        <div>
+          <p class="lp-muted mb-2 text-xs font-semibold uppercase tracking-wide">{cat.label}</p>
+          <div class="flex flex-col gap-2">
+            {#each cat.traits as t}
+              <div>
+                <div class="mb-1 flex items-baseline justify-between text-sm">
+                  <span class="font-medium">{t.traitCode} — {t.traitName}</span>
+                  <span class="lp-muted text-xs">{t.score}</span>
                 </div>
-              {/each}
-            </div>
+                <div class="lp-bar">
+                  <div
+                    style="width: {Math.round((t.score / MAX_SCORE) * 100)}%; background: {t.band === 'TINGGI'
+                      ? 'var(--lp-accent)'
+                      : 'var(--lp-least)'}"
+                  ></div>
+                </div>
+              </div>
+            {/each}
           </div>
-        {/each}
-      </div>
-    </CardContent>
-  </Card>
+        </div>
+      {/each}
+    </div>
+  </div>
 
   <div class="flex flex-col gap-3">
-    <h3 class="text-lg font-semibold">Uraian Per Trait</h3>
+    <h3 class="lp-display text-xl">Uraian Per Trait</h3>
     {#each traitDetails as t}
-      <Card>
-        <CardHeader>
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <Badge variant="outline">{t.traitCode}</Badge>
-              <CardTitle class="text-base">{t.traitName}</CardTitle>
-            </div>
-            <Badge class={t.band === 'TINGGI' ? '' : 'bg-muted-foreground/70'}>
-              {t.band === 'TINGGI' ? 'Tinggi' : 'Rendah'} ({t.score})
-            </Badge>
+      <div class="lp-card lp-card-pad flex flex-col gap-2">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="lp-chip">{t.traitCode}</span>
+            <h4 class="text-base font-semibold">{t.traitName}</h4>
           </div>
-        </CardHeader>
-        <CardContent class="flex flex-col gap-2 text-sm">
+          <span class="lp-chip {t.band === 'TINGGI' ? 'lp-chip-strong' : ''}">
+            {t.band === 'TINGGI' ? 'Tinggi' : 'Rendah'} ({t.score})
+          </span>
+        </div>
+        <div class="flex flex-col gap-2 text-sm">
           {#if t.description}
-            <p class="text-muted-foreground leading-relaxed">{t.description}</p>
+            <p class="lp-lead leading-relaxed">{t.description}</p>
           {/if}
           {#if t.bandText}
             <p class="leading-relaxed">{t.bandText}</p>
           {/if}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     {/each}
   </div>
 </div>

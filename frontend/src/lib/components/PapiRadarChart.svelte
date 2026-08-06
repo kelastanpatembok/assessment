@@ -79,12 +79,12 @@
             label: 'Skor PAPI',
             data: scores,
             fill: true,
-            backgroundColor: 'rgba(99, 102, 241, 0.2)', // Indigo with transparency
-            borderColor: 'rgb(99, 102, 241)', // Indigo
-            pointBackgroundColor: 'rgb(99, 102, 241)',
-            pointBorderColor: '#fff',
-            pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: 'rgb(99, 102, 241)',
+            backgroundColor: 'rgba(184, 106, 71, 0.22)', // lp-accent at 22%
+            borderColor: '#b86a47', // lp-accent (warm terracotta)
+            pointBackgroundColor: '#b86a47',
+            pointBorderColor: '#f7efe4',
+            pointHoverBackgroundColor: '#f7efe4',
+            pointHoverBorderColor: '#b86a47',
             borderWidth: 2,
             pointRadius: 4,
             pointHoverRadius: 6,
@@ -110,13 +110,13 @@
               font: {
                 size: 11,
               },
-              color: 'hsl(var(--foreground))',
+              color: '#57493f', // lp-ink-2
             },
             grid: {
-              color: 'hsl(var(--border))',
+              color: '#e2d8cb', // lp-rule
             },
             angleLines: {
-              color: 'hsl(var(--border))',
+              color: '#e2d8cb', // lp-rule
             },
           },
         },
@@ -125,10 +125,10 @@
             display: false,
           },
           tooltip: {
-            backgroundColor: 'hsl(var(--popover))',
-            titleColor: 'hsl(var(--popover-foreground))',
-            bodyColor: 'hsl(var(--popover-foreground))',
-            borderColor: 'hsl(var(--border))',
+            backgroundColor: '#f7efe4', // lp-paper
+            titleColor: '#3c3024', // lp-ink
+            bodyColor: '#57493f', // lp-ink-2
+            borderColor: '#e2d8cb', // lp-rule
             borderWidth: 1,
             padding: 12,
             displayColors: false,

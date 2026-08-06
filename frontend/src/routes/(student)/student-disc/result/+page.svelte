@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '$lib/components/ui/card/index.js';
-  import { Badge } from '$lib/components/ui/badge/index.js';
   import DiscLineChart from '$lib/components/disc-line-chart/DiscLineChart.svelte';
 
   let { data } = $props();
@@ -54,171 +52,147 @@
   let maxLeast = $derived(Math.max(...leastScores.map(s => s.value), 1));
   let maxDif = $derived(Math.max(...difScores.map(s => Math.abs(s.value)), 1));
 
-  const dimColors: Record<string, string> = {
-    D: 'bg-red-500', I: 'bg-yellow-500', S: 'bg-green-500', C: 'bg-blue-500',
-  };
+  function dimColor(label: string): string {
+    return {
+      D: 'var(--lp-dim-d)',
+      I: 'var(--lp-dim-i)',
+      S: 'var(--lp-dim-s)',
+      C: 'var(--lp-dim-c)',
+    }[label] ?? 'var(--lp-accent)';
+  }
 </script>
 
 <svelte:head><title>Hasil DISC</title></svelte:head>
 
-<div class="flex max-w-2xl flex-col gap-6">
-  <nav aria-label="Breadcrumb" class="text-muted-foreground flex items-center gap-1.5 text-sm">
-    <a href="/student-dashboard" class="hover:text-foreground hover:underline">Dashboard</a>
+<div class="lp-wrap flex flex-col gap-6">
+  <nav aria-label="Breadcrumb" class="lp-crumbs">
+    <a href="/student-dashboard">Dashboard</a>
     <span aria-hidden="true">/</span>
-    <span class="text-foreground">Hasil Tes DISC</span>
+    <span>Hasil Tes DISC</span>
   </nav>
 
-  <div>
-    <h2 class="text-2xl font-bold">Hasil Tes DISC</h2>
-    <p class="text-muted-foreground mt-1 text-sm">
-      {r?.studentName} · {r?.schoolName ?? '-'}
-    </p>
+  <header class="flex flex-col gap-1">
+    <p class="lp-kicker">Profil Kepribadian DISC</p>
+    <h2 class="lp-display text-3xl sm:text-4xl">Hasil Tes DISC</h2>
+    <p class="lp-lead text-sm">{r?.studentName} · {r?.schoolName ?? '-'}</p>
+  </header>
+
+  <div class="lp-card lp-card-pad flex flex-col gap-4">
+    <h3 class="font-semibold">Grafik DISC</h3>
+    <div class="lp-grid lp-grid-3">
+      <DiscLineChart
+        title="GRAPH 1 MOST"
+        subtitle="Mask Public Self"
+        values={{ d: r?.mostDConv ?? 0, i: r?.mostIConv ?? 0, s: r?.mostSConv ?? 0, c: r?.mostCConv ?? 0 }}
+      />
+      <DiscLineChart
+        title="GRAPH 2 LEAST"
+        subtitle="Core Private Self"
+        values={{ d: r?.leastDConv ?? 0, i: r?.leastIConv ?? 0, s: r?.leastSConv ?? 0, c: r?.leastCConv ?? 0 }}
+      />
+      <DiscLineChart
+        title="GRAPH 3 CHANGE"
+        subtitle="Mirror Perceived Self"
+        values={{ d: r?.difDConv ?? 0, i: r?.difIConv ?? 0, s: r?.difSConv ?? 0, c: r?.difCConv ?? 0 }}
+      />
+    </div>
   </div>
 
-  <Card>
-    <CardHeader><CardTitle class="text-sm">Grafik DISC</CardTitle></CardHeader>
-    <CardContent>
-      <div class="grid grid-cols-3 gap-2">
-        <DiscLineChart
-          title="GRAPH 1 MOST"
-          subtitle="Mask Public Self"
-          values={{ d: r?.mostDConv ?? 0, i: r?.mostIConv ?? 0, s: r?.mostSConv ?? 0, c: r?.mostCConv ?? 0 }}
-        />
-        <DiscLineChart
-          title="GRAPH 2 LEAST"
-          subtitle="Core Private Self"
-          values={{ d: r?.leastDConv ?? 0, i: r?.leastIConv ?? 0, s: r?.leastSConv ?? 0, c: r?.leastCConv ?? 0 }}
-        />
-        <DiscLineChart
-          title="GRAPH 3 CHANGE"
-          subtitle="Mirror Perceived Self"
-          values={{ d: r?.difDConv ?? 0, i: r?.difIConv ?? 0, s: r?.difSConv ?? 0, c: r?.difCConv ?? 0 }}
-        />
-      </div>
-    </CardContent>
-  </Card>
-
-  <div class="grid gap-4 sm:grid-cols-3">
-    <Card>
-      <CardHeader><CardTitle class="text-sm">MOST (Paling Tepat)</CardTitle></CardHeader>
-      <CardContent>
-        <div class="flex flex-col gap-3">
-          {#each mostScores as s}
-            <div>
-              <div class="mb-1 flex justify-between text-xs">
-                <span class="font-medium">{s.label}</span>
-                <span class="text-muted-foreground">{s.value}</span>
-              </div>
-              <div class="bg-muted h-2 w-full overflow-hidden rounded-full">
-                <div class="h-full rounded-full {dimColors[s.label] ?? 'bg-primary'}" style="width: {barWidth(s.value, maxMost)}%"></div>
-              </div>
-            </div>
-          {/each}
+  <div class="lp-grid lp-grid-3">
+    <div class="lp-card lp-card-pad flex flex-col gap-3">
+      <h3 class="text-sm font-semibold">MOST (Paling Tepat)</h3>
+      {#each mostScores as s}
+        <div>
+          <div class="mb-1 flex items-baseline justify-between text-xs">
+            <span class="font-semibold">{s.label}</span>
+            <span class="lp-muted">{s.value}</span>
+          </div>
+          <div class="lp-bar"><div style="width: {barWidth(s.value, maxMost)}%; background: {dimColor(s.label)}"></div></div>
         </div>
-      </CardContent>
-    </Card>
+      {/each}
+    </div>
 
-    <Card>
-      <CardHeader><CardTitle class="text-sm">LEAST (Paling Tidak Tepat)</CardTitle></CardHeader>
-      <CardContent>
-        <div class="flex flex-col gap-3">
-          {#each leastScores as s}
-            <div>
-              <div class="mb-1 flex justify-between text-xs">
-                <span class="font-medium">{s.label}</span>
-                <span class="text-muted-foreground">{s.value}</span>
-              </div>
-              <div class="bg-muted h-2 w-full overflow-hidden rounded-full">
-                <div class="h-full rounded-full {dimColors[s.label] ?? 'bg-primary'}" style="width: {barWidth(s.value, maxLeast)}%"></div>
-              </div>
-            </div>
-          {/each}
+    <div class="lp-card lp-card-pad flex flex-col gap-3">
+      <h3 class="text-sm font-semibold">LEAST (Paling Tidak Tepat)</h3>
+      {#each leastScores as s}
+        <div>
+          <div class="mb-1 flex items-baseline justify-between text-xs">
+            <span class="font-semibold">{s.label}</span>
+            <span class="lp-muted">{s.value}</span>
+          </div>
+          <div class="lp-bar"><div style="width: {barWidth(s.value, maxLeast)}%; background: {dimColor(s.label)}"></div></div>
         </div>
-      </CardContent>
-    </Card>
+      {/each}
+    </div>
 
-    <Card>
-      <CardHeader><CardTitle class="text-sm">DIF (Selisih)</CardTitle></CardHeader>
-      <CardContent>
-        <div class="flex flex-col gap-3">
-          {#each difScores as s}
-            <div>
-              <div class="mb-1 flex justify-between text-xs">
-                <span class="font-medium">{s.label}</span>
-                <span class="text-muted-foreground">{s.value}</span>
-              </div>
-              <div class="bg-muted h-2 w-full overflow-hidden rounded-full">
-                <div class="h-full rounded-full {s.value >= 0 ? (dimColors[s.label] ?? 'bg-primary') : 'bg-gray-400'}" style="width: {barWidth(Math.abs(s.value), maxDif)}%"></div>
-              </div>
-            </div>
-          {/each}
+    <div class="lp-card lp-card-pad flex flex-col gap-3">
+      <h3 class="text-sm font-semibold">DIF (Selisih)</h3>
+      {#each difScores as s}
+        <div>
+          <div class="mb-1 flex items-baseline justify-between text-xs">
+            <span class="font-semibold">{s.label}</span>
+            <span class="lp-muted">{s.value}</span>
+          </div>
+          <div class="lp-bar">
+            <div
+              style="width: {barWidth(Math.abs(s.value), maxDif)}%; background: {s.value >= 0 ? dimColor(s.label) : 'var(--lp-least)'}"
+            ></div>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      {/each}
+    </div>
   </div>
 
   {#if r?.profileTitle}
-    <Card>
-      <CardHeader>
-        <div class="flex items-start justify-between gap-2">
-          <div>
-            <p class="text-muted-foreground text-xs">Kepribadian Asli / Sesungguhnya</p>
-            <CardTitle>{r.profileTitle}</CardTitle>
-          </div>
-          <Badge variant="outline">DISC</Badge>
+    <div class="lp-card lp-card-pad flex flex-col gap-3">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="flex flex-col gap-0.5">
+          <p class="lp-kicker">Kepribadian Asli / Sesungguhnya</p>
+          <h3 class="lp-display text-2xl">{r.profileTitle}</h3>
         </div>
-        {#if difTraits.length > 0}
-          <ul class="mt-3 flex flex-wrap gap-1.5">
-            {#each difTraits as trait}
-              <li class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs">{trait}</li>
-            {/each}
-          </ul>
-        {/if}
-        <CardDescription class="mt-3 text-sm leading-relaxed">{r.profileDesc ?? ''}</CardDescription>
-      </CardHeader>
-    </Card>
+        <span class="lp-chip lp-chip-strong">DISC</span>
+      </div>
+      {#if difTraits.length > 0}
+        <div class="flex flex-wrap gap-1.5">
+          {#each difTraits as trait}
+            <span class="lp-chip">{trait}</span>
+          {/each}
+        </div>
+      {/if}
+      <p class="lp-lead text-sm leading-relaxed">{r.profileDesc ?? ''}</p>
+    </div>
   {/if}
 
-  <div class="grid gap-4 sm:grid-cols-2">
-    <Card>
-      <CardHeader>
-        <p class="text-muted-foreground text-xs">Kepribadian Saat di Publik</p>
-        <CardTitle class="text-base">{r?.mostProfileTitle ?? '-'}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {#if mostTraits.length > 0}
-          <ul class="flex flex-wrap gap-1.5">
-            {#each mostTraits as trait}
-              <li class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs">{trait}</li>
-            {/each}
-          </ul>
-        {/if}
-      </CardContent>
-    </Card>
+  <div class="lp-grid lp-grid-2">
+    <div class="lp-card lp-card-pad flex flex-col gap-2">
+      <p class="lp-kicker">Kepribadian Saat di Publik</p>
+      <h3 class="text-base font-semibold">{r?.mostProfileTitle ?? '-'}</h3>
+      {#if mostTraits.length > 0}
+        <div class="flex flex-wrap gap-1.5">
+          {#each mostTraits as trait}
+            <span class="lp-chip">{trait}</span>
+          {/each}
+        </div>
+      {/if}
+    </div>
 
-    <Card>
-      <CardHeader>
-        <p class="text-muted-foreground text-xs">Kepribadian Saat Mendapat Tekanan</p>
-        <CardTitle class="text-base">{r?.leastProfileTitle ?? '-'}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {#if leastTraits.length > 0}
-          <ul class="flex flex-wrap gap-1.5">
-            {#each leastTraits as trait}
-              <li class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs">{trait}</li>
-            {/each}
-          </ul>
-        {/if}
-      </CardContent>
-    </Card>
+    <div class="lp-card lp-card-pad flex flex-col gap-2">
+      <p class="lp-kicker">Kepribadian Saat Mendapat Tekanan</p>
+      <h3 class="text-base font-semibold">{r?.leastProfileTitle ?? '-'}</h3>
+      {#if leastTraits.length > 0}
+        <div class="flex flex-wrap gap-1.5">
+          {#each leastTraits as trait}
+            <span class="lp-chip">{trait}</span>
+          {/each}
+        </div>
+      {/if}
+    </div>
   </div>
 
   {#if r?.jobRecommendations}
-    <Card>
-      <CardHeader><CardTitle class="text-sm">Job Match</CardTitle></CardHeader>
-      <CardContent>
-        <p class="text-muted-foreground text-sm leading-relaxed">{r.jobRecommendations}</p>
-      </CardContent>
-    </Card>
+    <div class="lp-card lp-card-pad flex flex-col gap-2">
+      <h3 class="text-sm font-semibold">Job Match</h3>
+      <p class="lp-lead text-sm leading-relaxed">{r.jobRecommendations}</p>
+    </div>
   {/if}
 </div>

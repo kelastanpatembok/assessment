@@ -1,7 +1,4 @@
 <script lang="ts">
-  import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '$lib/components/ui/card/index.js';
-  import { Badge } from '$lib/components/ui/badge/index.js';
-
   let { data } = $props();
   let r = $derived(data.result);
 
@@ -15,67 +12,56 @@
 
 <svelte:head><title>Hasil IQ CFIT</title></svelte:head>
 
-<div class="flex max-w-2xl flex-col gap-6">
-  <nav aria-label="Breadcrumb" class="text-muted-foreground flex items-center gap-1.5 text-sm">
-    <a href="/student-dashboard" class="hover:text-foreground hover:underline">Dashboard</a>
+<div class="lp-wrap flex flex-col gap-6">
+  <nav aria-label="Breadcrumb" class="lp-crumbs">
+    <a href="/student-dashboard">Dashboard</a>
     <span aria-hidden="true">/</span>
-    <span class="text-foreground">Hasil Tes IQ CFIT</span>
+    <span>Hasil Tes IQ CFIT</span>
   </nav>
 
-  <div>
-    <h2 class="text-2xl font-bold">Hasil Tes IQ CFIT</h2>
-    <p class="text-muted-foreground mt-1 text-sm">
-      {r?.studentName} · {r?.schoolName ?? '-'}
-    </p>
+  <header class="flex flex-col gap-1">
+    <p class="lp-kicker">Hasil Kecerdasan IQ CFIT</p>
+    <h2 class="lp-display text-3xl sm:text-4xl">Hasil Tes IQ CFIT</h2>
+    <p class="lp-lead text-sm">{r?.studentName} · {r?.schoolName ?? '-'}</p>
+  </header>
+
+  <div class="lp-grid lp-grid-3">
+    <div class="lp-card lp-card-pad flex flex-col gap-1">
+      <p class="lp-muted text-sm font-medium">Skor Total (RS)</p>
+      <p class="lp-display text-3xl">{r?.totalScore ?? '-'}</p>
+    </div>
+    <div class="lp-card lp-card-pad flex flex-col gap-2">
+      <p class="lp-muted text-sm font-medium">Kategori</p>
+      <div>
+        <span class="lp-chip lp-chip-strong text-sm">{r?.category ?? '-'}</span>
+      </div>
+    </div>
   </div>
 
-  <div class="grid gap-4 sm:grid-cols-3">
-    <Card>
-      <CardHeader>
-        <CardTitle class="text-sm font-medium text-muted-foreground">Skor Total (RS)</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p class="text-3xl font-bold">{r?.totalScore ?? '-'}</p>
-      </CardContent>
-    </Card>
-    <Card>
-      <CardHeader>
-        <CardTitle class="text-sm font-medium text-muted-foreground">Kategori</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Badge class="text-sm">{r?.category ?? '-'}</Badge>
-      </CardContent>
-    </Card>
-  </div>
-
-  <Card>
-    <CardHeader><CardTitle class="text-base">Skor Per Subtes</CardTitle></CardHeader>
-    <CardContent>
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-border border-b text-left">
-            <th class="pb-3 font-medium">Subtes</th>
-            <th class="pb-3 font-medium">Skor</th>
+  <div class="lp-card lp-card-pad flex flex-col gap-3">
+    <h3 class="text-base font-semibold">Skor Per Subtes</h3>
+    <table class="lp-table">
+      <thead>
+        <tr>
+          <th>Subtes</th>
+          <th class="num">Skor</th>
+        </tr>
+      </thead>
+      <tbody>
+        {#each subtestScores as s}
+          <tr>
+            <td>{s.label}</td>
+            <td class="num">{s.value}</td>
           </tr>
-        </thead>
-        <tbody>
-          {#each subtestScores as s}
-            <tr class="border-border border-b last:border-0">
-              <td class="py-3">{s.label}</td>
-              <td class="py-3 font-medium">{s.value}</td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
-    </CardContent>
-  </Card>
+        {/each}
+      </tbody>
+    </table>
+  </div>
 
   {#if r?.description}
-    <Card>
-      <CardHeader><CardTitle class="text-base">Deskripsi</CardTitle></CardHeader>
-      <CardContent>
-        <p class="text-muted-foreground text-sm leading-relaxed">{r.description}</p>
-      </CardContent>
-    </Card>
+    <div class="lp-card lp-card-pad flex flex-col gap-2">
+      <h3 class="text-base font-semibold">Deskripsi</h3>
+      <p class="lp-lead text-sm leading-relaxed">{r.description}</p>
+    </div>
   {/if}
 </div>

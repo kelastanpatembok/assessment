@@ -1,8 +1,6 @@
 <script lang="ts">
   import { setContext } from 'svelte';
   import { beforeNavigate, goto } from '$app/navigation';
-  import { Button } from '$lib/components/ui/button/index.js';
-  import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 
   let { children } = $props();
 
@@ -24,6 +22,7 @@
   // "Keluar dari Tes" button.
   let showLeaveDialog = $state(false);
   let pendingUrl = $state<string | null>(null);
+  let cancelBtn: HTMLButtonElement | undefined = $state();
 
   beforeNavigate((nav) => {
     if (!guardArmed || showLeaveDialog) return;
@@ -43,45 +42,134 @@
     showLeaveDialog = true;
   }
 
-  function confirmLeave() {
-    guardArmed = false;
-    if (pendingUrl) goto(pendingUrl);
+  function closeLeaveDialog() {
+    showLeaveDialog = false;
     pendingUrl = null;
   }
+
+  function confirmLeave() {
+    guardArmed = false;
+    const target = pendingUrl;
+    pendingUrl = null;
+    showLeaveDialog = false;
+    if (target) goto(target);
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape' && showLeaveDialog) closeLeaveDialog();
+  }
+
+  $effect(() => {
+    if (showLeaveDialog) cancelBtn?.focus();
+  });
 </script>
 
-<svelte:window onbeforeunload={handleBeforeUnload} />
+<svelte:window onbeforeunload={handleBeforeUnload} onkeydown={handleKeydown} />
 
-<div class="bg-background min-h-screen">
-  <header class="border-border bg-card border-b px-6 py-4">
-    <div class="mx-auto flex max-w-2xl items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div
-          class="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-lg text-sm font-bold"
-        >
-          A
-        </div>
-        <span class="font-semibold">Assessment</span>
-      </div>
-      <Button variant="ghost" size="sm" onclick={requestExit}>Keluar dari Tes</Button>
+<div class="exam lp">
+  <header class="exam-head">
+    <div class="exam-head-inner">
+      <a href="/student-dashboard" class="exam-brand" aria-label="Kembali ke Dashboard">
+        <span class="exam-mark" aria-hidden="true"></span>
+        <span class="exam-name">Asesmen</span>
+      </a>
+      <button type="button" class="lp-btn lp-btn-ghost lp-btn-sm" onclick={requestExit}>Keluar dari Tes</button>
     </div>
   </header>
-  <main class="mx-auto max-w-2xl p-6">
+  <main class="exam-body">
     {@render children()}
   </main>
 </div>
 
-<AlertDialog.Root bind:open={showLeaveDialog}>
-  <AlertDialog.Content>
-    <AlertDialog.Header>
-      <AlertDialog.Title>Yakin ingin keluar dari tes?</AlertDialog.Title>
-      <AlertDialog.Description>
-        Jawaban yang belum dikirim akan hilang.
-      </AlertDialog.Description>
-    </AlertDialog.Header>
-    <AlertDialog.Footer>
-      <AlertDialog.Cancel>Batal</AlertDialog.Cancel>
-      <AlertDialog.Action onclick={confirmLeave}>Keluar</AlertDialog.Action>
-    </AlertDialog.Footer>
-  </AlertDialog.Content>
-</AlertDialog.Root>
+{#if showLeaveDialog}
+  <div
+    class="lp-modal-backdrop"
+    role="presentation"
+    onclick={(e) => {
+      if (e.target === e.currentTarget) closeLeaveDialog();
+    }}
+    onkeydown={(e) => {
+      if (e.key === 'Escape') closeLeaveDialog();
+    }}
+  >
+    <div
+      class="lp-modal"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="leave-dialog-title"
+      aria-describedby="leave-dialog-desc"
+    >
+      <h2 id="leave-dialog-title" class="lp-display text-2xl">Yakin ingin keluar dari tes?</h2>
+      <p id="leave-dialog-desc" class="lp-muted text-sm">Jawaban yang belum dikirim akan hilang.</p>
+      <div class="lp-modal-actions">
+        <button type="button" class="lp-btn lp-btn-outline" bind:this={cancelBtn} onclick={closeLeaveDialog}>
+          Batal
+        </button>
+        <button type="button" class="lp-btn lp-btn-primary" onclick={confirmLeave}>Keluar</button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+<style>
+  .exam {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background: var(--lp-paper);
+    color: var(--lp-ink);
+    font-family: Figtree, ui-sans-serif, system-ui, sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .exam-head {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: color-mix(in oklab, var(--lp-paper) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--lp-rule);
+  }
+
+  .exam-head-inner {
+    max-width: 44rem;
+    margin-inline: auto;
+    padding: 0.7rem clamp(1rem, 4vw, 1.5rem);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .exam-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    white-space: nowrap;
+  }
+
+  .exam-mark {
+    width: 0.7rem;
+    height: 0.7rem;
+    background: var(--lp-accent);
+    flex: none;
+  }
+
+  .exam-name {
+    font-family: var(--lp-font-display);
+    font-size: 1.2rem;
+    font-weight: 620;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .exam-body {
+    flex: 1;
+    width: 100%;
+    max-width: 44rem;
+    margin-inline: auto;
+    padding: clamp(1.25rem, 4vw, 2rem) clamp(1rem, 4vw, 1.5rem) 3rem;
+  }
+</style>

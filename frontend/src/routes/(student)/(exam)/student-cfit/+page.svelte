@@ -2,8 +2,6 @@
   import { enhance } from '$app/forms';
   import { dev } from '$app/environment';
   import { getContext, onMount, tick } from 'svelte';
-  import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
-  import { Button } from '$lib/components/ui/button/index.js';
 
   let { data, form } = $props();
   let loading = $state(false);
@@ -278,104 +276,100 @@
 <svelte:head><title>Tes IQ CFIT</title></svelte:head>
 <svelte:window onkeydown={handleDevKeydown} />
 
-<div class="flex max-w-3xl flex-col gap-6">
-  <div>
-    <h2 class="text-2xl font-bold">Tes IQ CFIT</h2>
-    <p class="text-muted-foreground mt-1 text-sm">
-      Jawab setiap soal dengan memilih jawaban yang paling tepat.
-    </p>
+<div class="lp-wrap flex flex-col gap-6">
+  <header class="flex flex-col gap-1.5">
+    <p class="lp-kicker">Tes Kecerdasan IQ CFIT</p>
+    <h2 class="lp-display text-3xl sm:text-4xl">Tes IQ CFIT</h2>
+    <p class="lp-lead text-sm">Jawab setiap soal dengan memilih jawaban yang paling tepat.</p>
     {#if dev}
-      <p class="mt-1 text-xs text-amber-600">
-        Dev mode: tekan <kbd class="rounded border px-1">X</kbd> untuk mengisi subtes ini secara acak dan lanjut otomatis, atau <kbd class="rounded border px-1">Y</kbd> untuk mengisi dengan jawaban benar (skor maksimal).
+      <p class="mt-1 text-xs" style="color: var(--lp-ink-2)">
+        Mode pengembangan: tekan <kbd class="lp-kbd">X</kbd> untuk mengisi subtes ini secara acak dan lanjut otomatis,
+        atau <kbd class="lp-kbd">Y</kbd> untuk mengisi dengan jawaban benar (skor maksimal).
       </p>
     {/if}
-  </div>
+  </header>
 
   {#if data.unavailable}
-    <Card>
-      <CardContent class="pt-6">
-        <p class="text-muted-foreground">Tes CFIT belum tersedia atau sudah Anda selesaikan.</p>
-        <a href="/student-dashboard" class="text-primary mt-4 block text-sm hover:underline">Kembali ke Dashboard</a>
-      </CardContent>
-    </Card>
+    <div class="lp-card lp-card-pad flex flex-col gap-3">
+      <p class="lp-lead text-sm">Tes CFIT belum tersedia atau sudah Anda selesaikan.</p>
+      <a href="/student-dashboard" class="lp-btn lp-btn-outline lp-btn-sm self-start">Kembali ke Dashboard</a>
+    </div>
   {:else if form?.error}
-    <div class="bg-destructive/10 text-destructive rounded-lg px-4 py-3 text-sm">{form.error}</div>
+    <div class="lp-error">{form.error}</div>
   {:else if subtests.length === 0}
-    <Card><CardContent class="pt-6"><p class="text-muted-foreground">Tidak ada soal tersedia.</p></CardContent></Card>
+    <div class="lp-card lp-card-pad"><p class="lp-lead text-sm">Tidak ada soal tersedia.</p></div>
   {:else}
     <!-- Progress — navigation is forward-only (timer-driven or manual Next),
          so these are indicators, not clickable tabs; going back isn't possible. -->
-    <div class="flex items-center justify-between gap-2">
+    <div class="flex flex-wrap items-center justify-between gap-2">
       <div class="flex flex-wrap gap-2">
         <span
-          class="rounded-lg px-4 py-2 text-sm {!introDone ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}"
+          class="lp-tab {!introDone ? 'active' : 'done'}"
         >Intro</span>
         {#each subtests as st, i}
           <span
-            class="rounded-lg px-4 py-2 text-sm {introDone && activeSubtest === i ? 'bg-primary text-primary-foreground' : introDone && i < activeSubtest ? 'bg-muted text-muted-foreground' : 'bg-secondary text-secondary-foreground'}"
+            class="lp-tab {introDone && activeSubtest === i
+              ? 'active'
+              : introDone && i < activeSubtest
+                ? 'done'
+                : 'next'}"
           >{st.label}</span>
         {/each}
       </div>
       {#if introDone && subtestPhase === 'testing'}
-        <div class="font-mono text-lg font-semibold {remainingSeconds <= 30 ? 'text-destructive' : ''}">
-          {formatTime(remainingSeconds)}
-        </div>
+        <div class="lp-timer {remainingSeconds <= 30 ? 'danger' : ''}">{formatTime(remainingSeconds)}</div>
       {:else}
-        <div class="text-muted-foreground text-sm">Waktu belum dimulai</div>
+        <div class="lp-muted text-sm">Waktu belum dimulai</div>
       {/if}
     </div>
 
     {#if !introDone}
       <!-- Untimed opening speech, read from the tester's opening script. Not part
            of any subtest — its own tab, shown once before Subtes 1's instructions. -->
-      <Card>
-        <CardContent class="flex flex-col gap-4 pt-6">
-          <div class="flex flex-col gap-2">
-            {#each introParagraphs() as p}
-              <p class="text-sm leading-relaxed">{p}</p>
-            {/each}
-          </div>
-          <div class="flex justify-end">
-            <Button type="button" onclick={() => (introDone = true)}>Lanjut</Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div class="lp-card lp-card-pad flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          {#each introParagraphs() as p}
+            <p class="lp-lead text-sm leading-relaxed">{p}</p>
+          {/each}
+        </div>
+        <div class="flex justify-end">
+          <button type="button" class="lp-btn lp-btn-primary" onclick={() => (introDone = true)}>Lanjut</button>
+        </div>
+      </div>
     {:else if subtestPhase === 'instruction'}
       <!-- Untimed instruction screen for the active subtest, read from the tester's
            spoken script + worked examples in the physical CFIT manual. The countdown
            for this subtest only starts once "Mulai Subtes" is clicked below. -->
-      <Card>
-        <CardContent class="flex flex-col gap-4 pt-6">
-          {@const instr = SUBTEST_INSTRUCTIONS[activeSubtest + 1]}
-          {#if instr}
-            <h3 class="text-base font-semibold">{instr.title}</h3>
-            
-            {#if instr.exampleImages?.length}
-              <div class="bg-muted my-2 overflow-hidden rounded-lg border">
-                {#each instr.exampleImages as exampleImage, index}
-                  <img
-                    src={exampleImage}
-                    alt="Contoh {index + 1} {instr.title}"
-                    class="h-auto w-full object-contain {index > 0 ? 'border-t' : ''}"
-                    loading="lazy"
-                  />
-                {/each}
-              </div>
-            {/if}
+      <div class="lp-card lp-card-pad flex flex-col gap-4">
+        {#if SUBTEST_INSTRUCTIONS[activeSubtest + 1] !== undefined}
+          {@const instr = SUBTEST_INSTRUCTIONS[activeSubtest + 1]!}
+          <h3 class="font-semibold">{instr.title}</h3>
 
-            <div class="flex flex-col gap-2">
-              {#each instr.paragraphs as p}
-                <p class="text-sm leading-relaxed">{p}</p>
+          {#if instr.exampleImages?.length}
+            <div class="lp-card-tint overflow-hidden">
+              {#each instr.exampleImages as exampleImage, index}
+                <img
+                  src={exampleImage}
+                  alt="Contoh {index + 1} {instr.title}"
+                  class="h-auto w-full object-contain {index > 0 ? 'lp-hairline-top' : ''}"
+                  loading="lazy"
+                />
               {/each}
             </div>
           {/if}
-          <div class="flex justify-end">
-            <Button type="button" onclick={startSubtestTesting}>
-              Mulai {subtests[activeSubtest]?.label ?? 'Subtes'}
-            </Button>
+
+          <div class="flex flex-col gap-2">
+            {#each instr.paragraphs as p}
+              <p class="lp-lead text-sm leading-relaxed">{p}</p>
+            {/each}
           </div>
-        </CardContent>
-      </Card>
+        {/if}
+        <div class="flex justify-end">
+          <button type="button" class="lp-btn lp-btn-primary" onclick={startSubtestTesting}>
+            Mulai {subtests[activeSubtest]?.label ?? 'Subtes'}
+          </button>
+        </div>
+      </div>
     {/if}
 
     <form
@@ -396,55 +390,56 @@
       {#each subtests as st, si}
         <div class={si === activeSubtest ? 'flex flex-col gap-4' : 'hidden'}>
           {#each st.questions as q, qi}
-            <Card>
-              <CardHeader>
-                <CardTitle class="text-sm font-medium">
+            {@const key = fieldKey(q)}
+            <div class="lp-card lp-card-pad flex flex-col gap-3">
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 class="text-sm font-semibold">
                   {st.label} — Soal {qi + 1}
                   {#if q.subtestNo === 2}
-                    <span class="text-muted-foreground ml-2 font-normal">(pilih tepat 2 gambar yang berpasangan)</span>
+                    <span class="lp-muted ml-2 font-normal">(pilih tepat 2 gambar yang berpasangan)</span>
                   {/if}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {#if q.stemImageUrl}
-                  <div class="mb-4">
-                    <img src={q.stemImageUrl} alt="Soal {qi + 1}" class="h-auto max-w-xs rounded-lg border" />
-                  </div>
-                {/if}
-                <div class="grid grid-cols-3 gap-2 sm:grid-cols-6">
-                  {#each q.optionImages as optImg, oi}
-                    {@const letter = optionLetter(oi)}
-                    {@const key = fieldKey(q)}
-                    <label
-                      class="hover:bg-accent flex cursor-pointer flex-col items-center gap-1 rounded-lg border p-2 text-xs {isDisabled(key, letter) ? 'opacity-40' : ''}"
-                    >
-                      {#if q.subtestNo === 2}
-                        <input
-                          type="checkbox"
-                          name="{key}[]"
-                          value={letter}
-                          class="size-4 shrink-0"
-                          checked={isChecked(key, letter)}
-                          disabled={isDisabled(key, letter)}
-                          onchange={(e) => toggleOption(key, letter, e.currentTarget.checked)}
-                        />
-                      {:else}
-                        <input
-                          type="radio"
-                          name={key}
-                          value={letter}
-                          class="size-4 shrink-0"
-                          checked={selectedAnswers[key] === letter}
-                          onchange={() => (selectedAnswers[key] = letter)}
-                        />
-                      {/if}
-                      <img src={optImg} alt="Opsi {letter}" class="h-16 w-auto rounded border" />
-                      <span>{letter}</span>
-                    </label>
-                  {/each}
+                </h3>
+                <span class="lp-muted text-xs">{qi + 1}/{st.questions.length}</span>
+              </div>
+              {#if q.stemImageUrl}
+                <div>
+                  <img src={q.stemImageUrl} alt="Soal {qi + 1}" class="cfit-stem-img" />
                 </div>
-              </CardContent>
-            </Card>
+              {/if}
+              <div class="cfit-options">
+                {#each q.optionImages as optImg, oi}
+                  {@const letter = optionLetter(oi)}
+                  <label
+                    class="cfit-opt"
+                    class:sel={q.subtestNo === 2 ? isChecked(key, letter) : selectedAnswers[key] === letter}
+                    class:disabled={isDisabled(key, letter)}
+                  >
+                    {#if q.subtestNo === 2}
+                      <input
+                        type="checkbox"
+                        name="{key}[]"
+                        value={letter}
+                        class="sr-only"
+                        checked={isChecked(key, letter)}
+                        disabled={isDisabled(key, letter)}
+                        onchange={(e) => toggleOption(key, letter, e.currentTarget.checked)}
+                      />
+                    {:else}
+                      <input
+                        type="radio"
+                        name={key}
+                        value={letter}
+                        class="sr-only"
+                        checked={selectedAnswers[key] === letter}
+                        onchange={() => (selectedAnswers[key] = letter)}
+                      />
+                    {/if}
+                    <img src={optImg} alt="Opsi {letter}" class="cfit-opt-img" />
+                    <span class="cfit-opt-letter">{letter}</span>
+                  </label>
+                {/each}
+              </div>
+            </div>
           {/each}
         </div>
       {/each}
@@ -452,20 +447,25 @@
       <div class="flex items-center justify-end">
         {#if activeSubtest < total - 1}
           <div class="flex flex-col items-end gap-1">
-            <Button type="button" onclick={() => goToSubtest(activeSubtest + 1)} disabled={!currentSubtestComplete}>
+            <button
+              type="button"
+              class="lp-btn lp-btn-primary"
+              onclick={() => goToSubtest(activeSubtest + 1)}
+              disabled={!currentSubtestComplete}
+            >
               Selanjutnya
-            </Button>
+            </button>
             {#if !currentSubtestComplete}
-              <span class="text-muted-foreground text-xs">Jawab semua soal di subtes ini terlebih dahulu.</span>
+              <span class="lp-muted text-xs">Jawab semua soal di subtes ini terlebih dahulu.</span>
             {/if}
           </div>
         {:else}
           <div class="flex flex-col items-end gap-1">
-            <Button type="submit" disabled={loading || !currentSubtestComplete}>
+            <button type="submit" class="lp-btn lp-btn-primary" disabled={loading || !currentSubtestComplete}>
               {loading ? 'Mengirim...' : 'Kirim Semua Jawaban'}
-            </Button>
+            </button>
             {#if !currentSubtestComplete}
-              <span class="text-muted-foreground text-xs">Jawab semua soal di subtes ini terlebih dahulu.</span>
+              <span class="lp-muted text-xs">Jawab semua soal di subtes ini terlebih dahulu.</span>
             {/if}
           </div>
         {/if}
@@ -473,3 +473,75 @@
     </form>
   {/if}
 </div>
+
+<style>
+  .cfit-stem-img {
+    width: 100%;
+    max-width: 18rem;
+    height: auto;
+    border-radius: 0.75rem;
+    border: 1px solid var(--lp-rule);
+  }
+
+  .cfit-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .cfit-opt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.4rem;
+    border: 1px solid var(--lp-rule-2);
+    border-radius: 0.9rem;
+    cursor: pointer;
+    transition:
+      background-color 200ms var(--lp-ease-out),
+      border-color 200ms var(--lp-ease-out),
+      opacity 200ms var(--lp-ease-out);
+  }
+
+  .cfit-opt:hover {
+    border-color: var(--lp-accent);
+  }
+
+  .cfit-opt.sel {
+    background: var(--lp-accent-bg);
+    border-color: var(--lp-accent);
+  }
+
+  .cfit-opt.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .cfit-opt-img {
+    height: 4rem;
+    width: auto;
+    border-radius: 0.4rem;
+  }
+
+  .cfit-opt-letter {
+    font-size: 0.78rem;
+    font-weight: 650;
+    color: var(--lp-muted);
+    text-transform: uppercase;
+  }
+
+  .cfit-opt.sel .cfit-opt-letter {
+    color: var(--lp-accent-deep);
+  }
+
+  .lp-hairline-top {
+    border-top: 1px solid var(--lp-rule);
+  }
+
+  @media (min-width: 40rem) {
+    .cfit-options {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+  }
+</style>

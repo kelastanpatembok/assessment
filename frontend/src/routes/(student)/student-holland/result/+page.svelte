@@ -1,14 +1,17 @@
 <script lang="ts">
-  import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
-  import { Badge } from '$lib/components/ui/badge/index.js';
-
   let { data } = $props();
   let r = $derived(data.result);
 
-  const dimColors: Record<string, string> = {
-    R: 'bg-orange-500', I: 'bg-blue-500', A: 'bg-purple-500',
-    S: 'bg-green-500', E: 'bg-yellow-500', C: 'bg-gray-500',
-  };
+  function dimColor(key: string): string {
+    return {
+      R: 'var(--lp-dim-d)',
+      I: 'var(--lp-dim-c)',
+      A: 'var(--lp-dim-i)',
+      S: 'var(--lp-dim-s)',
+      E: 'var(--lp-accent)',
+      C: 'var(--lp-least)',
+    }[key] ?? 'var(--lp-accent)';
+  }
 
   let dimensions = $derived([
     { key: 'R', label: 'Realistic',      value: r?.rscore ?? 0 },
@@ -58,88 +61,79 @@
 
 <svelte:head><title>Hasil Holland RIASEC</title></svelte:head>
 
-<div class="flex max-w-2xl flex-col gap-6">
-  <nav aria-label="Breadcrumb" class="text-muted-foreground flex items-center gap-1.5 text-sm">
-    <a href="/student-dashboard" class="hover:text-foreground hover:underline">Dashboard</a>
+<div class="lp-wrap flex flex-col gap-6">
+  <nav aria-label="Breadcrumb" class="lp-crumbs">
+    <a href="/student-dashboard">Dashboard</a>
     <span aria-hidden="true">/</span>
-    <span class="text-foreground">Hasil Tes Holland RIASEC</span>
+    <span>Hasil Tes Holland RIASEC</span>
   </nav>
 
-  <div>
-    <h2 class="text-2xl font-bold">Hasil Tes Holland RIASEC</h2>
-    <p class="text-muted-foreground mt-1 text-sm">
-      {r?.studentName} · {r?.schoolName ?? '-'}
-    </p>
+  <header class="flex flex-col gap-1">
+    <p class="lp-kicker">Profil Minat Karir RIASEC</p>
+    <h2 class="lp-display text-3xl sm:text-4xl">Hasil Tes Holland RIASEC</h2>
+    <p class="lp-lead text-sm">{r?.studentName} · {r?.schoolName ?? '-'}</p>
+  </header>
+
+  <div class="lp-card lp-card-pad flex flex-wrap items-center justify-between gap-3">
+    <div class="flex flex-col gap-0.5">
+      <p class="lp-kicker">Kode Holland</p>
+      <h3 class="lp-display text-2xl">{hollandCode}</h3>
+    </div>
+    <span class="lp-chip lp-chip-strong">RIASEC</span>
   </div>
 
-  <Card>
-    <CardHeader>
-      <div class="flex items-center gap-3">
-        <CardTitle>Kode Holland</CardTitle>
-        <Badge class="px-3 text-lg">{hollandCode}</Badge>
+  <div class="lp-card lp-card-pad flex flex-col gap-3">
+    <h3 class="text-base font-semibold">Skor Per Dimensi</h3>
+    {#each dimensions as d}
+      <div>
+        <div class="mb-1 flex items-baseline justify-between text-sm">
+          <span class="font-medium">{d.key} — {d.label}</span>
+          <span class="lp-muted">{d.value}</span>
+        </div>
+        <div class="lp-bar">
+          <div style="width: {Math.round((d.value / maxVal) * 100)}%; background: {dimColor(d.key)}"></div>
+        </div>
       </div>
-    </CardHeader>
-  </Card>
-
-  <Card>
-    <CardHeader><CardTitle class="text-base">Skor Per Dimensi</CardTitle></CardHeader>
-    <CardContent>
-      <div class="flex flex-col gap-3">
-        {#each dimensions as d}
-          <div>
-            <div class="mb-1 flex justify-between text-sm">
-              <span class="font-medium">{d.key} — {d.label}</span>
-              <span class="text-muted-foreground">{d.value}</span>
-            </div>
-            <div class="bg-muted h-3 w-full overflow-hidden rounded-full">
-              <div
-                class="h-full rounded-full {dimColors[d.key] ?? 'bg-primary'}"
-                style="width: {Math.round((d.value / maxVal) * 100)}%"
-              ></div>
-            </div>
-          </div>
-        {/each}
-      </div>
-    </CardContent>
-  </Card>
+    {/each}
+  </div>
 
   {#each topTypes as t, i}
-    <Card>
-      <CardHeader>
-        <div class="flex items-center gap-2">
-          <Badge variant="outline">Tipe {i + 1}</Badge>
-          <CardTitle class="text-base">{t.key} — {t.name}</CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent class="flex flex-col gap-4 text-sm">
+    <div class="lp-card lp-card-pad flex flex-col gap-3">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="lp-chip">Tipe {i + 1}</span>
+        <h3 class="text-base font-semibold">
+          <span style="color: {dimColor(t.key)}">{t.key}</span> — {t.name}
+        </h3>
+      </div>
+      <div class="flex flex-col gap-3 text-sm">
         {#if t.description}
-          <p class="text-muted-foreground leading-relaxed">{t.description}</p>
+          <p class="lp-lead leading-relaxed">{t.description}</p>
         {/if}
         {#if t.characteristics}
           <div>
             <p class="mb-1 font-medium">Karakter</p>
-            <p class="text-muted-foreground whitespace-pre-line leading-relaxed">{t.characteristics}</p>
+            <p class="lp-lead whitespace-pre-line leading-relaxed">{t.characteristics}</p>
           </div>
         {/if}
         {#if t.strengths}
           <div>
             <p class="mb-1 font-medium">Kelebihan</p>
-            <p class="text-muted-foreground whitespace-pre-line leading-relaxed">{t.strengths}</p>
+            <p class="lp-lead whitespace-pre-line leading-relaxed">{t.strengths}</p>
           </div>
         {/if}
         {#if t.weaknesses}
           <div>
             <p class="mb-1 font-medium">Kelemahan</p>
-            <p class="text-muted-foreground whitespace-pre-line leading-relaxed">{t.weaknesses}</p>
+            <p class="lp-lead whitespace-pre-line leading-relaxed">{t.weaknesses}</p>
           </div>
         {/if}
         {#if t.jobMatch}
           <div>
             <p class="mb-1 font-medium">Job Match</p>
-            <p class="text-muted-foreground whitespace-pre-line leading-relaxed">{t.jobMatch}</p>
+            <p class="lp-lead whitespace-pre-line leading-relaxed">{t.jobMatch}</p>
           </div>
         {/if}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   {/each}
 </div>

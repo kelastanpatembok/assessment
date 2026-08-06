@@ -61,14 +61,14 @@
 
 <div class="hasil">
   {#if !ready}
-    <p class="hasil-status">Memuat hasil…</p>
+    <p class="lp-lead hasil-status">Memuat hasil…</p>
   {:else if result}
     <header class="hasil-head">
-      <p class="hasil-kicker">Hasil tes kepribadian</p>
-      <h1>{result.headline}</h1>
-      <p class="hasil-lede">
-        Berdasarkan jawabanmu, inilah gambaran umum kepribadianmu. Hasil ini untuk eksplorasi diri,
-        bukan diagnosis klinis.
+      <p class="lp-kicker">Hasil tes kepribadian</p>
+      <h1 class="lp-display hasil-title">{result.headline}</h1>
+      <p class="lp-lead hasil-lede">
+        Berdasarkan jawabanmu, inilah gambaran umum kepribadianmu. Hasil ini untuk eksplorasi diri, bukan diagnosis
+        klinis.
       </p>
     </header>
 
@@ -77,34 +77,34 @@
         <div class="hbar">
           <div class="hbar-top">
             <span class="hbar-label">{t.label}</span>
-            <span class="hbar-meta">{t.level} · {Math.round(t.value)}</span>
+            <span class="lp-muted hbar-meta">{t.level} · {Math.round(t.value)}</span>
           </div>
-          <div class="hbar-track">
-            <div class="hbar-fill" style:width="{barWidths[t.key] ?? 0}%"></div>
+          <div class="lp-bar">
+            <div style:width="{barWidths[t.key] ?? 0}%"></div>
           </div>
-          <p class="hbar-desc">{t.description}</p>
+          <p class="lp-lead hbar-desc">{t.description}</p>
         </div>
       {/each}
     </div>
 
-    <div class="hasil-share">
+    <div class="lp-card-tint lp-card-pad hasil-share">
       <p class="hasil-share-text">{shareText}</p>
-      <button type="button" class="hasil-copy" onclick={copyShare}>
+      <button type="button" class="lp-btn lp-btn-outline" onclick={copyShare}>
         {copied ? 'Tersalin' : 'Salin untuk Dibagikan'}
       </button>
     </div>
 
-    <section class="hasil-saved-box">
+    <section class="lp-card-tint lp-card-pad hasil-saved-box">
       <p>{saved ? 'Hasilmu sudah tersimpan di akunmu dan dapat dilihat kembali.' : 'Hasil tesmu sudah lengkap.'}</p>
       <div class="hasil-links">
-        <a href="/" class="hasil-cta">Kembali ke Beranda</a>
+        <a href="/" class="lp-btn lp-btn-primary">Kembali ke Beranda</a>
       </div>
     </section>
   {:else}
     <div class="hasil-saved">
-      <h1>Hasilmu telah tersimpan.</h1>
+      <h1 class="lp-display hasil-title">Hasilmu telah tersimpan.</h1>
       <p>Silakan masuk kembali untuk melihat hasil kepribadianmu.</p>
-      <a href="/signin" class="hasil-cta">Masuk</a>
+      <a href="/signin" class="lp-btn lp-btn-primary">Masuk</a>
     </div>
   {/if}
 </div>
@@ -117,33 +117,16 @@
   }
 
   .hasil-status {
-    color: var(--lp-ink-2);
     padding: 2rem 0;
   }
 
-  .hasil-kicker {
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    font-variant-caps: all-small-caps;
-    color: var(--lp-accent-deep);
-    margin: 0 0 0.75rem;
-  }
-
-  .hasil-head h1,
-  .hasil-saved h1 {
-    font-family: var(--lp-font-display);
+  .hasil-title {
     font-size: clamp(2rem, 6vw, 2.9rem);
-    font-weight: 560;
-    letter-spacing: -0.02em;
     line-height: 1.1;
     margin: 0 0 0.9rem;
-    overflow-wrap: anywhere;
   }
 
   .hasil-lede {
-    color: var(--lp-ink-2);
     font-size: 1.02rem;
     margin: 0 0 2.25rem;
   }
@@ -166,39 +149,18 @@
   }
 
   .hbar-meta {
-    color: var(--lp-muted);
     font-size: 0.82rem;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
 
-  .hbar-track {
-    height: 10px;
-    border-radius: 999px;
-    background: var(--lp-paper-2);
-    border: 1px solid var(--lp-rule);
-    overflow: hidden;
-  }
-
-  .hbar-fill {
-    height: 100%;
-    border-radius: 999px;
-    background: var(--lp-accent);
-    transition: width 700ms var(--lp-ease-out);
-  }
-
   .hbar-desc {
-    color: var(--lp-ink-2);
     font-size: 0.9rem;
     margin: 0.5rem 0 0;
   }
 
   .hasil-share {
     margin-top: 2.5rem;
-    padding: 1.25rem 1.5rem;
-    border: 1px solid var(--lp-rule);
-    border-radius: 1.25rem;
-    background: var(--lp-paper-2);
   }
 
   .hasil-share-text {
@@ -208,29 +170,8 @@
     margin: 0 0 1rem;
   }
 
-  .hasil-copy {
-    min-height: 3rem;
-    padding: 0.6rem 1.4rem;
-    border-radius: 999px;
-    border: 1px solid var(--lp-rule-2);
-    background: var(--lp-paper);
-    color: var(--lp-ink);
-    font-weight: 650;
-    cursor: pointer;
-    transition: background-color 200ms var(--lp-ease-out), border-color 200ms var(--lp-ease-out);
-  }
-
-  .hasil-copy:hover {
-    border-color: var(--lp-accent);
-    background: var(--lp-accent-bg);
-  }
-
   .hasil-saved-box {
-    margin-top: 2.5rem;
-    background: var(--lp-paper-2);
-    border: 1px solid var(--lp-rule);
-    border-radius: 1.25rem;
-    padding: 1.5rem;
+    margin-top: 1rem;
     display: grid;
     gap: 1rem;
   }
@@ -243,26 +184,5 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-  }
-
-  .hasil-cta {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 3.25rem;
-    padding: 0.8rem 2rem;
-    border-radius: 999px;
-    background: var(--lp-accent-bg);
-    color: var(--lp-ink);
-    border: 1px solid var(--lp-accent-bg);
-    font-weight: 650;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: background-color 200ms var(--lp-ease-out), transform 200ms var(--lp-ease-out);
-  }
-
-  .hasil-cta:hover {
-    background: var(--lp-accent);
-    transform: translateY(-1px);
   }
 </style>

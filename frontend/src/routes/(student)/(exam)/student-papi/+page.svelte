@@ -2,9 +2,6 @@
   import { enhance } from '$app/forms';
   import { dev, browser } from '$app/environment';
   import { getContext, onMount, tick } from 'svelte';
-  import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
-  import { Button } from '$lib/components/ui/button/index.js';
-  import { Progress } from '$lib/components/ui/progress/index.js';
 
   let { data, form } = $props();
   let loading = $state(false);
@@ -132,27 +129,27 @@
 <svelte:head><title>Tes PAPI Kostick</title></svelte:head>
 <svelte:window onkeydown={handleDevKeydown} />
 
-<div class="flex max-w-2xl flex-col gap-6">
-  <div>
-    <h2 class="text-2xl font-bold">Tes PAPI Kostick</h2>
+<div class="lp-wrap flex flex-col gap-6">
+  <header class="flex flex-col gap-1.5">
+    <p class="lp-kicker">Tes Kepribadian Kerja PAPI Kostick</p>
+    <h2 class="lp-display text-3xl sm:text-4xl">Tes PAPI Kostick</h2>
     {#if dev}
-      <p class="mt-1 text-xs text-amber-600">
-        Dev mode: tekan <kbd class="rounded border px-1">X</kbd> untuk memilih jawaban acak dan lanjut otomatis, atau <kbd class="rounded border px-1">Y</kbd> untuk selalu memilih pernyataan A dan lanjut otomatis (profil sepihak untuk QA).
+      <p class="mt-1 text-xs" style="color: var(--lp-ink-2)">
+        Mode pengembangan: tekan <kbd class="lp-kbd">X</kbd> untuk memilih jawaban acak dan lanjut otomatis, atau
+        <kbd class="lp-kbd">Y</kbd> untuk selalu memilih pernyataan A dan lanjut otomatis (profil sepihak untuk QA).
       </p>
     {/if}
-  </div>
+  </header>
 
   {#if data.unavailable}
-    <Card>
-      <CardContent class="pt-6">
-        <p class="text-muted-foreground">Tes PAPI belum tersedia atau sudah Anda selesaikan.</p>
-        <a href="/student-dashboard" class="text-primary mt-4 block text-sm hover:underline">Kembali ke Dashboard</a>
-      </CardContent>
-    </Card>
+    <div class="lp-card lp-card-pad flex flex-col gap-3">
+      <p class="lp-lead text-sm">Tes PAPI belum tersedia atau sudah Anda selesaikan.</p>
+      <a href="/student-dashboard" class="lp-btn lp-btn-outline lp-btn-sm self-start">Kembali ke Dashboard</a>
+    </div>
   {:else if form?.error}
-    <div class="bg-destructive/10 text-destructive rounded-lg px-4 py-3 text-sm">{form.error}</div>
+    <div class="lp-error">{form.error}</div>
   {:else if allPairs.length === 0}
-    <Card><CardContent class="pt-6"><p class="text-muted-foreground">Tidak ada soal tersedia.</p></CardContent></Card>
+    <div class="lp-card lp-card-pad"><p class="lp-lead text-sm">Tidak ada soal tersedia.</p></div>
   {:else}
     <form
       method="POST"
@@ -174,84 +171,87 @@
       {#each steps as step, si}
         <div class={si === currentStep ? 'block' : 'hidden'}>
           {#if step.kind === 'intro'}
-            <Card>
-              <CardHeader>
-                <CardTitle class="text-lg">Petunjuk Pengerjaan</CardTitle>
-              </CardHeader>
-              <CardContent class="flex flex-col gap-3 text-sm">
-                <p>
-                  Tes ini terdiri dari {totalQuestions} nomor. Setiap nomor berisi dua pernyataan (A dan B)
-                  mengenai keadaan diri Anda.
+            <div class="lp-card lp-card-pad flex flex-col gap-3">
+              <h3 class="lp-display text-xl">Petunjuk Pengerjaan</h3>
+              <div class="flex flex-col gap-3 text-sm">
+                <p class="lp-lead">
+                  Tes ini terdiri dari {totalQuestions} nomor. Setiap nomor berisi dua pernyataan (A dan B) mengenai
+                  keadaan diri Anda.
                 </p>
-                <p>
-                  Pilihlah satu pernyataan yang paling sesuai dengan keadaan diri Anda. Jika kedua
-                  pernyataan sama-sama terasa sesuai, tetap pilih satu yang paling menggambarkan diri
-                  Anda — tidak ada jawaban benar atau salah.
+                <p class="lp-lead">
+                  Pilihlah satu pernyataan yang paling sesuai dengan keadaan diri Anda. Jika kedua pernyataan sama-sama
+                  terasa sesuai, tetap pilih satu yang paling menggambarkan diri Anda — tidak ada jawaban benar atau
+                  salah.
                 </p>
                 <p class="font-medium">Selamat mengerjakan!</p>
-                <p class="text-muted-foreground mt-2 text-xs">
-                  Kerjakan dengan teliti, jangan sampai ada nomor yang terlewati.
-                </p>
-              </CardContent>
-            </Card>
+                <p class="lp-muted text-xs">Kerjakan dengan teliti, jangan sampai ada nomor yang terlewati.</p>
+              </div>
+            </div>
           {:else if step.kind === 'form'}
             {@const pair = step.pair}
-            <Card>
-              <CardHeader>
-                <CardTitle class="text-base">Pertanyaan {pair.pairNo} dari {totalQuestions}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p class="text-muted-foreground mb-4 text-sm">Pilih satu pernyataan yang lebih tepat menggambarkan Anda:</p>
-                <div class="flex flex-col gap-3">
-                  <label class="hover:bg-accent flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors">
-                    <input
-                      type="radio"
-                      name="pair_{pair.pairNo}"
-                      value="A"
-                      checked={selections[pair.pairNo] === 'A'}
-                      onchange={() => selectChoice(pair.pairNo, 'A')}
-                      class="mt-0.5 size-4 shrink-0"
-                      required
-                    />
-                    <span class="text-sm">{pair.stmtA}</span>
-                  </label>
-                  <label class="hover:bg-accent flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors">
-                    <input
-                      type="radio"
-                      name="pair_{pair.pairNo}"
-                      value="B"
-                      checked={selections[pair.pairNo] === 'B'}
-                      onchange={() => selectChoice(pair.pairNo, 'B')}
-                      class="mt-0.5 size-4 shrink-0"
-                      required
-                    />
-                    <span class="text-sm">{pair.stmtB}</span>
-                  </label>
-                </div>
-              </CardContent>
-            </Card>
+            <div class="lp-card lp-card-pad flex flex-col gap-4">
+              <div class="flex items-baseline justify-between gap-3">
+                <h3 class="font-semibold">Pertanyaan {pair.pairNo} dari {totalQuestions}</h3>
+                <span class="lp-muted text-xs">{answeredCount}/{totalQuestions} terjawab</span>
+              </div>
+              <p class="lp-muted text-sm">Pilih satu pernyataan yang lebih tepat menggambarkan Anda:</p>
+              <div class="flex flex-col gap-3">
+                <label class="lp-choice" class:selected={selections[pair.pairNo] === 'A'}>
+                  <input
+                    type="radio"
+                    name="pair_{pair.pairNo}"
+                    value="A"
+                    checked={selections[pair.pairNo] === 'A'}
+                    onchange={() => selectChoice(pair.pairNo, 'A')}
+                    class="sr-only"
+                    required
+                  />
+                  <span class="lp-choice-dot" aria-hidden="true"></span>
+                  <span class="lp-choice-label">{pair.stmtA}</span>
+                </label>
+                <label class="lp-choice" class:selected={selections[pair.pairNo] === 'B'}>
+                  <input
+                    type="radio"
+                    name="pair_{pair.pairNo}"
+                    value="B"
+                    checked={selections[pair.pairNo] === 'B'}
+                    onchange={() => selectChoice(pair.pairNo, 'B')}
+                    class="sr-only"
+                    required
+                  />
+                  <span class="lp-choice-dot" aria-hidden="true"></span>
+                  <span class="lp-choice-label">{pair.stmtB}</span>
+                </label>
+              </div>
+            </div>
           {/if}
         </div>
       {/each}
 
-      <div class="mt-4 flex flex-col gap-2">
-        <div class="text-muted-foreground flex items-center justify-between text-sm">
+      <div class="mt-4 flex flex-col gap-3">
+        <div class="lp-muted flex items-center justify-between text-sm">
           <span>Langkah {currentStep + 1} dari {totalSteps} · {answeredCount}/{totalQuestions} pernyataan terjawab</span>
           <span>{Math.round(((currentStep + 1) / totalSteps) * 100)}%</span>
         </div>
-        <Progress value={currentStep + 1} max={totalSteps} />
+        <div class="lp-progress"><div style="width: {((currentStep + 1) / totalSteps) * 100}%"></div></div>
 
-        <div class="mt-2 flex items-center justify-between">
-          <Button type="button" variant="outline" disabled={currentStep === 0} onclick={goPrev}>
+        <div class="mt-1 flex items-center justify-between gap-3">
+          <button type="button" class="lp-btn lp-btn-outline" disabled={currentStep === 0} onclick={goPrev}>
             Sebelumnya
-          </Button>
+          </button>
 
           {#if currentStep < totalSteps - 1}
-            <Button type="button" disabled={!currentStepAnswered} onclick={goNext}>Selanjutnya</Button>
+            <button type="button" class="lp-btn lp-btn-primary" disabled={!currentStepAnswered} onclick={goNext}>
+              Selanjutnya
+            </button>
           {:else}
-            <Button type="submit" disabled={loading || !currentStepAnswered || answeredCount < totalQuestions}>
+            <button
+              type="submit"
+              class="lp-btn lp-btn-primary"
+              disabled={loading || !currentStepAnswered || answeredCount < totalQuestions}
+            >
               {loading ? 'Mengirim...' : 'Kirim Jawaban'}
-            </Button>
+            </button>
           {/if}
         </div>
       </div>

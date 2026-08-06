@@ -2,9 +2,6 @@
   import { enhance } from '$app/forms';
   import { dev, browser } from '$app/environment';
   import { getContext, onMount, tick } from 'svelte';
-  import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
-  import { Button } from '$lib/components/ui/button/index.js';
-  import { Progress } from '$lib/components/ui/progress/index.js';
 
   let { data, form } = $props();
   let loading = $state(false);
@@ -149,37 +146,42 @@
 <svelte:head><title>Tes DISC</title></svelte:head>
 <svelte:window onkeydown={handleDevKeydown} />
 
-<div class="flex max-w-2xl flex-col gap-6">
-  <div>
-    <h2 class="text-2xl font-bold">Tes DISC</h2>
+<div class="lp-wrap flex flex-col gap-6">
+  <header class="flex flex-col gap-1.5">
+    <p class="lp-kicker">Tes Kepribadian DISC</p>
+    <h2 class="lp-display text-3xl sm:text-4xl">Tes DISC</h2>
     {#if dev}
-      <p class="mt-1 text-xs text-amber-600">
-        Dev mode: tekan <kbd class="rounded border px-1">X</kbd> untuk mengisi jawaban acak dan lanjut otomatis, atau <kbd class="rounded border px-1">Y</kbd> untuk memilih D (Paling Tepat) &amp; C (Paling Tidak Tepat) di tiap kelompok (skor D maksimal).
+      <p class="mt-1 text-xs" style="color: var(--lp-ink-2)">
+        Mode pengembangan: tekan <kbd class="lp-kbd">X</kbd> untuk mengisi jawaban acak dan lanjut otomatis, atau
+        <kbd class="lp-kbd">Y</kbd> untuk memilih D (Paling Tepat) &amp; C (Paling Tidak Tepat) di tiap kelompok (skor D maksimal).
       </p>
     {/if}
-    <p class="text-muted-foreground mt-1 text-sm">
-      INSTRUKSI : Terdapat 24 soal, Setiap nomor di bawah ini memuat 4 (empat) kalimat. Tugas anda adalah :
-    </p>
-    <ol class="text-muted-foreground mt-1 list-decimal space-y-1 pl-5 text-sm">
-      <li>Pilih kolom "Paling Tepat" di samping kalimat yang PALING menggambarkan diri anda</li>
-      <li>Pilih kolom "Paling Tidak Tepat" di samping kalimat yang PALING TIDAK menggambarkan diri anda</li>
+  </header>
+
+  <div
+    class="flex flex-col gap-2 rounded-xl border border-l-2 py-3 pl-4 pr-3 text-sm"
+    style="border-color: var(--lp-rule); border-left-color: var(--lp-accent)"
+  >
+    <p class="font-semibold">INSTRUKSI</p>
+    <p class="lp-lead">Terdapat 24 soal. Setiap nomor memuat 4 (empat) kalimat. Tugas Anda:</p>
+    <ol class="lp-lead list-decimal space-y-1 pl-5">
+      <li>Pilih "Paling Tepat" di samping kalimat yang PALING menggambarkan diri Anda.</li>
+      <li>Pilih "Paling Tidak Tepat" di samping kalimat yang PALING TIDAK menggambarkan diri Anda.</li>
     </ol>
-    <p class="text-muted-foreground mt-1 text-sm">
-      PERHATIKAN : Setiap nomor hanya ada 1 (satu) pilihan di bawah masing-masing kolom Paling Tepat dan Paling Tidak Tepat.
+    <p class="lp-muted mt-1 text-xs">
+      PERHATIKAN: setiap nomor hanya ada 1 (satu) pilihan di bawah masing-masing kolom Paling Tepat dan Paling Tidak Tepat.
     </p>
   </div>
 
   {#if data.unavailable}
-    <Card>
-      <CardContent class="pt-6">
-        <p class="text-muted-foreground">Tes DISC belum tersedia atau sudah Anda selesaikan.</p>
-        <a href="/student-dashboard" class="text-primary mt-4 block text-sm hover:underline">Kembali ke Dashboard</a>
-      </CardContent>
-    </Card>
+    <div class="lp-card lp-card-pad flex flex-col gap-3">
+      <p class="lp-lead text-sm">Tes DISC belum tersedia atau sudah Anda selesaikan.</p>
+      <a href="/student-dashboard" class="lp-btn lp-btn-outline lp-btn-sm self-start">Kembali ke Dashboard</a>
+    </div>
   {:else if form?.error}
-    <div class="bg-destructive/10 text-destructive rounded-lg px-4 py-3 text-sm">{form.error}</div>
+    <div class="lp-error">{form.error}</div>
   {:else if blocks.length === 0}
-    <Card><CardContent class="pt-6"><p class="text-muted-foreground">Tidak ada soal tersedia.</p></CardContent></Card>
+    <div class="lp-card lp-card-pad"><p class="lp-lead text-sm">Tidak ada soal tersedia.</p></div>
   {:else}
     <form
       method="POST"
@@ -201,20 +203,20 @@
       {#each blocks as stmts, bi}
         {@const blockNo = stmts[0].blockNo}
         <div class={bi === currentBlock ? 'block' : 'hidden'}>
-          <Card>
-            <CardHeader>
-              <CardTitle class="text-base">Kelompok {bi + 1} dari {totalBlocks}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div class="mb-2 grid grid-cols-[1fr_auto_auto] gap-x-4 text-xs font-semibold text-center">
-                <span>Pernyataan</span>
-                <span class="text-primary w-24">Paling Tepat</span>
-                <span class="text-muted-foreground w-28">Paling Tidak Tepat</span>
-              </div>
-              {#each stmts as q}
-                <div class="grid grid-cols-[1fr_auto_auto] items-center gap-x-4 border-b py-3 last:border-0">
-                  <span class="text-sm">{q.statement}</span>
-                  <div class="flex w-24 justify-center">
+          <div class="lp-card lp-card-pad flex flex-col gap-2">
+            <div class="flex items-baseline justify-between gap-3">
+              <h3 class="font-semibold">Kelompok {bi + 1} dari {totalBlocks}</h3>
+              <span class="lp-muted text-xs">Pilih 1 "Paling Tepat" &amp; 1 "Paling Tidak Tepat"</span>
+            </div>
+            {#each stmts as q}
+              <div class="disc-row">
+                <p class="disc-statement">{q.statement}</p>
+                <div class="disc-picks">
+                  <label
+                    class="disc-pick is-most"
+                    class:sel={selections[blockNo]?.most === q.itemNo}
+                    class:disabled={selections[blockNo]?.least === q.itemNo}
+                  >
                     <input
                       type="radio"
                       name="b{blockNo}_most"
@@ -222,10 +224,16 @@
                       checked={selections[blockNo]?.most === q.itemNo}
                       disabled={selections[blockNo]?.least === q.itemNo}
                       onchange={() => selectMost(blockNo, q.itemNo)}
-                      class="size-4 cursor-pointer accent-green-600 disabled:cursor-not-allowed disabled:opacity-30"
+                      class="sr-only"
                     />
-                  </div>
-                  <div class="flex w-28 justify-center">
+                    <span class="disc-dot" aria-hidden="true"></span>
+                    <span>Paling Tepat</span>
+                  </label>
+                  <label
+                    class="disc-pick is-least"
+                    class:sel={selections[blockNo]?.least === q.itemNo}
+                    class:disabled={selections[blockNo]?.most === q.itemNo}
+                  >
                     <input
                       type="radio"
                       name="b{blockNo}_least"
@@ -233,44 +241,145 @@
                       checked={selections[blockNo]?.least === q.itemNo}
                       disabled={selections[blockNo]?.most === q.itemNo}
                       onchange={() => selectLeast(blockNo, q.itemNo)}
-                      class="size-4 cursor-pointer accent-red-500 disabled:cursor-not-allowed disabled:opacity-30"
+                      class="sr-only"
                     />
-                  </div>
+                    <span class="disc-dot" aria-hidden="true"></span>
+                    <span>Paling Tidak Tepat</span>
+                  </label>
                 </div>
-              {/each}
-            </CardContent>
-          </Card>
+              </div>
+            {/each}
+          </div>
         </div>
       {/each}
 
-      <div class="mt-4 flex flex-col gap-2">
-        <div class="text-muted-foreground flex items-center justify-between text-sm">
+      <div class="mt-4 flex flex-col gap-3">
+        <div class="lp-muted flex items-center justify-between text-sm">
           <span>Soal {currentBlock + 1} dari {totalBlocks}</span>
           <span>{Math.round(((currentBlock + 1) / totalBlocks) * 100)}%</span>
         </div>
-        <Progress value={currentBlock + 1} max={totalBlocks} />
+        <div class="lp-progress"><div style="width: {((currentBlock + 1) / totalBlocks) * 100}%"></div></div>
 
-        <div class="mt-2 flex items-center justify-between">
-          <Button
+        <div class="mt-1 flex items-center justify-between gap-3">
+          <button
             type="button"
-            variant="outline"
+            class="lp-btn lp-btn-outline"
             disabled={currentBlock === 0}
             onclick={() => (currentBlock = Math.max(0, currentBlock - 1))}
-          >Sebelumnya</Button>
+          >Sebelumnya</button>
 
           {#if currentBlock < totalBlocks - 1}
-            <Button
+            <button
               type="button"
+              class="lp-btn lp-btn-primary"
               disabled={!currentBlockAnswered}
               onclick={() => (currentBlock = Math.min(totalBlocks - 1, currentBlock + 1))}
-            >Selanjutnya</Button>
+            >Selanjutnya</button>
           {:else}
-            <Button type="submit" disabled={loading || !currentBlockAnswered}>
+            <button type="submit" class="lp-btn lp-btn-primary" disabled={loading || !currentBlockAnswered}>
               {loading ? 'Mengirim...' : 'Kirim Jawaban'}
-            </Button>
+            </button>
           {/if}
         </div>
       </div>
     </form>
   {/if}
 </div>
+
+<style>
+  .disc-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 0.75rem 1.25rem;
+    align-items: center;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--lp-rule);
+  }
+
+  .disc-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .disc-statement {
+    font-size: 0.95rem;
+    line-height: 1.55;
+    min-width: 0;
+  }
+
+  .disc-picks {
+    display: contents;
+  }
+
+  .disc-pick {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.5rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--lp-rule-2);
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition:
+      background-color 200ms var(--lp-ease-out),
+      border-color 200ms var(--lp-ease-out),
+      opacity 200ms var(--lp-ease-out);
+  }
+
+  .disc-dot {
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 999px;
+    border: 2px solid var(--lp-rule-2);
+    flex: none;
+    transition:
+      background-color 200ms var(--lp-ease-out),
+      border-color 200ms var(--lp-ease-out);
+  }
+
+  .disc-pick.is-most.sel {
+    background: var(--lp-accent-bg);
+    border-color: var(--lp-accent);
+  }
+
+  .disc-pick.is-most.sel .disc-dot {
+    background: var(--lp-most);
+    border-color: var(--lp-most);
+  }
+
+  .disc-pick.is-least.sel {
+    background: var(--lp-paper-2);
+    border-color: var(--lp-least);
+  }
+
+  .disc-pick.is-least.sel .disc-dot {
+    background: var(--lp-least);
+    border-color: var(--lp-least);
+  }
+
+  .disc-pick.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 40rem) {
+    .disc-row {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.5rem;
+      padding: 1rem 0;
+    }
+
+    .disc-picks {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.5rem;
+    }
+
+    .disc-pick {
+      justify-content: center;
+    }
+  }
+</style>

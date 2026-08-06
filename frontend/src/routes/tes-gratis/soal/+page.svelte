@@ -114,50 +114,50 @@
 
 <div class="quiz">
   {#if loading}
-    <p class="quiz-status">Menyiapkan pertanyaan…</p>
+    <p class="lp-lead quiz-status">Menyiapkan pertanyaan…</p>
   {:else if error}
     <div class="quiz-err">
       <p>{error}</p>
-      <button class="quiz-retry" onclick={load}>Coba Lagi</button>
+      <button class="lp-btn lp-btn-primary" onclick={load}>Coba Lagi</button>
     </div>
   {:else if current}
     <div class="quiz-progress-wrap">
-      <div class="quiz-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
-        <div class="quiz-progress-fill" style:width="{progress}%"></div>
+      <div class="lp-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
+        <div style:width="{progress}%"></div>
       </div>
-      <p class="quiz-count">Pertanyaan {idx + 1} dari {questions.length}</p>
+      <p class="lp-muted quiz-count">Pertanyaan {idx + 1} dari {questions.length}</p>
     </div>
 
     <div class="quiz-q">
-      <p class="quiz-statement">{current.statement}</p>
+      <p class="lp-display quiz-statement">{current.statement}</p>
 
       <div class="quiz-options">
         {#each OPTIONS as opt}
           <button
             type="button"
-            class="quiz-opt"
+            class="lp-choice"
             class:selected={answers[current.no] === opt.value}
             onclick={() => select(opt.value)}
           >
-            <span class="quiz-opt-dot" aria-hidden="true"></span>
-            <span class="quiz-opt-label">{opt.label}</span>
-            <span class="quiz-opt-val">{opt.value}</span>
+            <span class="lp-choice-dot" aria-hidden="true"></span>
+            <span class="lp-choice-label">{opt.label}</span>
+            <span class="lp-muted quiz-opt-val">{opt.value}</span>
           </button>
         {/each}
       </div>
     </div>
 
     {#if failMsg}
-      <p class="quiz-fail">{failMsg}</p>
+      <p class="lp-error">{failMsg}</p>
     {/if}
 
     <div class="quiz-nav">
       {#if idx > 0}
-        <button type="button" class="quiz-back" onclick={back}>Kembali</button>
+        <button type="button" class="lp-btn lp-btn-outline lp-btn-sm" onclick={back}>Kembali</button>
       {:else}
         <span class="quiz-back-spacer"></span>
       {/if}
-      <span class="quiz-hint">{answers[current.no] ? 'Jawaban tersimpan' : 'Pilih satu jawaban'}</span>
+      <span class="lp-muted quiz-hint">{answers[current.no] ? 'Jawaban tersimpan' : 'Pilih satu jawaban'}</span>
     </div>
   {/if}
 </div>
@@ -176,28 +176,12 @@
     margin-bottom: 2rem;
   }
 
-  .quiz-progress {
-    height: 6px;
-    border-radius: 999px;
-    background: var(--lp-paper-2);
-    border: 1px solid var(--lp-rule);
-    overflow: hidden;
-  }
-
-  .quiz-progress-fill {
-    height: 100%;
-    border-radius: 999px;
-    background: var(--lp-accent);
-    transition: width 300ms var(--lp-ease-out);
-  }
-
   .quiz-count {
-    color: var(--lp-muted);
+    margin: 0.6rem 0 0;
     font-size: 0.8rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     font-variant-caps: all-small-caps;
-    margin: 0.6rem 0 0;
   }
 
   .quiz-q {
@@ -205,13 +189,9 @@
   }
 
   .quiz-statement {
-    font-family: var(--lp-font-display);
     font-size: clamp(1.5rem, 5vw, 2rem);
-    font-weight: 540;
-    letter-spacing: -0.01em;
     line-height: 1.3;
     margin: 0 0 2rem;
-    overflow-wrap: anywhere;
   }
 
   .quiz-options {
@@ -219,57 +199,7 @@
     gap: 0.6rem;
   }
 
-  .quiz-opt {
-    display: flex;
-    align-items: center;
-    gap: 0.85rem;
-    width: 100%;
-    min-height: 3.4rem;
-    padding: 0.7rem 1.1rem;
-    border-radius: 999px;
-    border: 1px solid var(--lp-rule-2);
-    background: var(--lp-paper);
-    cursor: pointer;
-    text-align: left;
-    transition: background-color 200ms var(--lp-ease-out), border-color 200ms var(--lp-ease-out),
-      transform 100ms var(--lp-ease-out);
-  }
-
-  .quiz-opt:hover {
-    border-color: var(--lp-accent);
-  }
-
-  .quiz-opt:active {
-    transform: translateY(1px);
-  }
-
-  .quiz-opt.selected {
-    background: var(--lp-accent-bg);
-    border-color: var(--lp-accent);
-  }
-
-  .quiz-opt-dot {
-    width: 1rem;
-    height: 1rem;
-    border-radius: 999px;
-    border: 2px solid var(--lp-rule-2);
-    flex: none;
-    transition: background-color 200ms var(--lp-ease-out), border-color 200ms var(--lp-ease-out);
-  }
-
-  .quiz-opt.selected .quiz-opt-dot {
-    background: var(--lp-accent-deep);
-    border-color: var(--lp-accent-deep);
-  }
-
-  .quiz-opt-label {
-    flex: 1;
-    font-weight: 600;
-    font-size: 0.98rem;
-  }
-
   .quiz-opt-val {
-    color: var(--lp-muted);
     font-size: 0.82rem;
     font-variant-numeric: tabular-nums;
   }
@@ -282,29 +212,11 @@
     margin-top: 2rem;
   }
 
-  .quiz-back {
-    min-height: 3rem;
-    padding: 0.6rem 1.4rem;
-    border-radius: 999px;
-    border: 1px solid var(--lp-rule-2);
-    background: transparent;
-    color: var(--lp-ink);
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 200ms var(--lp-ease-out), border-color 200ms var(--lp-ease-out);
-  }
-
-  .quiz-back:hover {
-    border-color: var(--lp-ink-2);
-    background: var(--lp-paper-2);
-  }
-
   .quiz-back-spacer {
     width: 1rem;
   }
 
   .quiz-hint {
-    color: var(--lp-muted);
     font-size: 0.85rem;
   }
 
@@ -312,33 +224,5 @@
   .quiz-err {
     color: var(--lp-ink-2);
     padding: 2rem 0;
-  }
-
-  .quiz-fail {
-    color: oklch(0.55 0.18 25);
-    background: oklch(0.96 0.03 25);
-    border: 1px solid oklch(0.85 0.06 25);
-    border-radius: 0.75rem;
-    padding: 0.8rem 1rem;
-    font-size: 0.9rem;
-    margin: 1.25rem 0 0;
-  }
-
-  .quiz-retry {
-    margin-top: 1rem;
-    min-height: 3rem;
-    padding: 0.6rem 1.5rem;
-    border-radius: 999px;
-    background: var(--lp-accent-bg);
-    border: 1px solid var(--lp-accent-bg);
-    color: var(--lp-ink);
-    font-weight: 650;
-    cursor: pointer;
-  }
-
-  @media (pointer: coarse) {
-    .quiz-opt {
-      min-height: 3.75rem;
-    }
   }
 </style>

@@ -2,9 +2,6 @@
   import { enhance } from '$app/forms';
   import { dev, browser } from '$app/environment';
   import { getContext, onMount, tick } from 'svelte';
-  import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
-  import { Button } from '$lib/components/ui/button/index.js';
-  import { Progress } from '$lib/components/ui/progress/index.js';
 
   let { data, form } = $props();
   let loading = $state(false);
@@ -205,27 +202,27 @@
 <svelte:head><title>Tes Holland RIASEC</title></svelte:head>
 <svelte:window onkeydown={handleDevKeydown} />
 
-<div class="flex max-w-2xl flex-col gap-6">
-  <div>
-    <h2 class="text-2xl font-bold">Tes Holland RIASEC</h2>
+<div class="lp-wrap flex flex-col gap-6">
+  <header class="flex flex-col gap-1.5">
+    <p class="lp-kicker">Tes Minat Karir RIASEC</p>
+    <h2 class="lp-display text-3xl sm:text-4xl">Tes Holland RIASEC</h2>
     {#if dev}
-      <p class="mt-1 text-xs text-amber-600">
-        Dev mode: tekan <kbd class="rounded border px-1">X</kbd> untuk mengisi jawaban acak dan lanjut otomatis, atau <kbd class="rounded border px-1">Y</kbd> untuk mengisi nilai tertinggi (5) di semua pernyataan (skor RIASEC maksimal).
+      <p class="mt-1 text-xs" style="color: var(--lp-ink-2)">
+        Mode pengembangan: tekan <kbd class="lp-kbd">X</kbd> untuk mengisi jawaban acak dan lanjut otomatis, atau
+        <kbd class="lp-kbd">Y</kbd> untuk mengisi nilai tertinggi (5) di semua pernyataan (skor RIASEC maksimal).
       </p>
     {/if}
-  </div>
+  </header>
 
   {#if data.unavailable}
-    <Card>
-      <CardContent class="pt-6">
-        <p class="text-muted-foreground">Tes Holland belum tersedia atau sudah Anda selesaikan.</p>
-        <a href="/student-dashboard" class="text-primary mt-4 block text-sm hover:underline">Kembali ke Dashboard</a>
-      </CardContent>
-    </Card>
+    <div class="lp-card lp-card-pad flex flex-col gap-3">
+      <p class="lp-lead text-sm">Tes Holland belum tersedia atau sudah Anda selesaikan.</p>
+      <a href="/student-dashboard" class="lp-btn lp-btn-outline lp-btn-sm self-start">Kembali ke Dashboard</a>
+    </div>
   {:else if form?.error}
-    <div class="bg-destructive/10 text-destructive rounded-lg px-4 py-3 text-sm">{form.error}</div>
+    <div class="lp-error">{form.error}</div>
   {:else if allQuestions.length === 0}
-    <Card><CardContent class="pt-6"><p class="text-muted-foreground">Tidak ada soal tersedia.</p></CardContent></Card>
+    <div class="lp-card lp-card-pad"><p class="lp-lead text-sm">Tidak ada soal tersedia.</p></div>
   {:else}
     <form
       method="POST"
@@ -247,119 +244,202 @@
       {#each steps as step, si}
         <div class={si === currentStep ? 'block' : 'hidden'}>
           {#if step.kind === 'intro'}
-            <Card>
-              <CardHeader>
-                <CardTitle class="text-lg">Pengantar</CardTitle>
-              </CardHeader>
-              <CardContent class="flex flex-col gap-3 text-sm">
-                <p>
-                  Pada tiap-tiap bagian berikut ini terdapat berbagai pilihan pekerjaan dan situasi
-                  pekerjaan yang mungkin akan bersesuaian dengan minat, kompetensi, dan pilihan karir Anda.
+            <div class="lp-card lp-card-pad flex flex-col gap-3">
+              <h3 class="lp-display text-xl">Pengantar</h3>
+              <div class="flex flex-col gap-3 text-sm">
+                <p class="lp-lead">
+                  Pada tiap-tiap bagian berikut ini terdapat berbagai pilihan pekerjaan dan situasi pekerjaan yang
+                  mungkin akan bersesuaian dengan minat, kompetensi, dan pilihan karir Anda.
                 </p>
-                <p>
-                  Bacalah petunjuk pengisian pada masing-masing bagian. Tidak ada jawaban yang salah.
-                  Oleh karena itu isilah sesuai dengan keadaan diri Anda yang sesungguhnya, dan
-                  lengkapilah jawaban Anda pada semua butir pernyataan.
+                <p class="lp-lead">
+                  Bacalah petunjuk pengisian pada masing-masing bagian. Tidak ada jawaban yang salah. Oleh karena itu
+                  isilah sesuai dengan keadaan diri Anda yang sesungguhnya, dan lengkapilah jawaban Anda pada semua butir
+                  pernyataan.
                 </p>
                 <p class="font-medium">Selamat mengerjakan!</p>
-                <p class="text-muted-foreground mt-2 text-xs">
-                  Tes ini terdiri dari 3 bagian (Minat, Kemampuan, dan Pilihan Karir), masing-masing
-                  mencakup 6 kelompok RIASEC (Realistic, Investigative, Artistic, Social, Enterprising,
-                  Conventional) dengan 11 pernyataan per kelompok — total {totalQuestions} pernyataan.
+                <p class="lp-muted text-xs">
+                  Tes ini terdiri dari 3 bagian (Minat, Kemampuan, dan Pilihan Karir), masing-masing mencakup 6 kelompok
+                  RIASEC (Realistic, Investigative, Artistic, Social, Enterprising, Conventional) dengan 11 pernyataan
+                  per kelompok — total {totalQuestions} pernyataan.
                 </p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           {:else if step.kind === 'round-intro'}
             {@const meta = ROUND_META[step.round]}
-            <Card>
-              <CardHeader>
-                <CardTitle class="text-lg">{meta.title}</CardTitle>
-                <p class="text-muted-foreground text-sm">{meta.subtitle}</p>
-              </CardHeader>
-              <CardContent class="flex flex-col gap-4 text-sm">
-                <p>Petunjuk Pengisian: {meta.instruction}</p>
-                <div>
-                  <p class="mb-2 text-xs font-semibold">Pilihan jawaban pada bagian ini:</p>
-                  <ol class="list-decimal space-y-1 pl-5">
-                    {#each meta.scale as label}
-                      <li>{label}</li>
-                    {/each}
-                  </ol>
-                </div>
-                <p class="text-muted-foreground text-xs">
-                  Bagian ini mencakup 6 kelompok pernyataan (R, I, A, S, E, C), masing-masing 11
-                  pernyataan. Kerjakan satu per satu mengikuti tombol Selanjutnya.
-                </p>
-              </CardContent>
-            </Card>
+            <div class="lp-card lp-card-pad flex flex-col gap-3">
+              <div class="flex flex-col gap-0.5">
+                <h3 class="lp-display text-xl">{meta.title}</h3>
+                <p class="lp-muted text-sm">{meta.subtitle}</p>
+              </div>
+              <p class="text-sm">Petunjuk Pengisian: {meta.instruction}</p>
+              <div>
+                <p class="lp-muted mb-2 text-xs font-semibold">Pilihan jawaban pada bagian ini:</p>
+                <ol class="lp-lead list-decimal space-y-1 pl-5 text-sm">
+                  {#each meta.scale as label}
+                    <li>{label}</li>
+                  {/each}
+                </ol>
+              </div>
+              <p class="lp-muted text-xs">
+                Bagian ini mencakup 6 kelompok pernyataan (R, I, A, S, E, C), masing-masing 11 pernyataan. Kerjakan satu
+                per satu mengikuti tombol Selanjutnya.
+              </p>
+            </div>
           {:else if step.kind === 'form'}
             {@const meta = ROUND_META[step.round]}
-            <Card>
-              <CardHeader>
-                <div class="flex items-center justify-between">
-                  <CardTitle class="text-base">
-                    {step.type} — {TYPE_NAMES[step.type]}
-                  </CardTitle>
-                  <span class="text-muted-foreground text-xs">{meta.subtitle}</span>
-                </div>
-                <p class="text-muted-foreground mt-1 text-xs">Petunjuk: {meta.instruction}</p>
-              </CardHeader>
-              <CardContent>
-                <div class="mb-2 grid grid-cols-[1fr_repeat(5,2.75rem)] items-end gap-x-1 border-b pb-2">
-                  <span></span>
-                  {#each meta.scale as label, li}
-                    <span class="text-muted-foreground text-center text-[10px] leading-tight">{li + 1}</span>
-                  {/each}
-                </div>
-                {#each step.questions as q}
-                  <div class="grid grid-cols-[1fr_repeat(5,2.75rem)] items-center gap-x-1 border-b py-3 last:border-0">
-                    <span class="pr-2 text-sm">{q.statement}</span>
+            <div class="lp-card lp-card-pad flex flex-col gap-4">
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 class="font-semibold">{step.type} — {TYPE_NAMES[step.type]}</h3>
+                <span class="lp-muted text-xs">{meta.subtitle}</span>
+              </div>
+              <p class="lp-muted text-xs">Petunjuk: {meta.instruction}</p>
+
+              <div class="holland-grid holland-head" aria-hidden="true">
+                <span></span>
+                {#each meta.scale as _, li}
+                  <span class="holland-num">{li + 1}</span>
+                {/each}
+              </div>
+
+              {#each step.questions as q}
+                <div class="holland-grid holland-row">
+                  <p class="holland-statement">{q.statement}</p>
+                  <div class="holland-radios">
                     {#each [1, 2, 3, 4, 5] as val}
-                      <div class="flex justify-center">
+                      <label class="holland-opt" class:sel={selections[q.id] === val}>
                         <input
                           type="radio"
                           name="q{q.id}_score"
                           value={val}
                           checked={selections[q.id] === val}
                           onchange={() => selectScore(q.id, val)}
-                          class="size-4 cursor-pointer accent-primary"
+                          class="sr-only"
                           required
                         />
-                      </div>
+                        <span class="holland-dot" aria-hidden="true"></span>
+                      </label>
                     {/each}
                   </div>
-                {/each}
-                <div class="text-muted-foreground mt-3 flex justify-between text-[10px]">
-                  <span>1 = {meta.scale[0]}</span>
-                  <span>5 = {meta.scale[4]}</span>
                 </div>
-              </CardContent>
-            </Card>
+              {/each}
+
+              <div class="lp-muted flex justify-between text-xs">
+                <span>1 = {meta.scale[0]}</span>
+                <span>5 = {meta.scale[4]}</span>
+              </div>
+            </div>
           {/if}
         </div>
       {/each}
 
-      <div class="mt-4 flex flex-col gap-2">
-        <div class="text-muted-foreground flex items-center justify-between text-sm">
+      <div class="mt-4 flex flex-col gap-3">
+        <div class="lp-muted flex items-center justify-between text-sm">
           <span>Langkah {currentStep + 1} dari {totalSteps} · {answeredCount}/{totalQuestions} pernyataan terjawab</span>
           <span>{Math.round(((currentStep + 1) / totalSteps) * 100)}%</span>
         </div>
-        <Progress value={currentStep + 1} max={totalSteps} />
+        <div class="lp-progress"><div style="width: {((currentStep + 1) / totalSteps) * 100}%"></div></div>
 
-        <div class="mt-2 flex items-center justify-between">
-          <Button type="button" variant="outline" disabled={currentStep === 0} onclick={goPrev}>
+        <div class="mt-1 flex items-center justify-between gap-3">
+          <button type="button" class="lp-btn lp-btn-outline" disabled={currentStep === 0} onclick={goPrev}>
             Sebelumnya
-          </Button>
+          </button>
 
           {#if currentStep < totalSteps - 1}
-            <Button type="button" disabled={!currentStepAnswered} onclick={goNext}>Selanjutnya</Button>
+            <button type="button" class="lp-btn lp-btn-primary" disabled={!currentStepAnswered} onclick={goNext}>
+              Selanjutnya
+            </button>
           {:else}
-            <Button type="submit" disabled={loading || !currentStepAnswered || answeredCount < totalQuestions}>
+            <button
+              type="submit"
+              class="lp-btn lp-btn-primary"
+              disabled={loading || !currentStepAnswered || answeredCount < totalQuestions}
+            >
               {loading ? 'Mengirim...' : 'Kirim Jawaban'}
-            </Button>
+            </button>
           {/if}
         </div>
       </div>
     </form>
   {/if}
 </div>
+
+<style>
+  .holland-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) repeat(5, 2.75rem);
+    gap: 0.25rem;
+    align-items: center;
+  }
+
+  .holland-head {
+    border-bottom: 1px solid var(--lp-rule-2);
+    padding-bottom: 0.4rem;
+  }
+
+  .holland-num {
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 650;
+    color: var(--lp-muted);
+  }
+
+  .holland-row {
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--lp-rule);
+  }
+
+  .holland-row:last-child {
+    border-bottom: 0;
+  }
+
+  .holland-statement {
+    font-size: 0.92rem;
+    line-height: 1.5;
+    min-width: 0;
+    padding-right: 0.5rem;
+  }
+
+  .holland-radios {
+    display: contents;
+  }
+
+  .holland-opt {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    min-height: 2.25rem;
+  }
+
+  .holland-dot {
+    width: 1.05rem;
+    height: 1.05rem;
+    border-radius: 999px;
+    border: 2px solid var(--lp-rule-2);
+    transition:
+      background-color 200ms var(--lp-ease-out),
+      border-color 200ms var(--lp-ease-out);
+  }
+
+  .holland-opt.sel .holland-dot {
+    background: var(--lp-accent-deep);
+    border-color: var(--lp-accent-deep);
+  }
+
+  @media (max-width: 40rem) {
+    .holland-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .holland-head {
+      display: none;
+    }
+
+    .holland-radios {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.35rem;
+      margin-top: 0.5rem;
+    }
+  }
+</style>

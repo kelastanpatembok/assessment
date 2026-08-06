@@ -65,21 +65,21 @@
       <line
         x1={padLeft} x2={width - padRight}
         y1={yFor(g)} y2={yFor(g)}
-        class={g === 0 ? 'stroke-border' : 'stroke-border/40'}
+        style="stroke: {g === 0 ? 'var(--lp-rule-2)' : 'var(--lp-rule)'}"
         stroke-width={g === 0 ? 1.25 : 1}
       />
-      <text x={padLeft - 6} y={yFor(g)} dy="0.32em" text-anchor="end" class="fill-muted-foreground text-[9px]">
+      <text x={padLeft - 6} y={yFor(g)} dy="0.32em" text-anchor="end" class="text-[9px]" style="fill: var(--lp-muted)">
         {g}
       </text>
     {/each}
 
-    <path d={linePath} fill="none" class="stroke-primary" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    <path d={linePath} fill="none" style="stroke: var(--lp-ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
 
     {#each points as p, idx}
-      <circle cx={xFor(idx)} cy={yFor(p.value)} r="3" class="fill-primary">
+      <circle cx={xFor(idx)} cy={yFor(p.value)} r="3" style="fill: var(--lp-ink)">
         <title>{p.label}: {p.value}</title>
       </circle>
-      <text x={xFor(idx)} y={height - padBottom + 14} text-anchor="middle" class="fill-muted-foreground text-[10px] font-medium">
+      <text x={xFor(idx)} y={height - padBottom + 14} text-anchor="middle" class="text-[10px] font-medium" style="fill: var(--lp-muted)">
         {p.label}
       </text>
     {/each}

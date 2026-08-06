@@ -2,8 +2,6 @@
   import { enhance } from '$app/forms';
   import { dev } from '$app/environment';
   import { getContext, onMount, tick } from 'svelte';
-  import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
-  import { Button } from '$lib/components/ui/button/index.js';
 
   let { data, form } = $props();
   let loading = $state(false);
@@ -255,51 +253,52 @@
 <svelte:head><title>Tes IQ IST</title></svelte:head>
 <svelte:window onkeydown={handleDevKeydown} />
 
-<div class="flex max-w-3xl flex-col gap-6">
-  <div>
-    <h2 class="text-2xl font-bold">Tes IQ IST</h2>
-    <p class="text-muted-foreground mt-1 text-sm">
-      Tes kecerdasan 9 subtes. Kerjakan setiap subtes dengan cermat.
-    </p>
+<div class="lp-wrap flex flex-col gap-6">
+  <header class="flex flex-col gap-1.5">
+    <p class="lp-kicker">Tes Kecerdasan IQ IST</p>
+    <h2 class="lp-display text-3xl sm:text-4xl">Tes IQ IST</h2>
+    <p class="lp-lead text-sm">Tes kecerdasan 9 subtes. Kerjakan setiap subtes dengan cermat.</p>
     {#if dev}
-      <p class="mt-1 text-xs text-amber-600">
-        Dev mode: tekan <kbd class="rounded border px-1">X</kbd> untuk melewati instruksi / mengisi subtes ini secara acak dan lanjut otomatis.
+      <p class="mt-1 text-xs" style="color: var(--lp-ink-2)">
+        Mode pengembangan: tekan <kbd class="lp-kbd">X</kbd> untuk melewati instruksi / mengisi subtes ini secara acak
+        dan lanjut otomatis.
       </p>
     {/if}
-  </div>
+  </header>
 
   {#if data.unavailable}
-    <Card>
-      <CardContent class="pt-6">
-        <p class="text-muted-foreground">Tes IST belum tersedia atau sudah Anda selesaikan.</p>
-        <a href="/student-dashboard" class="text-primary mt-4 block text-sm hover:underline">Kembali ke Dashboard</a>
-      </CardContent>
-    </Card>
+    <div class="lp-card lp-card-pad flex flex-col gap-3">
+      <p class="lp-lead text-sm">Tes IST belum tersedia atau sudah Anda selesaikan.</p>
+      <a href="/student-dashboard" class="lp-btn lp-btn-outline lp-btn-sm self-start">Kembali ke Dashboard</a>
+    </div>
   {:else if form?.error}
-    <div class="bg-destructive/10 text-destructive rounded-lg px-4 py-3 text-sm">{form.error}</div>
+    <div class="lp-error">{form.error}</div>
   {:else if subtests.length === 0}
-    <Card><CardContent class="pt-6"><p class="text-muted-foreground">Tidak ada soal tersedia.</p></CardContent></Card>
+    <div class="lp-card lp-card-pad"><p class="lp-lead text-sm">Tidak ada soal tersedia.</p></div>
   {:else}
     <!-- Subtest progress — navigation is forward-only (timer-driven or manual Next),
          so these are indicators, not clickable tabs; going back isn't possible. -->
-    <div class="flex items-center justify-between gap-2">
+    <div class="flex flex-wrap items-center justify-between gap-2">
       <div class="flex flex-wrap gap-2">
         {#each subtests as st, i}
           <span
-            class="rounded-lg px-3 py-1.5 text-sm
-              {activeSubtest === i ? 'bg-primary text-primary-foreground' : i < activeSubtest ? 'bg-muted text-muted-foreground' : 'bg-secondary text-secondary-foreground'}"
+            class="lp-tab {activeSubtest === i
+              ? 'active'
+              : i < activeSubtest
+                ? 'done'
+                : 'next'}"
           >{st.key}</span>
         {/each}
       </div>
       {#if subtestPhase === 'testing'}
-        <div class="font-mono text-lg font-semibold {remainingSeconds <= 30 ? 'text-destructive' : ''}">
+        <div class="lp-timer {remainingSeconds <= 30 ? 'danger' : ''}">
           {formatTime(remainingSeconds)}
           {#if subtests[activeSubtest]?.key === 'ME'}
-            <span class="text-muted-foreground text-xs font-normal">({mePhase === 'menghafal' ? 'menghafal' : 'mengerjakan'})</span>
+            <span class="lp-muted text-xs font-normal">({mePhase === 'menghafal' ? 'menghafal' : 'mengerjakan'})</span>
           {/if}
         </div>
       {:else}
-        <div class="text-muted-foreground text-sm">Waktu belum dimulai</div>
+        <div class="lp-muted text-sm">Waktu belum dimulai</div>
       {/if}
     </div>
 
@@ -307,32 +306,30 @@
       <!-- Untimed instruction screen for the active subtest, transcribed from the
            physical IST booklet's own instruction+example page. The countdown for this
            subtest only starts once "Mulai Subtes" is clicked below. -->
-      <Card>
-        <CardContent class="flex flex-col gap-4 pt-6">
-          {@const instr = SUBTEST_INSTRUCTIONS[subtests[activeSubtest]?.key ?? '']}
-          {#if instr}
-            <h3 class="text-base font-semibold">{instr.title}</h3>
-            <div class="flex flex-col gap-2">
-              {#each instr.paragraphs as p}
-                <p class="text-sm leading-relaxed">{p}</p>
-              {/each}
-            </div>
-          {/if}
-          {#if subtests[activeSubtest]?.key === 'ME'}
-            <div class="bg-muted/50 flex flex-col gap-1 rounded-lg border p-3">
-              <p class="text-xs font-medium">Daftar kata yang akan dihafalkan (3 menit):</p>
-              {#each ME_WORD_LIST as group}
-                <p class="text-sm"><span class="font-medium">{group.category}</span>: {group.words}</p>
-              {/each}
-            </div>
-          {/if}
-          <div class="flex justify-end">
-            <Button type="button" onclick={startSubtestTesting}>
-              Mulai Subtes {subtests[activeSubtest]?.key ?? ''}
-            </Button>
+      <div class="lp-card lp-card-pad flex flex-col gap-4">
+        {#if SUBTEST_INSTRUCTIONS[subtests[activeSubtest]?.key ?? ''] !== undefined}
+          {@const instr = SUBTEST_INSTRUCTIONS[subtests[activeSubtest]?.key ?? '']!}
+          <h3 class="font-semibold">{instr.title}</h3>
+          <div class="flex flex-col gap-2">
+            {#each instr.paragraphs as p}
+              <p class="lp-lead text-sm leading-relaxed">{p}</p>
+            {/each}
           </div>
-        </CardContent>
-      </Card>
+        {/if}
+        {#if subtests[activeSubtest]?.key === 'ME'}
+          <div class="lp-card-tint flex flex-col gap-1 rounded-xl p-3">
+            <p class="text-xs font-semibold">Daftar kata yang akan dihafalkan (3 menit):</p>
+            {#each ME_WORD_LIST as group}
+              <p class="text-sm"><span class="font-medium">{group.category}</span>: {group.words}</p>
+            {/each}
+          </div>
+        {/if}
+        <div class="flex justify-end">
+          <button type="button" class="lp-btn lp-btn-primary" onclick={startSubtestTesting}>
+            Mulai Subtes {subtests[activeSubtest]?.key ?? ''}
+          </button>
+        </div>
+      </div>
     {/if}
 
     <form
@@ -351,50 +348,51 @@
       <input type="hidden" name="assignmentId" value={data.assignmentId ?? 0} />
       {#each subtests as st, si}
         <div class={si === activeSubtest ? 'flex flex-col gap-4' : 'hidden'}>
-          <Card>
-            <CardHeader>
-              <CardTitle class="text-base">Subtes {st.key}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {#if st.key === 'ME' && mePhase === 'menghafal'}
-                <!-- ME menghafal phase: read-only study view of the real 5-category
-                     word list (also shown on the instruction screen), no inputs yet. -->
-                <p class="text-muted-foreground mb-4 text-sm">
-                  Bacalah dan hafalkan kata-kata berikut. Anda akan menjawab soal mengenainya setelah waktu menghafal habis.
-                </p>
-                <div class="flex flex-col gap-2">
-                  {#each ME_WORD_LIST as group}
-                    <p class="text-sm"><span class="font-medium">{group.category}</span>: {group.words}</p>
-                  {/each}
-                </div>
-              {:else}
+          <div class="lp-card lp-card-pad flex flex-col gap-3">
+            <div class="flex items-baseline justify-between gap-3">
+              <h3 class="font-semibold">Subtes {st.key}</h3>
+              <span class="lp-muted text-xs">{st.questions.length} soal</span>
+            </div>
+
+            {#if st.key === 'ME' && mePhase === 'menghafal'}
+              <!-- ME menghafal phase: read-only study view of the real 5-category
+                   word list (also shown on the instruction screen), no inputs yet. -->
+              <p class="lp-muted text-sm">
+                Bacalah dan hafalkan kata-kata berikut. Anda akan menjawab soal mengenainya setelah waktu menghafal habis.
+              </p>
+              <div class="flex flex-col gap-2">
+                {#each ME_WORD_LIST as group}
+                  <p class="text-sm"><span class="font-medium">{group.category}</span>: {group.words}</p>
+                {/each}
+              </div>
+            {:else}
               {#each st.questions as q, qi}
-                <div class="border-border border-b pb-4 last:border-0 last:pb-0 {qi > 0 ? 'pt-4' : ''}">
+                <div class="ist-item">
                   {#if q.questionText || q.sequenceText}
-                    <p class="mb-3 text-sm font-medium">{qi + 1}. {q.questionText ?? q.sequenceText}</p>
+                    <p class="ist-q">{qi + 1}. {q.questionText ?? q.sequenceText}</p>
                   {:else}
-                    <p class="mb-3 text-sm font-medium">{qi + 1}.</p>
+                    <p class="ist-q">{qi + 1}.</p>
                   {/if}
 
                   {#if isImageMC(q)}
                     <!-- FA/WU: image stem + image options -->
                     {#if q.imageUrl}
-                      <div class="mb-3">
-                        <img src={q.imageUrl} alt="Soal {qi + 1}" class="h-auto max-w-xs rounded-lg border" />
+                      <div>
+                        <img src={q.imageUrl} alt="Soal {qi + 1}" class="ist-stem-img" />
                       </div>
                     {/if}
-                    <div class="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                    <div class="ist-img-options">
                       {#each q.optionImages ?? [] as optImg, oi}
                         {@const letter = optionLetter(oi)}
-                        <label class="hover:bg-accent flex cursor-pointer flex-col items-center gap-1 rounded-lg border p-2 text-xs">
+                        <label class="ist-img-opt">
                           <input
                             type="radio"
                             name="ist_{q.subtestCode ?? st.key}_{q.itemNo}"
                             value={letter}
-                            class="size-4 shrink-0"
+                            class="sr-only"
                           />
-                          <img src={optImg} alt="Opsi {letter}" class="h-16 w-auto rounded border" />
-                          <span>{letter}</span>
+                          <img src={optImg} alt="Opsi {letter}" class="ist-opt-img" />
+                          <span class="ist-opt-letter">{letter}</span>
                         </label>
                       {/each}
                     </div>
@@ -404,20 +402,23 @@
                       type="text"
                       name="ist_{q.subtestCode ?? st.key}_{q.itemNo}"
                       placeholder="Jawaban Anda..."
-                      class="border-input bg-background flex h-10 w-full max-w-xs rounded-lg border px-3 text-sm"
+                      class="lp-input"
+                      inputmode="numeric"
+                      autocomplete="off"
                     />
                   {:else if optionEntries(q).length > 0}
                     <!-- MC options -->
-                    <div class="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                    <div class="ist-mc">
                       {#each optionEntries(q) as [optKey, optVal]}
-                        <label class="hover:bg-accent flex cursor-pointer items-center gap-2 rounded-lg border p-2 text-sm">
+                        <label class="ist-mc-opt">
                           <input
                             type="radio"
                             name="ist_{q.subtestCode ?? st.key}_{q.itemNo}"
                             value={optKey}
-                            class="size-4 shrink-0"
+                            class="sr-only"
                           />
-                          <span>{optKey}. {optVal}</span>
+                          <span class="ist-mc-key">{optKey}.</span>
+                          <span class="ist-mc-label">{optVal}</span>
                         </label>
                       {/each}
                     </div>
@@ -427,30 +428,153 @@
                       type="text"
                       name="ist_{q.subtestCode ?? st.key}_{q.itemNo}"
                       placeholder="Jawaban Anda..."
-                      class="border-input bg-background flex h-10 w-full max-w-xs rounded-lg border px-3 text-sm"
+                      class="lp-input"
+                      autocomplete="off"
                     />
                   {/if}
                 </div>
               {/each}
-              {/if}
-            </CardContent>
-          </Card>
+            {/if}
+          </div>
         </div>
       {/each}
 
-      <div class="flex items-center justify-between">
-        <span class="text-muted-foreground text-sm">{activeSubtest + 1} / {total}</span>
+      <div class="flex items-center justify-between gap-3">
+        <span class="lp-muted text-sm">{activeSubtest + 1} / {total}</span>
 
         {#if activeSubtest < total - 1}
-          <Button type="button" onclick={() => goToSubtest(activeSubtest + 1)}>Selanjutnya</Button>
+          <button type="button" class="lp-btn lp-btn-primary" onclick={() => goToSubtest(activeSubtest + 1)}>
+            Selanjutnya
+          </button>
         {:else if subtests[activeSubtest]?.key === 'ME' && mePhase === 'menghafal'}
-          <Button type="button" onclick={startMeMengerjakan}>Lanjut ke Pengerjaan</Button>
+          <button type="button" class="lp-btn lp-btn-primary" onclick={startMeMengerjakan}>
+            Lanjut ke Pengerjaan
+          </button>
         {:else}
-          <Button type="submit" disabled={loading}>
+          <button type="submit" class="lp-btn lp-btn-primary" disabled={loading}>
             {loading ? 'Mengirim...' : 'Kirim Semua Jawaban'}
-          </Button>
+          </button>
         {/if}
       </div>
     </form>
   {/if}
 </div>
+
+<style>
+  .ist-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--lp-rule);
+  }
+
+  .ist-item:first-child {
+    padding-top: 0;
+  }
+
+  .ist-item:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .ist-q {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.55;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .ist-stem-img {
+    width: 100%;
+    max-width: 18rem;
+    height: auto;
+    border-radius: 0.75rem;
+    border: 1px solid var(--lp-rule);
+  }
+
+  .ist-img-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .ist-img-opt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.5rem 0.4rem;
+    border: 1px solid var(--lp-rule-2);
+    border-radius: 0.9rem;
+    cursor: pointer;
+    transition: background-color 200ms var(--lp-ease-out), border-color 200ms var(--lp-ease-out);
+  }
+
+  .ist-img-opt:hover {
+    border-color: var(--lp-accent);
+  }
+
+  .ist-img-opt:has(input:checked) {
+    background: var(--lp-accent-bg);
+    border-color: var(--lp-accent);
+  }
+
+  .ist-opt-img {
+    height: 4rem;
+    width: auto;
+    border-radius: 0.4rem;
+  }
+
+  .ist-opt-letter {
+    font-size: 0.78rem;
+    font-weight: 650;
+    color: var(--lp-muted);
+    text-transform: uppercase;
+  }
+
+  .ist-mc {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: 0.5rem;
+  }
+
+  .ist-mc-opt {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    min-height: 2.75rem;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--lp-rule-2);
+    border-radius: 0.9rem;
+    cursor: pointer;
+    transition: background-color 200ms var(--lp-ease-out), border-color 200ms var(--lp-ease-out);
+  }
+
+  .ist-mc-opt:hover {
+    border-color: var(--lp-accent);
+  }
+
+  .ist-mc-opt:has(input:checked) {
+    background: var(--lp-accent-bg);
+    border-color: var(--lp-accent);
+  }
+
+  .ist-mc-key {
+    flex: none;
+    font-weight: 700;
+    color: var(--lp-accent-deep);
+  }
+
+  .ist-mc-label {
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  @media (min-width: 40rem) {
+    .ist-img-options {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+</style>
