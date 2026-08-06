@@ -1,11 +1,10 @@
 <script lang="ts">
+  import { page } from '$app/state';
   import SiteHeader from '$lib/components/site/SiteHeader.svelte';
   import SiteFooter from '$lib/components/site/SiteFooter.svelte';
 
-  let { status, error } = $props<{
-    status: number;
-    error: Error;
-  }>();
+  const status = $derived(page.status);
+  const error = $derived(page.error);
 
   const isNotFound = $derived(status === 404);
 
