@@ -22,6 +22,8 @@
           return '/counselor-dashboard';
         case 'afiliator':
           return '/afiliator-dashboard';
+        case 'psikolog':
+          return '/psikolog-dashboard';
         case 'siswa':
           return '/student-dashboard';
         default:

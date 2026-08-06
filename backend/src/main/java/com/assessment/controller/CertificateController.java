@@ -90,7 +90,7 @@ public class CertificateController {
     }
 
     @GetMapping("/{authUserId}")
-    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR')")
+    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR','PSIKOLOG')")
     public ResponseEntity<List<CertificateView>> forStudent(@PathVariable String authUserId) {
         List<CertificateView> views = certificateRepository
                 .findByAuthUserIdOrderByCreatedAtDesc(authUserId)

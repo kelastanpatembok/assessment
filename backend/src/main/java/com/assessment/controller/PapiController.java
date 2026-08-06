@@ -112,13 +112,13 @@ public class PapiController {
     }
 
     @GetMapping("/results")
-    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR')")
+    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR','PSIKOLOG')")
     public ResponseEntity<List<PapiResult>> allResults() {
         return ResponseEntity.ok(papiResultRepository.findAll());
     }
 
     @GetMapping("/results/{authUserId}")
-    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR')")
+    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR','PSIKOLOG')")
     public ResponseEntity<PapiResultView> resultForStudent(@PathVariable String authUserId) {
         PapiResult result = papiResultRepository.findByAuthUserId(authUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("No PAPI result found for: " + authUserId));

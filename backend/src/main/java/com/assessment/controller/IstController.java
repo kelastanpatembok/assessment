@@ -131,13 +131,13 @@ public class IstController {
     }
 
     @GetMapping("/results")
-    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR')")
+    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR','PSIKOLOG')")
     public ResponseEntity<List<IstResult>> allResults() {
         return ResponseEntity.ok(istResultRepository.findAll());
     }
 
     @GetMapping("/results/{authUserId}")
-    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR')")
+    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR','PSIKOLOG')")
     public ResponseEntity<IstResult> resultForStudent(@PathVariable String authUserId) {
         IstResult result = istResultRepository.findByAuthUserId(authUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("No IST result found for: " + authUserId));

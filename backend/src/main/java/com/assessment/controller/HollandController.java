@@ -97,13 +97,13 @@ public class HollandController {
     }
 
     @GetMapping("/results")
-    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR')")
+    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR','PSIKOLOG')")
     public ResponseEntity<List<HollandResult>> allResults() {
         return ResponseEntity.ok(hollandResultRepository.findAll());
     }
 
     @GetMapping("/results/{authUserId}")
-    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR')")
+    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR','PSIKOLOG')")
     public ResponseEntity<HollandResult> resultForStudent(@PathVariable String authUserId) {
         HollandResult result = hollandResultRepository.findByAuthUserId(authUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("No Holland result found for: " + authUserId));

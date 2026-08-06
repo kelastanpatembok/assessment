@@ -97,13 +97,13 @@ public class DiscController {
     }
 
     @GetMapping("/results")
-    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR')")
+    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR','PSIKOLOG')")
     public ResponseEntity<List<DiscResult>> allResults() {
         return ResponseEntity.ok(discResultRepository.findAll());
     }
 
     @GetMapping("/results/{authUserId}")
-    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR')")
+    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR','PSIKOLOG')")
     public ResponseEntity<DiscResult> resultForStudent(@PathVariable String authUserId) {
         DiscResult result = discResultRepository.findByAuthUserId(authUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("No DISC result found for: " + authUserId));

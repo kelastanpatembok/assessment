@@ -17,6 +17,7 @@
     superadmin: 'Superadmin',
     gurubk: 'Guru BK',
     afiliator: 'Afiliator',
+    psikolog: 'Psikolog',
     siswa: 'Siswa',
   };
 
@@ -50,6 +51,7 @@
     <Button variant={filterRole === '' ? 'default' : 'outline'} size="sm" onclick={() => (filterRole = '')}>Semua</Button>
     <Button variant={filterRole === 'gurubk' ? 'default' : 'outline'} size="sm" onclick={() => (filterRole = 'gurubk')}>Guru BK</Button>
     <Button variant={filterRole === 'afiliator' ? 'default' : 'outline'} size="sm" onclick={() => (filterRole = 'afiliator')}>Afiliator</Button>
+    <Button variant={filterRole === 'psikolog' ? 'default' : 'outline'} size="sm" onclick={() => (filterRole = 'psikolog')}>Psikolog</Button>
   </div>
 
   <Card>
@@ -174,6 +176,7 @@
               <option value="">Pilih peran...</option>
               <option value="gurubk">Guru BK</option>
               <option value="afiliator">Afiliator</option>
+              <option value="psikolog">Psikolog</option>
               <option value="superadmin">Superadmin</option>
             </select>
           </div>

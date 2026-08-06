@@ -106,13 +106,13 @@ public class CfitController {
     }
 
     @GetMapping("/results")
-    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR')")
+    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR','PSIKOLOG')")
     public ResponseEntity<List<CfitResult>> allResults() {
         return ResponseEntity.ok(cfitResultRepository.findAll());
     }
 
     @GetMapping("/results/{authUserId}")
-    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR')")
+    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR','PSIKOLOG')")
     public ResponseEntity<CfitResult> resultForStudent(@PathVariable String authUserId) {
         CfitResult result = cfitResultRepository.findByAuthUserId(authUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("No CFIT result found for: " + authUserId));

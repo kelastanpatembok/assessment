@@ -30,11 +30,11 @@ public class StudentController {
     record CreateAfiliatorRequest(String username, String email, String password, String name) {}
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR')")
+    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR','PSIKOLOG')")
     public ResponseEntity<List<AssessmentUser>> listStudents() {
         String role = CurrentUser.role();
         String userId = CurrentUser.userId();
-        if ("superadmin".equals(role)) {
+        if ("superadmin".equals(role) || "psikolog".equals(role)) {
             return ResponseEntity.ok(profileService.getAllByRole("siswa"));
         } else if ("gurubk".equals(role)) {
             AssessmentUser counselor = profileService.getProfile(userId);
@@ -50,7 +50,7 @@ public class StudentController {
     }
 
     @GetMapping("/{authUserId}")
-    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR')")
+    @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR','PSIKOLOG')")
     public ResponseEntity<AssessmentUser> getStudent(@PathVariable String authUserId) {
         return ResponseEntity.ok(profileService.getProfile(authUserId));
     }

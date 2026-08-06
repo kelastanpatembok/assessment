@@ -103,4 +103,11 @@ public class StudentService {
         String authUserId = response.user().id();
         return profileService.provisionProfile(authUserId, name, email, username, "afiliator");
     }
+
+    @Transactional
+    public AssessmentUser createPsikolog(String username, String email, String password, String name) {
+        AuthClient.AuthRegisterResponse response = authClient.register(username, email, password, name, "psikolog");
+        String authUserId = response.user().id();
+        return profileService.provisionProfile(authUserId, name, email, username, "psikolog");
+    }
 }
