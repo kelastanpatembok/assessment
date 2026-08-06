@@ -38,7 +38,7 @@
   }
 
   function requestExit() {
-    pendingUrl = '/student-dashboard';
+    pendingUrl = '/';
     showLeaveDialog = true;
   }
 
