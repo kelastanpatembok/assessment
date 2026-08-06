@@ -19,6 +19,9 @@ expose:
   service: assessment-frontend
   proxy_ct: proxy
   cloudflare_account: jogjaitcamp
+  additional:
+    - hostname: rag.assessment.jogjaitcamp.com
+      service: rag-backend
 
 deploy:
   github:
@@ -42,6 +45,7 @@ shared_tools:
 
 domains:
   - email-manager
+  - rag
 
 services:
   email-manager-backend:
@@ -49,6 +53,13 @@ services:
     runtimes:
       - rust
       - mongodb@7
+
+  rag-backend:
+    path: rag/backend
+    runtimes:
+      - rust
+      - mongodb@7
+      - onnxruntime
 
   auth-backend:
     path: auth/backend

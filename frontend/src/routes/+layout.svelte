@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import {
@@ -10,7 +11,25 @@
 		OG_LOCALE
 	} from '$lib/site.js';
 
-	let { children } = $props();
+	let { children, data } = $props();
+
+	onMount(() => {
+		window.__ASSESSMENT_USER__ = data.user ?? null;
+		window.SupportWidgetConfig = {
+			ragUrl: import.meta.env.PUBLIC_RAG_URL || '/api/rag',
+			siteName: 'Assessment',
+			requireLogin: true,
+			signInUrl: '/signin/',
+			signUpUrl: '/signup/',
+			sessionMode: 'windowGlobal',
+			sessionKey: '__ASSESSMENT_USER__'
+		};
+		if (window.__SUPPORT_WIDGET_LOADED__) return;
+		const script = document.createElement('script');
+		script.src = '/support-widget.js';
+		script.defer = true;
+		document.body.appendChild(script);
+	});
 </script>
 
 <svelte:head>
