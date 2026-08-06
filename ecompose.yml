@@ -46,7 +46,8 @@ shared_tools:
 
 domains:
   - email-manager
-  - rag
+  - rag:
+      dev: optional
 
 services:
   email-manager-backend:
