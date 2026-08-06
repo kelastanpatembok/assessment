@@ -3,6 +3,7 @@
 	import MapUsers from '$lib/components/map-users.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
+	import { trackedFetch } from '$lib/loading.js';
 
 	type User = {
 		id: string;
@@ -34,7 +35,7 @@
 		loadError = '';
 
 		try {
-			const response = await fetch(`/qr-code/users?ts=${Date.now()}`, {
+			const response = await trackedFetch(`/qr-code/users?ts=${Date.now()}`, {
 				cache: 'no-store'
 			});
 			if (!response.ok) {

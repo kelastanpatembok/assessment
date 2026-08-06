@@ -2,6 +2,7 @@
   import { PUBLIC_API_URL } from '$env/static/public';
   import { goto } from '$app/navigation';
   import { parse } from 'devalue';
+  import { trackedFetch } from '$lib/loading.js';
 
   const BASE = (PUBLIC_API_URL || 'http://127.0.0.1:1005/api').replace(/\/+$/, '');
 
@@ -32,7 +33,7 @@
     loading = true;
     error = null;
     try {
-      const res = await fetch(`${BASE}/big5/questions`);
+      const res = await trackedFetch(`${BASE}/big5/questions`);
       if (!res.ok) throw new Error('Gagal memuat pertanyaan');
       questions = await res.json();
     } catch (e) {
@@ -75,7 +76,7 @@
     submitting = true;
     failMsg = null;
     try {
-      const res = await fetch('/tes-gratis/soal?/save', {
+      const res = await trackedFetch('/tes-gratis/soal?/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({ answers: JSON.stringify(answers) })

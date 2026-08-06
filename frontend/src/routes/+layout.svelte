@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { fade } from 'svelte/transition';
+	import { navigating } from '$app/stores';
+	import { pendingRequests } from '$lib/loading.js';
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import {
@@ -12,6 +15,11 @@
 	} from '$lib/site.js';
 
 	let { children, data } = $props();
+
+	// Global top loading bar. Shown whenever a client-side navigation (page
+	// load or use:enhance form submission — both reflected in $navigating) is
+	// in progress, or while any tracked backend request is in flight.
+	let busy = $derived($navigating !== null || $pendingRequests > 0);
 
 	onMount(() => {
 		window.__ASSESSMENT_USER__ = data.user ?? null;
@@ -50,4 +58,15 @@
 	<meta name="twitter:description" content={SITE_DESCRIPTION} />
 	<meta name="twitter:image" content={OG_IMAGE} />
 </svelte:head>
+
+{#if busy}
+	<div
+		class="loading-bar"
+		role="progressbar"
+		aria-label="Memuat"
+		in:fade={{ duration: 120 }}
+		out:fade={{ duration: 180 }}
+	></div>
+{/if}
+
 {@render children()}

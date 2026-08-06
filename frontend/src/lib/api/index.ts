@@ -1,5 +1,6 @@
 import { PUBLIC_API_URL } from '$env/static/public';
 import { env } from '$env/dynamic/public';
+import { trackedFetch } from '$lib/loading.js';
 
 // On the server (SSR), the adapter may expose PUBLIC_API_URL via process.env;
 // on the client it comes from the statically-baked PUBLIC_API_URL instead.
@@ -63,7 +64,7 @@ export function createApiClient(token: string | null) {
 
   return {
     get: (path: string) =>
-      fetch(`${base}${path}`, { headers })
+      trackedFetch(`${base}${path}`, { headers })
         .then(handleResponse)
         .catch((error: unknown) => {
           logError('GET', path, error);
@@ -72,7 +73,7 @@ export function createApiClient(token: string | null) {
     // For binary responses (e.g. PDF downloads) that need the Authorization header,
     // which a plain <a href> can't attach.
     getBlob: async (path: string): Promise<Blob> => {
-      const response = await fetch(`${base}${path}`, {
+      const response = await trackedFetch(`${base}${path}`, {
         headers: { Authorization: headers['Authorization'] }
       });
       if (!response.ok) {
@@ -81,21 +82,21 @@ export function createApiClient(token: string | null) {
       return response.blob();
     },
     post: (path: string, body: unknown) =>
-      fetch(`${base}${path}`, { method: 'POST', headers, body: JSON.stringify(body) })
+      trackedFetch(`${base}${path}`, { method: 'POST', headers, body: JSON.stringify(body) })
         .then(handleResponse)
         .catch((error: unknown) => {
           logError('POST', path, error);
           throw error;
         }),
     put: (path: string, body: unknown) =>
-      fetch(`${base}${path}`, { method: 'PUT', headers, body: JSON.stringify(body) })
+      trackedFetch(`${base}${path}`, { method: 'PUT', headers, body: JSON.stringify(body) })
         .then(handleResponse)
         .catch((error: unknown) => {
           logError('PUT', path, error);
           throw error;
         }),
     delete: (path: string) =>
-      fetch(`${base}${path}`, { method: 'DELETE', headers })
+      trackedFetch(`${base}${path}`, { method: 'DELETE', headers })
         .then((response) => {
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
