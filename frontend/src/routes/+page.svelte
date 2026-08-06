@@ -90,7 +90,7 @@
           tervalidasi secara ilmiah.
         </p>
         <div class="hero-cta">
-          <a href={signedIn ? '/tes-gratis' : '/signup'} class="btn btn-primary">
+          <a href={signedIn ? '/tes-gratis' : '/signin'} class="btn btn-primary">
             {signedIn ? 'Ikuti Tes Gratis' : 'Masuk ke Platform'}
           </a>
           <a href="#layanan" class="btn btn-ghost">Pelajari Layanan</a>
@@ -250,7 +250,7 @@
         </li>
       </ol>
       <div class="alur-cta">
-        <a href={signedIn ? '/tes-gratis' : '/signup'} class="btn btn-primary">Masuk ke Platform</a>
+        <a href={signedIn ? '/tes-gratis' : '/signin'} class="btn btn-primary">Masuk ke Platform</a>
       </div>
     </section>
 
