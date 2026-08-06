@@ -20,7 +20,7 @@ expose:
   proxy_ct: proxy
   cloudflare_account: jogjaitcamp
   additional:
-    - hostname: rag.assessment.jogjaitcamp.com
+    - hostname: rag.jogjaitcamp.com
       service: rag-backend
 
 deploy:
