@@ -19,6 +19,7 @@ expose:
   service: assessment-frontend
   proxy_ct: proxy
   cloudflare_account: jogjaitcamp
+  gateway_port: 26674
   additional:
     - hostname: rag.jogjaitcamp.com
       service: rag-backend

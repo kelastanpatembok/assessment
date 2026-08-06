@@ -181,3 +181,9 @@ ecosystem.config.js
 
 # Locally-managed reverse proxy config — ports/hosts/domain differ per deploy target
 Caddyfile
+
+# Per-estate allocation state (gateway port, ports-configured marker) — generated
+# by `eco configure.sh`, CT-local, never committed. If tracked, `git reset --hard`
+# on a webhook redeploy wipes the persisted gateway port and re-rolls it, breaking
+# the Cloudflare tunnel on every deploy.
+.configure-state
