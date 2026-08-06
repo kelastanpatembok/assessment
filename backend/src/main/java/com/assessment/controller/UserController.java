@@ -50,17 +50,6 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    // Psikolog & superadmin may look up users (by username or name) to view
-    // their psychological assessment results during counseling sessions.
-    @GetMapping("/search")
-    @PreAuthorize("hasAnyRole('SUPERADMIN','PSIKOLOG')")
-    public ResponseEntity<List<AssessmentUser>> search(@RequestParam String query) {
-        String q = query == null ? "" : query.trim();
-        if (q.length() < 2) return ResponseEntity.ok(List.of());
-        return ResponseEntity.ok(userRepository
-                .findTop50ByUsernameContainingIgnoreCaseOrNameContainingIgnoreCase(q, q));
-    }
-
     @PutMapping("/{authUserId}")
     @PreAuthorize("hasRole('SUPERADMIN')")
     public ResponseEntity<AssessmentUser> update(@PathVariable String authUserId,

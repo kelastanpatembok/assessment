@@ -13,7 +13,7 @@ export const actions: Actions = {
     const formData = await request.formData();
     const query = String(formData.get('query') ?? '').trim();
     if (query.length < 2) return { query: '', matches: [] };
-    const matches = await api.get(`/users/search?query=${encodeURIComponent(query)}`).catch(() => []);
+    const matches = await api.get(`/psikolog/search?query=${encodeURIComponent(query)}`).catch(() => []);
     return { query, matches: Array.isArray(matches) ? matches : [] };
   },
 };
