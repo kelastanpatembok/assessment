@@ -1,4 +1,6 @@
 <script lang="ts">
+  import CertificateCard from '$lib/components/certificate/CertificateCard.svelte';
+
   let { data } = $props();
   let r = $derived(data.result);
 
@@ -64,4 +66,18 @@
       <p class="lp-lead text-sm leading-relaxed">{r.description}</p>
     </div>
   {/if}
+
+  <CertificateCard
+    testKey="cfit"
+    testName="Tes Kecerdasan IQ CFIT"
+    testDescription="Culture Fair Intelligence Test — empat subtes untuk mengukur kecerdasan umum."
+    resultLabel="Skor IQ"
+    resultLines={[
+      r?.totalScore != null ? `Skor total (RS): ${r.totalScore}` : '',
+      r?.category ? `Kategori: ${r.category}` : ''
+    ].filter(Boolean)}
+    studentId={data.user?.userId}
+    studentName={data.profile?.name ?? 'Peserta'}
+    avatarUrl={data.profile?.avatarUrl ?? null}
+  />
 </div>

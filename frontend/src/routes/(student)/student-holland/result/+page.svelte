@@ -1,4 +1,6 @@
 <script lang="ts">
+  import CertificateCard from '$lib/components/certificate/CertificateCard.svelte';
+
   let { data } = $props();
   let r = $derived(data.result);
 
@@ -136,4 +138,15 @@
       </div>
     </div>
   {/each}
+
+  <CertificateCard
+    testKey="holland"
+    testName="Tes Minat Karir Holland RIASEC"
+    testDescription="Inventaris minat vokasional dengan enam tipe RIASEC untuk mengarahkan pilihan karier."
+    resultLabel="Kode Holland"
+    resultLines={[hollandCode, topTypes.map((t) => t.name).filter(Boolean).join(', ')].filter(Boolean)}
+    studentId={data.user?.userId}
+    studentName={data.profile?.name ?? 'Peserta'}
+    avatarUrl={data.profile?.avatarUrl ?? null}
+  />
 </div>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import PapiRadarChart from '$lib/components/PapiRadarChart.svelte';
+  import CertificateCard from '$lib/components/certificate/CertificateCard.svelte';
 
   let { data } = $props();
   let r = $derived(data.result);
@@ -114,4 +115,22 @@
       </div>
     {/each}
   </div>
+
+  <CertificateCard
+    testKey="papi"
+    testName="Tes Kepribadian Kerja PAPI Kostick"
+    testDescription="Gambaran 20 trait kepribadian kerja melalui 90 pilihan berpasangan (ipsatif)."
+    resultLabel="Profil Trait"
+    resultLines={[
+      `${traitDetails.filter((t) => t.band === 'TINGGI').length} trait tinggi dari ${traitDetails.length}`,
+      traitDetails
+        .filter((t) => t.band === 'TINGGI')
+        .slice(0, 6)
+        .map((t) => t.traitCode)
+        .join(', ')
+    ].filter(Boolean)}
+    studentId={data.user?.userId}
+    studentName={data.profile?.name ?? 'Peserta'}
+    avatarUrl={data.profile?.avatarUrl ?? null}
+  />
 </div>

@@ -14,6 +14,14 @@
     ist: 'grey'
   };
 
+  const testLabels: Record<string, string> = {
+    disc: 'Tes Kepribadian DISC',
+    holland: 'Tes Minat Karir Holland RIASEC',
+    papi: 'Tes Kepribadian Kerja PAPI Kostick',
+    cfit: 'Tes Kecerdasan IQ CFIT',
+    ist: 'Tes Kecerdasan IQ IST'
+  };
+
   function formatWindow(windowStart: string | null, windowEnd: string | null): string | null {
     if (!windowStart && !windowEnd) return null;
     const start = windowStart ? dateFmt.format(new Date(windowStart)) : '?';
@@ -80,6 +88,29 @@
       </article>
     {/each}
   </div>
+
+  {#if data.certificates.length > 0}
+    <section class="stdash-certs">
+      <div class="certs-head">
+        <div>
+          <p class="stdash-kicker">Sertifikat</p>
+          <h3 class="lp-display stdash-sub">Sertifikat yang telah diterbitkan.</h3>
+        </div>
+        <span class="certs-count lp-chip lp-chip-strong">{data.certificates.length}</span>
+      </div>
+      <div class="certs-grid">
+        {#each data.certificates as cert}
+          <a class="cert-item" href={cert.url} target="_blank" rel="noopener" title="Buka sertifikat">
+            <span class="cert-item-thumb">
+              <img src={cert.url} alt={testLabels[cert.testType] ?? 'Sertifikat'} loading="lazy" />
+            </span>
+            <span class="cert-item-name">{testLabels[cert.testType] ?? cert.testType}</span>
+            <span class="cert-item-dl">Lihat / Unduh</span>
+          </a>
+        {/each}
+      </div>
+    </section>
+  {/if}
 </div>
 
 <style>
@@ -241,5 +272,80 @@
     border-color: var(--lp-rule);
     color: var(--lp-muted);
     cursor: not-allowed;
+  }
+
+  .stdash-certs {
+    display: grid;
+    gap: 1.1rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--lp-rule);
+  }
+
+  .certs-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .stdash-sub {
+    font-size: clamp(1.2rem, 2.5vw + 0.4rem, 1.6rem);
+    margin: 0;
+  }
+
+  .certs-count {
+    flex: none;
+    margin-top: 0.2rem;
+  }
+
+  .certs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+    gap: 1rem;
+  }
+
+  .cert-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    border: 1px solid var(--lp-rule);
+    border-radius: 1.1rem;
+    background: var(--lp-paper);
+    padding: 0.7rem;
+    text-decoration: none;
+    transition: border-color 180ms var(--lp-ease-out), transform 180ms var(--lp-ease-out);
+  }
+
+  .cert-item:hover {
+    border-color: var(--lp-accent);
+    transform: translateY(-2px);
+  }
+
+  .cert-item-thumb {
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid var(--lp-rule-2);
+    background: var(--lp-paper-2);
+    line-height: 0;
+  }
+
+  .cert-item-thumb img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1600 / 1132;
+    object-fit: cover;
+    display: block;
+  }
+
+  .cert-item-name {
+    font-weight: 650;
+    font-size: 0.92rem;
+    line-height: 1.35;
+  }
+
+  .cert-item-dl {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--lp-accent-deep);
   }
 </style>
