@@ -4,10 +4,20 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
+  import DataTable from '$lib/components/table/DataTable.svelte';
+  import type { TableColumn } from '$lib/table/types';
 
   let { data, form } = $props();
   let showModal = $state(false);
   let loading = $state(false);
+
+  const columns: TableColumn[] = [
+    { key: 'name', label: 'Nama', sortable: true },
+    { key: 'username', label: 'Username', sortable: true },
+    { key: 'email', label: 'Email', sortable: true, hideBelow: 'sm' },
+    { key: 'status', label: 'Status', hideBelow: 'sm' },
+    { key: 'actions', label: 'Aksi' },
+  ];
 </script>
 
 <svelte:head><title>Siswa</title></svelte:head>
@@ -24,35 +34,31 @@
 
   <Card>
     <CardContent class="pt-6">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-border border-b text-left">
-            <th class="pb-3 font-medium">Nama</th>
-            <th class="pb-3 font-medium">Username</th>
-            <th class="pb-3 font-medium">Email</th>
-            <th class="pb-3 font-medium">Status</th>
-            <th class="pb-3 font-medium">Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each data.students as s}
-            <tr class="border-border border-b last:border-0">
-              <td class="py-3 font-medium">{s.name}</td>
-              <td class="py-3">{s.username}</td>
-              <td class="text-muted-foreground py-3">{s.email ?? '-'}</td>
-              <td class="py-3">{s.status ?? 'aktif'}</td>
-              <td class="py-3">
-                <form method="POST" action="?/delete" use:enhance>
-                  <input type="hidden" name="id" value={s.authUserId} />
-                  <button type="submit" class="text-destructive text-xs hover:underline">Hapus</button>
-                </form>
-              </td>
-            </tr>
-          {:else}
-            <tr><td colspan="5" class="text-muted-foreground py-6 text-center">Belum ada siswa</td></tr>
-          {/each}
-        </tbody>
-      </table>
+      <DataTable
+        {columns}
+        table={data.table}
+        searchPlaceholder="Cari nama, username, atau email..."
+        rowKey={(s: any) => s.authUserId}
+      >
+        {#snippet cell(column, s)}
+          {#if column.key === 'name'}
+            <span class="font-medium">{s.name}</span>
+          {:else if column.key === 'username'}
+            <span>{s.username}</span>
+          {:else if column.key === 'email'}
+            <span class="text-muted-foreground">{s.email ?? '-'}</span>
+          {:else if column.key === 'status'}
+            <span>{s.status ?? 'aktif'}</span>
+          {:else if column.key === 'actions'}
+            <div class="flex items-center justify-end sm:justify-start">
+              <form method="POST" action="?/delete" use:enhance>
+                <input type="hidden" name="id" value={s.authUserId} />
+                <button type="submit" class="text-destructive text-xs hover:underline">Hapus</button>
+              </form>
+            </div>
+          {/if}
+        {/snippet}
+      </DataTable>
     </CardContent>
   </Card>
 </div>

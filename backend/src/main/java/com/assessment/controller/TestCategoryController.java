@@ -1,8 +1,14 @@
 package com.assessment.controller;
 
+import com.assessment.common.Paging;
+import com.assessment.common.Specs;
+import com.assessment.dto.PageResponse;
 import com.assessment.model.TestCategory;
+import com.assessment.repository.TestCategoryRepository;
 import com.assessment.service.TestCategoryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,13 +22,27 @@ import java.util.List;
 public class TestCategoryController {
 
     private final TestCategoryService testCategoryService;
+    private final TestCategoryRepository testCategoryRepository;
 
     record TestCategoryRequest(String name, String slug, String description,
                                String[] tests, BigDecimal price, boolean active) {}
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<TestCategory>> list() {
+    public ResponseEntity<?> list(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String order) {
+        Specification<TestCategory> spec = Specs.<TestCategory>all()
+                .and(Specs.eq("active", true))
+                .and(Specs.like(search, "name", "slug"));
+        if (Paging.paginated(page, size)) {
+            Page<TestCategory> result = testCategoryRepository.findAll(spec,
+                    Paging.pageable(page, size, sort, order, "name", "name", "slug", "price", "createdAt"));
+            return ResponseEntity.ok(PageResponse.from(result));
+        }
         return ResponseEntity.ok(testCategoryService.getActive());
     }
 

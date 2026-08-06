@@ -1,11 +1,16 @@
 package com.assessment.controller;
 
+import com.assessment.common.Paging;
+import com.assessment.common.Specs;
+import com.assessment.dto.PageResponse;
 import com.assessment.model.AssessmentUser;
 import com.assessment.repository.AssessmentUserRepository;
 import com.assessment.security.CurrentUser;
 import com.assessment.service.ProfileService;
 import com.assessment.service.StudentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -31,22 +36,35 @@ public class StudentController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR','PSIKOLOG')")
-    public ResponseEntity<List<AssessmentUser>> listStudents() {
+    public ResponseEntity<?> listStudents(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String order) {
         String role = CurrentUser.role();
         String userId = CurrentUser.userId();
+        Specification<AssessmentUser> spec = Specs.<AssessmentUser>all()
+                .and(Specs.like(search, "name", "username", "email"));
         if ("superadmin".equals(role) || "psikolog".equals(role)) {
-            return ResponseEntity.ok(profileService.getAllByRole("siswa"));
+            spec = spec.and(Specs.eq("role", "siswa"));
         } else if ("gurubk".equals(role)) {
             AssessmentUser counselor = profileService.getProfile(userId);
             Long schoolId = counselor.getSchool() != null ? counselor.getSchool().getId() : null;
-            if (schoolId == null) return ResponseEntity.ok(List.of());
-            return ResponseEntity.ok(
-                profileService.getAllBySchool(schoolId).stream()
-                    .filter(u -> "siswa".equals(u.getRole())).toList()
-            );
+            if (schoolId == null) return ResponseEntity.ok(Paging.paginated(page, size)
+                    ? PageResponse.of(List.of(), Paging.page(page), Paging.size(size), 0)
+                    : List.of());
+            spec = spec.and(Specs.eq("role", "siswa")).and(Specs.eq("school.id", schoolId));
         } else {
-            return ResponseEntity.ok(profileService.getAllByAfiliator(userId));
+            spec = spec.and(Specs.eq("afiliatorId", userId));
         }
+        if (Paging.paginated(page, size)) {
+            Page<AssessmentUser> result = userRepository.findAll(spec,
+                    Paging.pageable(page, size, sort, order, "createdAt",
+                            "name", "username", "email", "school.name", "createdAt"));
+            return ResponseEntity.ok(PageResponse.from(result));
+        }
+        return ResponseEntity.ok(userRepository.findAll(spec));
     }
 
     @GetMapping("/{authUserId}")

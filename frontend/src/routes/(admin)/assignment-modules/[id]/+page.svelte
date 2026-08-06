@@ -1,10 +1,30 @@
 <script lang="ts">
 	import { createApiClient } from '$lib/api/index';
 	import { downloadBlob } from '$lib/utils';
+	import DataTable from '$lib/components/table/DataTable.svelte';
+	import type { TableColumn, TableState } from '$lib/table/types';
 
 	let { data } = $props();
 	let downloadingBatchId = $state<number | null>(null);
 	let downloadError = $state<string | null>(null);
+
+	const batchColumns: TableColumn[] = [
+		{ key: 'createdAt', label: 'Dibuat', sortable: true },
+		{ key: 'credentialCount', label: 'Jumlah', sortable: true, align: 'right' },
+		{ key: 'generatedBy', label: 'Oleh', hideBelow: 'sm' },
+		{ key: 'actions', label: 'Aksi' }
+	];
+
+	const resultColumns: TableColumn[] = [
+		{ key: 'studentName', label: 'Siswa', sortable: true },
+		{ key: 'schoolName', label: 'Sekolah', hideBelow: 'sm' },
+		{ key: 'summary', label: 'Ringkasan', hideBelow: 'sm' },
+		{ key: 'completedAt', label: 'Selesai', sortable: true, hideBelow: 'sm' }
+	];
+
+	function clientTable(items: any[]): TableState {
+		return { items, page: 0, size: 10, total: items.length, search: '', sort: '', order: 'asc' };
+	}
 
 	function formatDate(value: string | null) {
 		if (!value) return '-';
@@ -92,37 +112,28 @@
 		{#if data.credentialBatches.length === 0}
 			<p class="text-muted-foreground text-sm">Belum ada kredensial yang pernah dibuat untuk penugasan ini.</p>
 		{:else}
-			<div class="overflow-x-auto">
-				<table class="w-full text-sm">
-					<thead class="bg-muted/60 border-border border-b">
-						<tr>
-							<th class="px-3 py-2 text-left font-semibold">Dibuat</th>
-							<th class="px-3 py-2 text-left font-semibold">Jumlah</th>
-							<th class="px-3 py-2 text-left font-semibold">Oleh</th>
-							<th class="px-3 py-2 text-left font-semibold">Aksi</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each data.credentialBatches as batch}
-							<tr class="border-border border-b">
-								<td class="px-3 py-3">{formatDate(batch.createdAt)}</td>
-								<td class="px-3 py-3">{batch.credentialCount} siswa</td>
-								<td class="px-3 py-3">{batch.generatedBy}</td>
-								<td class="px-3 py-3">
-									<button
-										type="button"
-										onclick={() => handleDownloadBatch(batch.id, batch.pdfFilename)}
-										disabled={downloadingBatchId === batch.id}
-										class="bg-secondary hover:bg-secondary/80 disabled:opacity-50 inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium transition-colors"
-									>
-										{downloadingBatchId === batch.id ? 'Mengunduh...' : 'Unduh PDF'}
-									</button>
-								</td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
+			<DataTable mode="client" columns={batchColumns} table={clientTable(data.credentialBatches)}>
+				{#snippet cell(column, batch)}
+					{#if column.key === 'createdAt'}
+						<span>{formatDate(batch.createdAt)}</span>
+					{:else if column.key === 'credentialCount'}
+						<span class="font-medium">{batch.credentialCount} siswa</span>
+					{:else if column.key === 'generatedBy'}
+						<span class="text-muted-foreground">{batch.generatedBy}</span>
+					{:else if column.key === 'actions'}
+						<div class="flex items-center justify-end sm:justify-start">
+							<button
+								type="button"
+								onclick={() => handleDownloadBatch(batch.id, batch.pdfFilename)}
+								disabled={downloadingBatchId === batch.id}
+								class="bg-secondary hover:bg-secondary/80 disabled:opacity-50 inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium transition-colors"
+							>
+								{downloadingBatchId === batch.id ? 'Mengunduh...' : 'Unduh PDF'}
+							</button>
+						</div>
+					{/if}
+				{/snippet}
+			</DataTable>
 		{/if}
 	</section>
 
@@ -143,28 +154,19 @@
 				{#if moduleTest.recentResults.length === 0}
 					<p class="text-muted-foreground text-sm">Belum ada hasil untuk tes ini pada penugasan ini.</p>
 				{:else}
-					<div class="overflow-x-auto">
-						<table class="w-full text-sm">
-							<thead class="bg-muted/60 border-border border-b">
-								<tr>
-									<th class="px-3 py-2 text-left font-semibold">Siswa</th>
-									<th class="px-3 py-2 text-left font-semibold">Sekolah</th>
-									<th class="px-3 py-2 text-left font-semibold">Ringkasan</th>
-									<th class="px-3 py-2 text-left font-semibold">Selesai</th>
-								</tr>
-							</thead>
-							<tbody>
-								{#each moduleTest.recentResults as result}
-									<tr class="border-border border-b">
-										<td class="px-3 py-3">{result.studentName}</td>
-										<td class="px-3 py-3">{result.schoolName}</td>
-										<td class="px-3 py-3">{result.summary}</td>
-										<td class="px-3 py-3">{formatDate(result.completedAt)}</td>
-									</tr>
-								{/each}
-							</tbody>
-						</table>
-					</div>
+					<DataTable mode="client" columns={resultColumns} table={clientTable(moduleTest.recentResults)}>
+						{#snippet cell(column, result)}
+							{#if column.key === 'studentName'}
+								<span class="font-medium">{result.studentName}</span>
+							{:else if column.key === 'schoolName'}
+								<span class="text-muted-foreground">{result.schoolName}</span>
+							{:else if column.key === 'summary'}
+								<span>{result.summary}</span>
+							{:else if column.key === 'completedAt'}
+								<span class="text-muted-foreground">{formatDate(result.completedAt)}</span>
+							{/if}
+						{/snippet}
+					</DataTable>
 				{/if}
 			</section>
 		{/each}

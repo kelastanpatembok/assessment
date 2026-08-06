@@ -1,73 +1,27 @@
 import { createApiClient } from '$lib/api/index';
+import { buildQuery, normalizePage, parseTableParams } from '$lib/table/helpers';
 import type { PageServerLoad } from './$types';
 
-const TEST_LABELS: Record<string, string> = {
-	disc: 'DISC',
-	holland: 'Holland RIASEC',
-	papi: 'PAPI Kostick',
-	cfit: 'IQ CFIT',
-	ist: 'IQ IST'
-};
-
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
 	const api = createApiClient(locals.token);
+	const params = parseTableParams(url, { size: 10, sort: 'windowStart', order: 'desc' });
+	const status = url.searchParams.get('status') ?? '';
+	const active = status === 'active' ? true : status === 'inactive' ? false : undefined;
 
-	const [assignmentsRaw, discRaw, hollandRaw, papiRaw, cfitRaw, istRaw, credentialBatchesRaw] = await Promise.allSettled([
-		api.get('/test-assignments'),
-		api.get('/disc/results'),
-		api.get('/holland/results'),
-		api.get('/papi/results'),
-		api.get('/cfit/results'),
-		api.get('/ist/results'),
-		api.get('/credentials/batches')
+	const [summariesRaw, summaryRaw] = await Promise.allSettled([
+		api.get(
+			`/assignment-summaries?${buildQuery(params)}${active === undefined ? '' : `&active=${active}`}`
+		),
+		api.get('/assignment-summaries/summary')
 	]);
-
-	const assignments = assignmentsRaw.status === 'fulfilled' && Array.isArray(assignmentsRaw.value) ? assignmentsRaw.value : [];
-	const resultCollections = {
-		disc: discRaw.status === 'fulfilled' && Array.isArray(discRaw.value) ? discRaw.value : [],
-		holland: hollandRaw.status === 'fulfilled' && Array.isArray(hollandRaw.value) ? hollandRaw.value : [],
-		papi: papiRaw.status === 'fulfilled' && Array.isArray(papiRaw.value) ? papiRaw.value : [],
-		cfit: cfitRaw.status === 'fulfilled' && Array.isArray(cfitRaw.value) ? cfitRaw.value : [],
-		ist: istRaw.status === 'fulfilled' && Array.isArray(istRaw.value) ? istRaw.value : []
-	};
-
-	// Batches come back sorted newest-first, so the first match per assignment is the latest one.
-	const credentialBatches =
-		credentialBatchesRaw.status === 'fulfilled' && Array.isArray(credentialBatchesRaw.value)
-			? credentialBatchesRaw.value
-			: [];
-	const latestBatchByAssignment = new Map<number, { id: number; pdfFilename: string }>();
-	for (const batch of credentialBatches) {
-		if (!latestBatchByAssignment.has(batch.testAssignmentId)) {
-			latestBatchByAssignment.set(batch.testAssignmentId, { id: batch.id, pdfFilename: batch.pdfFilename });
-		}
-	}
 
 	return {
 		token: locals.token,
-		assignments: assignments.map((assignment: any) => {
-			const tests: string[] = Array.isArray(assignment.category?.tests) ? assignment.category.tests : [];
-			const resultCount = tests.reduce((total, testKey) => {
-				const results = resultCollections[testKey as keyof typeof resultCollections] ?? [];
-				return total + results.filter((result: any) => result.assignmentId === assignment.id).length;
-			}, 0);
-			const latestBatch = latestBatchByAssignment.get(assignment.id) ?? null;
-
-			return {
-				id: assignment.id,
-				schoolName: assignment.school?.name || '-',
-				categoryName: assignment.category?.name || '-',
-				tests: tests.map((test) => ({
-					key: test,
-					label: TEST_LABELS[test] || test.toUpperCase()
-				})),
-				active: Boolean(assignment.active),
-				windowStart: assignment.windowStart ?? null,
-				windowEnd: assignment.windowEnd ?? null,
-				resultCount,
-				latestBatchId: latestBatch?.id ?? null,
-				latestBatchFilename: latestBatch?.pdfFilename ?? null
-			};
-		})
+		base: url.pathname,
+		status,
+		table: normalizePage(summariesRaw.status === 'fulfilled' ? summariesRaw.value : null, params.size),
+		summary: summaryRaw.status === 'fulfilled' && summaryRaw.value
+			? summaryRaw.value
+			: { totalAssignments: 0, activeAssignments: 0, totalResults: 0 }
 	};
 };

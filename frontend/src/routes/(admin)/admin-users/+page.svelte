@@ -5,11 +5,12 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
+  import DataTable from '$lib/components/table/DataTable.svelte';
+  import type { TableColumn } from '$lib/table/types';
 
   let { data, form } = $props();
   let showModal = $state(false);
   let loading = $state(false);
-  let filterRole = $state('');
 
   let editUser = $state<{ authUserId: string; name: string; email: string; schoolId: string } | null>(null);
 
@@ -21,9 +22,22 @@
     siswa: 'Siswa',
   };
 
-  let filtered = $derived(
-    filterRole ? data.users.filter((u: any) => u.role === filterRole) : data.users
-  );
+  const roleFilters = [
+    { value: '', label: 'Semua' },
+    { value: 'gurubk', label: 'Guru BK' },
+    { value: 'afiliator', label: 'Afiliator' },
+    { value: 'psikolog', label: 'Psikolog' },
+    { value: 'superadmin', label: 'Superadmin' },
+  ];
+
+  const columns: TableColumn[] = [
+    { key: 'name', label: 'Nama', sortable: true },
+    { key: 'username', label: 'Username', sortable: true },
+    { key: 'email', label: 'Email', sortable: true, hideBelow: 'sm' },
+    { key: 'role', label: 'Peran', sortable: true, hideBelow: 'sm' },
+    { key: 'school', label: 'Sekolah', sortable: true, sortKey: 'school.name', hideBelow: 'md' },
+    { key: 'actions', label: 'Aksi' },
+  ];
 
   function openEdit(user: any) {
     editUser = {
@@ -47,49 +61,50 @@
     <div class="bg-destructive/10 text-destructive rounded-lg px-4 py-3 text-sm">{form.error}</div>
   {/if}
 
-  <div class="flex gap-2">
-    <Button variant={filterRole === '' ? 'default' : 'outline'} size="sm" onclick={() => (filterRole = '')}>Semua</Button>
-    <Button variant={filterRole === 'gurubk' ? 'default' : 'outline'} size="sm" onclick={() => (filterRole = 'gurubk')}>Guru BK</Button>
-    <Button variant={filterRole === 'afiliator' ? 'default' : 'outline'} size="sm" onclick={() => (filterRole = 'afiliator')}>Afiliator</Button>
-    <Button variant={filterRole === 'psikolog' ? 'default' : 'outline'} size="sm" onclick={() => (filterRole = 'psikolog')}>Psikolog</Button>
+  <div class="flex flex-wrap gap-2">
+    {#each roleFilters as rf}
+      <a
+        href={rf.value ? `?role=${rf.value}` : '?'}
+        class={"inline-flex h-9 items-center rounded-lg px-4 text-sm font-medium transition-colors " +
+          (data.role === rf.value
+            ? 'bg-primary text-primary-foreground'
+            : 'border-input bg-background hover:bg-accent border')}
+      >
+        {rf.label}
+      </a>
+    {/each}
   </div>
 
   <Card>
     <CardContent class="pt-6">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-border border-b text-left">
-            <th class="pb-3 font-medium">Nama</th>
-            <th class="pb-3 font-medium">Username</th>
-            <th class="pb-3 font-medium">Email</th>
-            <th class="pb-3 font-medium">Peran</th>
-            <th class="pb-3 font-medium">Sekolah</th>
-            <th class="pb-3 font-medium">Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each filtered as user}
-            <tr class="border-border border-b last:border-0">
-              <td class="py-3 font-medium">{user.name}</td>
-              <td class="py-3">{user.username}</td>
-              <td class="text-muted-foreground py-3">{user.email ?? '-'}</td>
-              <td class="py-3"><Badge variant="secondary">{roleLabel[user.role] ?? user.role}</Badge></td>
-              <td class="text-muted-foreground py-3">{user.school?.name ?? '-'}</td>
-              <td class="py-3">
-                <div class="flex items-center gap-3">
-                  <button class="text-primary text-xs hover:underline" onclick={() => openEdit(user)}>Edit</button>
-                  <form method="POST" action="?/delete" use:enhance>
-                    <input type="hidden" name="id" value={user.authUserId} />
-                    <button type="submit" class="text-destructive text-xs hover:underline">Hapus</button>
-                  </form>
-                </div>
-              </td>
-            </tr>
-          {:else}
-            <tr><td colspan="6" class="text-muted-foreground py-6 text-center">Belum ada pengguna</td></tr>
-          {/each}
-        </tbody>
-      </table>
+      <DataTable
+        {columns}
+        table={data.table}
+        searchPlaceholder="Cari nama, username, atau email..."
+        rowKey={(u: any) => u.authUserId}
+      >
+        {#snippet cell(column, user)}
+          {#if column.key === 'name'}
+            <span class="font-medium">{user.name}</span>
+          {:else if column.key === 'username'}
+            <span>{user.username}</span>
+          {:else if column.key === 'email'}
+            <span class="text-muted-foreground">{user.email ?? '-'}</span>
+          {:else if column.key === 'role'}
+            <Badge variant="secondary">{roleLabel[user.role] ?? user.role}</Badge>
+          {:else if column.key === 'school'}
+            <span class="text-muted-foreground">{user.school?.name ?? '-'}</span>
+          {:else if column.key === 'actions'}
+            <div class="flex items-center justify-end gap-3 sm:justify-start">
+              <button class="text-primary text-xs hover:underline" onclick={() => openEdit(user)}>Edit</button>
+              <form method="POST" action="?/delete" use:enhance>
+                <input type="hidden" name="id" value={user.authUserId} />
+                <button type="submit" class="text-destructive text-xs hover:underline">Hapus</button>
+              </form>
+            </div>
+          {/if}
+        {/snippet}
+      </DataTable>
     </CardContent>
   </Card>
 </div>

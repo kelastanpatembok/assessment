@@ -5,11 +5,22 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
+  import DataTable from '$lib/components/table/DataTable.svelte';
+  import type { TableColumn } from '$lib/table/types';
 
   let { data, form } = $props();
   let showModal = $state(false);
   let editTarget = $state<{ id: number; startDate: string; endDate: string; active: boolean; certificateEnabled: boolean } | null>(null);
   let loading = $state(false);
+
+  const columns: TableColumn[] = [
+    { key: 'school', label: 'Sekolah', sortable: true, sortKey: 'school.name' },
+    { key: 'category', label: 'Kategori', sortable: true, sortKey: 'category.name', hideBelow: 'sm' },
+    { key: 'windowStart', label: 'Mulai', sortable: true, hideBelow: 'sm' },
+    { key: 'windowEnd', label: 'Selesai', sortable: true, hideBelow: 'sm' },
+    { key: 'active', label: 'Status', sortable: true, hideBelow: 'sm' },
+    { key: 'actions', label: 'Aksi' },
+  ];
 </script>
 
 <svelte:head><title>Penugasan Tes</title></svelte:head>
@@ -26,50 +37,44 @@
 
   <Card>
     <CardContent class="pt-6">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-border border-b text-left">
-            <th class="pb-3 font-medium">Sekolah</th>
-            <th class="pb-3 font-medium">Kategori</th>
-            <th class="pb-3 font-medium">Mulai</th>
-            <th class="pb-3 font-medium">Selesai</th>
-            <th class="pb-3 font-medium">Status</th>
-            <th class="pb-3 font-medium">Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each data.assignments as a}
-            <tr class="border-border border-b last:border-0">
-              <td class="py-3 font-medium">{a.school?.name ?? '-'}</td>
-              <td class="py-3">{a.category?.name ?? '-'}</td>
-              <td class="text-muted-foreground py-3">{a.windowStart?.split('T')[0] ?? '-'}</td>
-              <td class="text-muted-foreground py-3">{a.windowEnd?.split('T')[0] ?? '-'}</td>
-              <td class="py-3">
-                <Badge variant={a.active ? 'default' : 'secondary'}>{a.active ? 'aktif' : 'pasif'}</Badge>
-              </td>
-              <td class="flex gap-3 py-3">
-                <button
-                  type="button"
-                  class="text-xs text-blue-600 hover:underline"
-                  onclick={() => (editTarget = {
-                    id: a.id,
-                    startDate: a.windowStart?.split('T')[0] ?? '',
-                    endDate: a.windowEnd?.split('T')[0] ?? '',
-                    active: a.active,
-                    certificateEnabled: a.certificateEnabled ?? false,
-                  })}
-                >Edit</button>
-                <form method="POST" action="?/delete" use:enhance>
-                  <input type="hidden" name="id" value={a.id} />
-                  <button type="submit" class="text-destructive text-xs hover:underline">Hapus</button>
-                </form>
-              </td>
-            </tr>
-          {:else}
-            <tr><td colspan="6" class="text-muted-foreground py-6 text-center">Belum ada penugasan</td></tr>
-          {/each}
-        </tbody>
-      </table>
+      <DataTable
+        {columns}
+        table={data.table}
+        searchPlaceholder="Cari sekolah atau kategori..."
+        rowKey={(a: any) => a.id}
+      >
+        {#snippet cell(column, a)}
+          {#if column.key === 'school'}
+            <span class="font-medium">{a.school?.name ?? '-'}</span>
+          {:else if column.key === 'category'}
+            <span>{a.category?.name ?? '-'}</span>
+          {:else if column.key === 'windowStart'}
+            <span class="text-muted-foreground">{a.windowStart?.split('T')[0] ?? '-'}</span>
+          {:else if column.key === 'windowEnd'}
+            <span class="text-muted-foreground">{a.windowEnd?.split('T')[0] ?? '-'}</span>
+          {:else if column.key === 'active'}
+            <Badge variant={a.active ? 'default' : 'secondary'}>{a.active ? 'aktif' : 'pasif'}</Badge>
+          {:else if column.key === 'actions'}
+            <div class="flex items-center justify-end gap-3 sm:justify-start">
+              <button
+                type="button"
+                class="text-primary text-xs hover:underline"
+                onclick={() => (editTarget = {
+                  id: a.id,
+                  startDate: a.windowStart?.split('T')[0] ?? '',
+                  endDate: a.windowEnd?.split('T')[0] ?? '',
+                  active: a.active,
+                  certificateEnabled: a.certificateEnabled ?? false,
+                })}
+              >Edit</button>
+              <form method="POST" action="?/delete" use:enhance>
+                <input type="hidden" name="id" value={a.id} />
+                <button type="submit" class="text-destructive text-xs hover:underline">Hapus</button>
+              </form>
+            </div>
+          {/if}
+        {/snippet}
+      </DataTable>
     </CardContent>
   </Card>
 </div>

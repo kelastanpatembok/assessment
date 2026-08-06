@@ -4,6 +4,8 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
+  import DataTable from '$lib/components/table/DataTable.svelte';
+  import type { TableColumn } from '$lib/table/types';
 
   const TEST_OPTIONS = ['disc', 'holland', 'papi', 'cfit', 'ist'];
 
@@ -11,6 +13,14 @@
   let showModal = $state(false);
   let editTarget = $state<{ id: number; name: string; slug: string; price: number; tests: string[] } | null>(null);
   let loading = $state(false);
+
+  const columns: TableColumn[] = [
+    { key: 'id', label: 'ID', sortable: true, hideBelow: 'sm' },
+    { key: 'name', label: 'Nama', sortable: true },
+    { key: 'slug', label: 'Slug', hideBelow: 'sm' },
+    { key: 'price', label: 'Harga', sortable: true, align: 'right' },
+    { key: 'actions', label: 'Aksi' },
+  ];
 </script>
 
 <svelte:head><title>Kategori Tes</title></svelte:head>
@@ -27,40 +37,36 @@
 
   <Card>
     <CardContent class="pt-6">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-border border-b text-left">
-            <th class="pb-3 font-medium">ID</th>
-            <th class="pb-3 font-medium">Nama</th>
-            <th class="pb-3 font-medium">Slug</th>
-            <th class="pb-3 font-medium">Harga</th>
-            <th class="pb-3 font-medium">Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each data.categories as cat}
-            <tr class="border-border border-b last:border-0">
-              <td class="text-muted-foreground py-3">{cat.id}</td>
-              <td class="py-3 font-medium">{cat.name}</td>
-              <td class="text-muted-foreground py-3">{cat.slug ?? '-'}</td>
-              <td class="py-3">Rp {(cat.price ?? 0).toLocaleString('id-ID')}</td>
-              <td class="flex gap-3 py-3">
-                <button
-                  type="button"
-                  class="text-xs text-blue-600 hover:underline"
-                  onclick={() => (editTarget = { id: cat.id, name: cat.name, slug: cat.slug ?? '', price: cat.price ?? 0, tests: cat.tests ?? [] })}
-                >Edit</button>
-                <form method="POST" action="?/delete" use:enhance>
-                  <input type="hidden" name="id" value={cat.id} />
-                  <button type="submit" class="text-destructive text-xs hover:underline">Hapus</button>
-                </form>
-              </td>
-            </tr>
-          {:else}
-            <tr><td colspan="5" class="text-muted-foreground py-6 text-center">Belum ada kategori</td></tr>
-          {/each}
-        </tbody>
-      </table>
+      <DataTable
+        {columns}
+        table={data.table}
+        searchPlaceholder="Cari nama atau slug kategori..."
+        rowKey={(c: any) => c.id}
+      >
+        {#snippet cell(column, cat)}
+          {#if column.key === 'id'}
+            <span class="text-muted-foreground">{cat.id}</span>
+          {:else if column.key === 'name'}
+            <span class="font-medium">{cat.name}</span>
+          {:else if column.key === 'slug'}
+            <span class="text-muted-foreground">{cat.slug ?? '-'}</span>
+          {:else if column.key === 'price'}
+            <span>Rp {(cat.price ?? 0).toLocaleString('id-ID')}</span>
+          {:else if column.key === 'actions'}
+            <div class="flex items-center justify-end gap-3 sm:justify-start">
+              <button
+                type="button"
+                class="text-primary text-xs hover:underline"
+                onclick={() => (editTarget = { id: cat.id, name: cat.name, slug: cat.slug ?? '', price: cat.price ?? 0, tests: cat.tests ?? [] })}
+              >Edit</button>
+              <form method="POST" action="?/delete" use:enhance>
+                <input type="hidden" name="id" value={cat.id} />
+                <button type="submit" class="text-destructive text-xs hover:underline">Hapus</button>
+              </form>
+            </div>
+          {/if}
+        {/snippet}
+      </DataTable>
     </CardContent>
   </Card>
 </div>

@@ -1,16 +1,24 @@
 import { createApiClient } from '$lib/api/index';
+import { buildQuery, normalizePage, parseTableParams } from '$lib/table/helpers';
 import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
   const api = createApiClient(locals.token);
-  const [users, schools] = await Promise.allSettled([
-    api.get('/users'),
+  const params = parseTableParams(url, { size: 10, sort: 'createdAt', order: 'desc' });
+  const role = url.searchParams.get('role') ?? '';
+  const usersEndpoint = `/users?${buildQuery(params)}${role ? `&role=${encodeURIComponent(role)}` : ''}`;
+
+  const [usersRaw, schoolsRaw] = await Promise.allSettled([
+    api.get(usersEndpoint),
     api.get('/schools'),
   ]);
+
   return {
-    users: users.status === 'fulfilled' && Array.isArray(users.value) ? users.value : [],
-    schools: schools.status === 'fulfilled' && Array.isArray(schools.value) ? schools.value : [],
+    base: url.pathname,
+    role,
+    table: normalizePage(usersRaw.status === 'fulfilled' ? usersRaw.value : null, params.size),
+    schools: schoolsRaw.status === 'fulfilled' && Array.isArray(schoolsRaw.value) ? schoolsRaw.value : [],
   };
 };
 

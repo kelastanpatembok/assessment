@@ -1,11 +1,16 @@
 import { createApiClient } from '$lib/api/index';
+import { buildQuery, normalizePage, parseTableParams } from '$lib/table/helpers';
 import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
   const api = createApiClient(locals.token);
-  const students = await api.get('/students').catch(() => []);
-  return { students: Array.isArray(students) ? students : [] };
+  const params = parseTableParams(url, { size: 10, sort: 'createdAt', order: 'desc' });
+  const students = await api.get(`/students?${buildQuery(params)}`).catch(() => null);
+  return {
+    base: url.pathname,
+    table: normalizePage(students, params.size),
+  };
 };
 
 export const actions: Actions = {

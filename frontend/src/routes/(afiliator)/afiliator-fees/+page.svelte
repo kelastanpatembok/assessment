@@ -1,11 +1,29 @@
 <script lang="ts">
   import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
+  import DataTable from '$lib/components/table/DataTable.svelte';
+  import type { TableColumn } from '$lib/table/types';
 
   let { data } = $props();
 
-  let total = $derived(
-    data.fees.reduce((sum: number, f: any) => sum + (f.affiliatorFee ?? 0), 0)
-  );
+  const columns: TableColumn[] = [
+    { key: 'studentName', label: 'Nama Siswa', sortable: true },
+    { key: 'schoolName', label: 'Sekolah', sortable: true, hideBelow: 'sm' },
+    { key: 'afiliatorShare', label: 'Komisi Afiliator', sortable: true, align: 'right' },
+    { key: 'createdAt', label: 'Tanggal', sortable: true, hideBelow: 'sm' },
+  ];
+
+  function formatRp(value: number | null | undefined) {
+    return `Rp ${(value ?? 0).toLocaleString('id-ID')}`;
+  }
+
+  function formatDate(value: string | null | undefined) {
+    if (!value) return '-';
+    try {
+      return new Date(value).toLocaleDateString('id-ID');
+    } catch {
+      return value;
+    }
+  }
 </script>
 
 <svelte:head><title>Komisi Afiliator</title></svelte:head>
@@ -18,34 +36,30 @@
       <CardTitle class="text-sm font-medium text-muted-foreground">Total Komisi</CardTitle>
     </CardHeader>
     <CardContent>
-      <p class="text-3xl font-bold">Rp {total.toLocaleString('id-ID')}</p>
+      <p class="text-3xl font-bold">{formatRp(Number(data.totalShare ?? 0))}</p>
     </CardContent>
   </Card>
 
   <Card>
     <CardContent class="pt-6">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-border border-b text-left">
-            <th class="pb-3 font-medium">Nama Siswa</th>
-            <th class="pb-3 font-medium">Sekolah</th>
-            <th class="pb-3 font-medium">Komisi Afiliator</th>
-            <th class="pb-3 font-medium">Tanggal</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each data.fees as f}
-            <tr class="border-border border-b last:border-0">
-              <td class="py-3">{f.studentName ?? '-'}</td>
-              <td class="text-muted-foreground py-3">{f.schoolName ?? '-'}</td>
-              <td class="py-3 font-medium">Rp {(f.affiliatorFee ?? 0).toLocaleString('id-ID')}</td>
-              <td class="text-muted-foreground py-3">{f.createdAt ? new Date(f.createdAt).toLocaleDateString('id-ID') : '-'}</td>
-            </tr>
-          {:else}
-            <tr><td colspan="4" class="text-muted-foreground py-6 text-center">Belum ada data komisi</td></tr>
-          {/each}
-        </tbody>
-      </table>
+      <DataTable
+        {columns}
+        table={data.table}
+        searchPlaceholder="Cari nama siswa, sekolah, atau kategori..."
+        rowKey={(f: any) => f.id}
+      >
+        {#snippet cell(column, f)}
+          {#if column.key === 'studentName'}
+            <span class="font-medium">{f.studentName ?? '-'}</span>
+          {:else if column.key === 'schoolName'}
+            <span class="text-muted-foreground">{f.schoolName ?? '-'}</span>
+          {:else if column.key === 'afiliatorShare'}
+            <span>{formatRp(Number(f.afiliatorShare ?? 0))}</span>
+          {:else if column.key === 'createdAt'}
+            <span class="text-muted-foreground">{formatDate(f.createdAt)}</span>
+          {/if}
+        {/snippet}
+      </DataTable>
     </CardContent>
   </Card>
 </div>

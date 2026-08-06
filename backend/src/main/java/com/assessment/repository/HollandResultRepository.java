@@ -2,13 +2,16 @@ package com.assessment.repository;
 
 import com.assessment.model.HollandResult;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface HollandResultRepository extends JpaRepository<HollandResult, Long> {
+public interface HollandResultRepository extends JpaRepository<HollandResult, Long>, JpaSpecificationExecutor<HollandResult> {
     Optional<HollandResult> findByAuthUserId(String authUserId);
     List<HollandResult> findByAssignmentId(Long assignmentId);
+    List<HollandResult> findByAssignmentIdIn(Collection<Long> assignmentIds);
 }

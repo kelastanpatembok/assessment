@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DiscResult {
+public class DiscResult implements HasAssignmentId {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PapiResult {
+public class PapiResult implements HasAssignmentId {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

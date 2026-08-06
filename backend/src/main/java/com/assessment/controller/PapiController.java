@@ -1,5 +1,8 @@
 package com.assessment.controller;
 
+import com.assessment.common.Paging;
+import com.assessment.common.Specs;
+import com.assessment.dto.PageResponse;
 import com.assessment.exception.ConflictException;
 import com.assessment.exception.ResourceNotFoundException;
 import com.assessment.model.AssessmentUser;
@@ -16,6 +19,8 @@ import com.assessment.service.PapiScoringService;
 import com.assessment.service.PapiScoringService.PapiAnswerDto;
 import com.assessment.service.TestAssignmentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -113,7 +118,19 @@ public class PapiController {
 
     @GetMapping("/results")
     @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK','AFILIATOR','PSIKOLOG')")
-    public ResponseEntity<List<PapiResult>> allResults() {
+    public ResponseEntity<?> allResults(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String order) {
+        Specification<PapiResult> spec = Specs.like(search, "studentName", "schoolName");
+        if (Paging.paginated(page, size)) {
+            Page<PapiResult> result = papiResultRepository.findAll(spec,
+                    Paging.pageable(page, size, sort, order, "completedAt",
+                            "studentName", "schoolName", "completedAt", "id"));
+            return ResponseEntity.ok(PageResponse.from(result));
+        }
         return ResponseEntity.ok(papiResultRepository.findAll());
     }
 

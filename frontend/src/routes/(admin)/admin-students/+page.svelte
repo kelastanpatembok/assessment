@@ -4,11 +4,21 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
+  import DataTable from '$lib/components/table/DataTable.svelte';
+  import type { TableColumn } from '$lib/table/types';
 
   let { data, form } = $props();
   let showModal = $state(false);
   let editTarget = $state<{ id: string; name: string; email: string; schoolId: string } | null>(null);
   let loading = $state(false);
+
+  const columns: TableColumn[] = [
+    { key: 'name', label: 'Nama', sortable: true },
+    { key: 'username', label: 'Username', sortable: true },
+    { key: 'school', label: 'Sekolah', sortable: true, sortKey: 'school.name', hideBelow: 'sm' },
+    { key: 'email', label: 'Email', sortable: true, hideBelow: 'sm' },
+    { key: 'actions', label: 'Aksi' },
+  ];
 </script>
 
 <svelte:head><title>Siswa</title></svelte:head>
@@ -25,40 +35,36 @@
 
   <Card>
     <CardContent class="pt-6">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-border border-b text-left">
-            <th class="pb-3 font-medium">Nama</th>
-            <th class="pb-3 font-medium">Username</th>
-            <th class="pb-3 font-medium">Sekolah</th>
-            <th class="pb-3 font-medium">Email</th>
-            <th class="pb-3 font-medium">Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each data.students as s}
-            <tr class="border-border border-b last:border-0">
-              <td class="py-3 font-medium">{s.name}</td>
-              <td class="py-3">{s.username}</td>
-              <td class="text-muted-foreground py-3">{s.school?.name ?? '-'}</td>
-              <td class="text-muted-foreground py-3">{s.email ?? '-'}</td>
-              <td class="flex gap-3 py-3">
-                <button
-                  type="button"
-                  class="text-xs text-blue-600 hover:underline"
-                  onclick={() => (editTarget = { id: s.authUserId, name: s.name, email: s.email ?? '', schoolId: String(s.school?.id ?? '') })}
-                >Edit</button>
-                <form method="POST" action="?/delete" use:enhance>
-                  <input type="hidden" name="id" value={s.authUserId} />
-                  <button type="submit" class="text-destructive text-xs hover:underline">Hapus</button>
-                </form>
-              </td>
-            </tr>
-          {:else}
-            <tr><td colspan="5" class="text-muted-foreground py-6 text-center">Belum ada siswa</td></tr>
-          {/each}
-        </tbody>
-      </table>
+      <DataTable
+        {columns}
+        table={data.table}
+        searchPlaceholder="Cari nama, username, atau email..."
+        rowKey={(s: any) => s.authUserId}
+      >
+        {#snippet cell(column, s)}
+          {#if column.key === 'name'}
+            <span class="font-medium">{s.name}</span>
+          {:else if column.key === 'username'}
+            <span>{s.username}</span>
+          {:else if column.key === 'school'}
+            <span class="text-muted-foreground">{s.school?.name ?? '-'}</span>
+          {:else if column.key === 'email'}
+            <span class="text-muted-foreground">{s.email ?? '-'}</span>
+          {:else if column.key === 'actions'}
+            <div class="flex items-center justify-end gap-3 sm:justify-start">
+              <button
+                type="button"
+                class="text-primary text-xs hover:underline"
+                onclick={() => (editTarget = { id: s.authUserId, name: s.name, email: s.email ?? '', schoolId: String(s.school?.id ?? '') })}
+              >Edit</button>
+              <form method="POST" action="?/delete" use:enhance>
+                <input type="hidden" name="id" value={s.authUserId} />
+                <button type="submit" class="text-destructive text-xs hover:underline">Hapus</button>
+              </form>
+            </div>
+          {/if}
+        {/snippet}
+      </DataTable>
     </CardContent>
   </Card>
 </div>

@@ -126,9 +126,21 @@ public class CredentialController {
      * via /credentials/batches/{id}/download.
      */
     @GetMapping("/batches")
-    public ResponseEntity<List<CredentialBatch>> listBatches(
-            @RequestParam(required = false) Long testAssignmentId
+    public ResponseEntity<?> listBatches(
+            @RequestParam(required = false) Long testAssignmentId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String order
     ) {
+        if (com.assessment.common.Paging.paginated(page, size)) {
+            var spec = com.assessment.common.Specs.<CredentialBatch>all()
+                    .and(com.assessment.common.Specs.eq("testAssignmentId", testAssignmentId));
+            var result = credentialBatchRepository.findAll(spec,
+                    com.assessment.common.Paging.pageable(page, size, sort, order, "createdAt",
+                            "createdAt", "schoolName", "categoryName"));
+            return ResponseEntity.ok(com.assessment.dto.PageResponse.from(result));
+        }
         List<CredentialBatch> batches = testAssignmentId != null
                 ? credentialBatchRepository.findByTestAssignmentIdOrderByCreatedAtDesc(testAssignmentId)
                 : credentialBatchRepository.findAllByOrderByCreatedAtDesc();

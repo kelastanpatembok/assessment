@@ -1,9 +1,15 @@
 package com.assessment.controller;
 
+import com.assessment.common.Paging;
+import com.assessment.common.Specs;
+import com.assessment.dto.PageResponse;
 import com.assessment.model.TestAssignment;
+import com.assessment.repository.TestAssignmentRepository;
 import com.assessment.security.CurrentUser;
 import com.assessment.service.TestAssignmentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +22,7 @@ import java.util.List;
 public class TestAssignmentController {
 
     private final TestAssignmentService testAssignmentService;
+    private final TestAssignmentRepository testAssignmentRepository;
 
     record CreateAssignmentRequest(Long categoryId, Long schoolId, String studentId,
                                    String startDate, String endDate,
@@ -26,7 +33,22 @@ public class TestAssignmentController {
 
     @GetMapping({"/assignments", "/test-assignments"})
     @PreAuthorize("hasAnyRole('SUPERADMIN','GURUBK')")
-    public ResponseEntity<List<TestAssignment>> listAll() {
+    public ResponseEntity<?> listAll(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String order,
+            @RequestParam(required = false) Boolean active) {
+        Specification<TestAssignment> spec = Specs.<TestAssignment>all()
+                .and(Specs.like(search, "school.name", "category.name"))
+                .and(Specs.eq("active", active));
+        if (Paging.paginated(page, size)) {
+            Page<TestAssignment> result = testAssignmentRepository.findAll(spec,
+                    Paging.pageable(page, size, sort, order, "windowStart",
+                            "school.name", "category.name", "windowStart", "windowEnd", "id", "createdAt"));
+            return ResponseEntity.ok(PageResponse.from(result));
+        }
         return ResponseEntity.ok(testAssignmentService.getAll());
     }
 

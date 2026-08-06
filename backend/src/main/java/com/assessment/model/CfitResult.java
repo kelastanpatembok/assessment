@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CfitResult {
+public class CfitResult implements HasAssignmentId {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,24 +1,27 @@
 import { createApiClient } from '$lib/api/index';
+import { buildQuery, normalizePage, parseTableParams } from '$lib/table/helpers';
 import type { PageServerLoad } from './$types';
 
+const ENDPOINTS = {
+	disc: '/disc/results',
+	holland: '/holland/results',
+	papi: '/papi/results',
+	cfit: '/cfit/results',
+	ist: '/ist/results'
+} as const;
+
+export type ResultTab = keyof typeof ENDPOINTS;
+
 export const load: PageServerLoad = async ({ locals, url }) => {
-  const api = createApiClient(locals.token);
-  const tab = url.searchParams.get('tab') ?? 'disc';
+	const api = createApiClient(locals.token);
+	const tab = (url.searchParams.get('tab') ?? 'disc') as ResultTab;
+	const params = parseTableParams(url, { size: 10, sort: 'completedAt', order: 'desc' });
 
-  const [disc, holland, papi, cfit, ist] = await Promise.allSettled([
-    api.get('/disc/results'),
-    api.get('/holland/results'),
-    api.get('/papi/results'),
-    api.get('/cfit/results'),
-    api.get('/ist/results'),
-  ]);
+	const raw = await api.get(`${ENDPOINTS[tab] ?? ENDPOINTS.disc}?${buildQuery(params)}`).catch(() => null);
 
-  return {
-    tab,
-    disc: disc.status === 'fulfilled' && Array.isArray(disc.value) ? disc.value : [],
-    holland: holland.status === 'fulfilled' && Array.isArray(holland.value) ? holland.value : [],
-    papi: papi.status === 'fulfilled' && Array.isArray(papi.value) ? papi.value : [],
-    cfit: cfit.status === 'fulfilled' && Array.isArray(cfit.value) ? cfit.value : [],
-    ist: ist.status === 'fulfilled' && Array.isArray(ist.value) ? ist.value : [],
-  };
+	return {
+		base: url.pathname,
+		tab,
+		table: normalizePage(raw, params.size)
+	};
 };

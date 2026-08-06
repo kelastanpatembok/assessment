@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class HollandResult {
+public class HollandResult implements HasAssignmentId {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

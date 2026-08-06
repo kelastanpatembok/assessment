@@ -1,9 +1,7 @@
 <script lang="ts">
   let { data } = $props();
 
-  let total = $derived(
-    data.fees?.reduce((sum: number, f: any) => sum + (f.affiliatorFee ?? 0), 0) ?? 0
-  );
+  let total = $derived(Number(data.totalShare ?? 0));
 </script>
 
 <svelte:head><title>Dashboard Afiliator — Asesmen</title></svelte:head>

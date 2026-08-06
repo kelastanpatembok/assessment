@@ -4,11 +4,20 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
+  import DataTable from '$lib/components/table/DataTable.svelte';
+  import type { TableColumn } from '$lib/table/types';
 
   let { data, form } = $props();
   let showModal = $state(false);
   let editTarget = $state<{ id: number; name: string; address: string } | null>(null);
   let loading = $state(false);
+
+  const columns: TableColumn[] = [
+    { key: 'id', label: 'ID', sortable: true, hideBelow: 'sm' },
+    { key: 'name', label: 'Nama Sekolah', sortable: true },
+    { key: 'address', label: 'Alamat', hideBelow: 'sm' },
+    { key: 'actions', label: 'Aksi' },
+  ];
 </script>
 
 <svelte:head><title>Sekolah</title></svelte:head>
@@ -25,38 +34,34 @@
 
   <Card>
     <CardContent class="pt-6">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-border border-b text-left">
-            <th class="pb-3 font-medium">No</th>
-            <th class="pb-3 font-medium">Nama Sekolah</th>
-            <th class="pb-3 font-medium">Alamat</th>
-            <th class="pb-3 font-medium">Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each data.schools as school, i}
-            <tr class="border-border border-b last:border-0">
-              <td class="py-3">{i + 1}</td>
-              <td class="py-3 font-medium">{school.name}</td>
-              <td class="text-muted-foreground py-3">{school.address ?? '-'}</td>
-              <td class="flex gap-3 py-3">
-                <button
-                  type="button"
-                  class="text-xs text-blue-600 hover:underline"
-                  onclick={() => (editTarget = { id: school.id, name: school.name, address: school.address ?? '' })}
-                >Edit</button>
-                <form method="POST" action="?/delete" use:enhance>
-                  <input type="hidden" name="id" value={school.id} />
-                  <button type="submit" class="text-destructive text-xs hover:underline">Hapus</button>
-                </form>
-              </td>
-            </tr>
-          {:else}
-            <tr><td colspan="4" class="text-muted-foreground py-6 text-center">Belum ada sekolah</td></tr>
-          {/each}
-        </tbody>
-      </table>
+      <DataTable
+        {columns}
+        table={data.table}
+        searchPlaceholder="Cari nama sekolah, kota, atau provinsi..."
+        rowKey={(s: any) => s.id}
+      >
+        {#snippet cell(column, school)}
+          {#if column.key === 'id'}
+            <span class="text-muted-foreground">{school.id}</span>
+          {:else if column.key === 'name'}
+            <span class="font-medium">{school.name}</span>
+          {:else if column.key === 'address'}
+            <span class="text-muted-foreground">{school.address ?? '-'}</span>
+          {:else if column.key === 'actions'}
+            <div class="flex items-center justify-end gap-3 sm:justify-start">
+              <button
+                type="button"
+                class="text-primary text-xs hover:underline"
+                onclick={() => (editTarget = { id: school.id, name: school.name, address: school.address ?? '' })}
+              >Edit</button>
+              <form method="POST" action="?/delete" use:enhance>
+                <input type="hidden" name="id" value={school.id} />
+                <button type="submit" class="text-destructive text-xs hover:underline">Hapus</button>
+              </form>
+            </div>
+          {/if}
+        {/snippet}
+      </DataTable>
     </CardContent>
   </Card>
 </div>

@@ -1,12 +1,12 @@
 <script lang="ts">
   import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
-  import { Button } from '$lib/components/ui/button/index.js';
+  import DataTable from '$lib/components/table/DataTable.svelte';
+  import type { TableColumn } from '$lib/table/types';
+  import type { ResultTab } from './+page.server';
 
   let { data } = $props();
-  let activeTab = $state('disc');
-  $effect(() => { if (data.tab) activeTab = data.tab; });
 
-  const tabs = [
+  const tabs: { key: ResultTab; label: string }[] = [
     { key: 'disc', label: 'DISC' },
     { key: 'holland', label: 'Holland' },
     { key: 'papi', label: 'PAPI Kostick' },
@@ -14,13 +14,36 @@
     { key: 'ist', label: 'IQ IST' },
   ];
 
-  let currentResults = $derived(
-    activeTab === 'disc' ? data.disc :
-    activeTab === 'holland' ? data.holland :
-    activeTab === 'papi' ? data.papi :
-    activeTab === 'cfit' ? data.cfit :
-    data.ist
-  );
+  const columns: TableColumn[] = [
+    { key: 'studentName', label: 'Nama Siswa', sortable: true },
+    { key: 'schoolName', label: 'Sekolah', sortable: true, hideBelow: 'sm' },
+    { key: 'completedAt', label: 'Tanggal', sortable: true, hideBelow: 'sm' },
+    { key: 'result', label: 'Hasil' },
+  ];
+
+  function formatDate(value: string | null | undefined) {
+    if (!value) return '-';
+    try {
+      return new Date(value).toLocaleDateString('id-ID');
+    } catch {
+      return value;
+    }
+  }
+
+  function summary(tab: ResultTab, r: Record<string, any>): string {
+    switch (tab) {
+      case 'disc':
+        return `D:${r.dMost ?? 0} I:${r.iMost ?? 0} S:${r.sMost ?? 0} C:${r.cMost ?? 0}`;
+      case 'holland':
+        return r.hollandCode ?? `R:${r.rScore ?? 0} I:${r.iScore ?? 0} A:${r.aScore ?? 0}`;
+      case 'cfit':
+        return `RS: ${r.totalScore ?? '-'} IQ: ${r.iqScore ?? '-'}`;
+      case 'ist':
+        return `IQ: ${r.iqScore ?? '-'} (${r.iqCategory ?? '-'})`;
+      default:
+        return 'Selesai';
+    }
+  }
 </script>
 
 <svelte:head><title>Hasil Tes</title></svelte:head>
@@ -28,53 +51,41 @@
 <div class="flex flex-col gap-6">
   <h2 class="text-2xl font-bold">Hasil Tes</h2>
 
-  <div class="flex gap-2 flex-wrap">
+  <div class="flex flex-wrap gap-2">
     {#each tabs as t}
-      <Button
-        variant={activeTab === t.key ? 'default' : 'outline'}
-        size="sm"
-        onclick={() => (activeTab = t.key)}
-      >{t.label}</Button>
+      <a
+        href={t.key === 'disc' ? '?' : `?tab=${t.key}`}
+        class={"inline-flex h-9 items-center rounded-lg px-4 text-sm font-medium transition-colors " +
+          (data.tab === t.key
+            ? 'bg-primary text-primary-foreground'
+            : 'border-input bg-background hover:bg-accent border')}
+      >
+        {t.label}
+      </a>
     {/each}
   </div>
 
   <Card>
-    <CardHeader><CardTitle>{tabs.find(t => t.key === activeTab)?.label}</CardTitle></CardHeader>
+    <CardHeader><CardTitle>{tabs.find((t) => t.key === data.tab)?.label}</CardTitle></CardHeader>
     <CardContent>
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-border border-b text-left">
-            <th class="pb-3 font-medium">Nama Siswa</th>
-            <th class="pb-3 font-medium">Sekolah</th>
-            <th class="pb-3 font-medium">Tanggal</th>
-            <th class="pb-3 font-medium">Hasil</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each currentResults as r}
-            <tr class="border-border border-b last:border-0">
-              <td class="py-3 font-medium">{r.studentName}</td>
-              <td class="text-muted-foreground py-3">{r.schoolName ?? '-'}</td>
-              <td class="text-muted-foreground py-3">{(r.completedAt ?? r.createdAt) ? new Date(r.completedAt ?? r.createdAt).toLocaleDateString('id-ID') : '-'}</td>
-              <td class="py-3">
-                {#if activeTab === 'disc'}
-                  D:{r.dmost ?? 0} I:{r.imost ?? 0} S:{r.smost ?? 0} C:{r.cmost ?? 0}
-                {:else if activeTab === 'holland'}
-                  {r.hollandCode ?? 'R:' + (r.rscore ?? 0) + ' I:' + (r.iscore ?? 0) + ' A:' + (r.ascore ?? 0)}
-                {:else if activeTab === 'cfit'}
-                  RS: {r.totalScore ?? '-'} IQ: {r.iqScore ?? '-'}
-                {:else if activeTab === 'ist'}
-                  IQ: {r.iqScore ?? '-'} ({r.iqCategory ?? '-'})
-                {:else}
-                  Selesai
-                {/if}
-              </td>
-            </tr>
-          {:else}
-            <tr><td colspan="4" class="text-muted-foreground py-6 text-center">Belum ada hasil</td></tr>
-          {/each}
-        </tbody>
-      </table>
+      <DataTable
+        {columns}
+        table={data.table}
+        searchPlaceholder="Cari nama siswa atau sekolah..."
+        rowKey={(r: any) => r.id}
+      >
+        {#snippet cell(column, r)}
+          {#if column.key === 'studentName'}
+            <span class="font-medium">{r.studentName}</span>
+          {:else if column.key === 'schoolName'}
+            <span class="text-muted-foreground">{r.schoolName ?? '-'}</span>
+          {:else if column.key === 'completedAt'}
+            <span class="text-muted-foreground">{formatDate(r.completedAt ?? r.createdAt)}</span>
+          {:else if column.key === 'result'}
+            <span>{summary(data.tab, r)}</span>
+          {/if}
+        {/snippet}
+      </DataTable>
     </CardContent>
   </Card>
 </div>
