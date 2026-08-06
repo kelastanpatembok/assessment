@@ -43,11 +43,13 @@
 		clientItems = table.items;
 	});
 
-	const displaySearch = $derived(mode === 'server' ? table.search : clientSearch);
-	const displayPage = $derived(mode === 'server' ? table.page : clientPage);
-	const displaySize = $derived(mode === 'server' ? table.size : clientSize);
-	const displaySort = $derived(mode === 'server' ? table.sort : clientSort);
-	const displayOrder = $derived(mode === 'server' ? table.order : clientOrder);
+	const displaySearch = $derived(mode === 'server' ? (page.url.searchParams.get('search') ?? '') : clientSearch);
+	const displayPage = $derived(mode === 'server' ? Number(page.url.searchParams.get('page') ?? 0) : clientPage);
+	const displaySize = $derived(mode === 'server' ? Number(page.url.searchParams.get('size') ?? table.size) : clientSize);
+	const displaySort = $derived(mode === 'server' ? (page.url.searchParams.get('sort') ?? '') : clientSort);
+	const displayOrder = $derived<SortOrder>(
+		mode === 'server' ? ((page.url.searchParams.get('order') as SortOrder) ?? 'asc') : clientOrder
+	);
 
 	const filtered = $derived.by(() => {
 		if (mode !== 'client') return clientItems;
@@ -174,9 +176,9 @@
 							<input type="hidden" name={name} value={value} />
 						{/if}
 					{/each}
-					<input type="hidden" name="size" value={table.size} />
-					<input type="hidden" name="sort" value={table.sort} />
-					<input type="hidden" name="order" value={table.order} />
+					<input type="hidden" name="size" value={displaySize} />
+					<input type="hidden" name="sort" value={displaySort} />
+					<input type="hidden" name="order" value={displayOrder} />
 					<input
 						type="search"
 						name="search"
