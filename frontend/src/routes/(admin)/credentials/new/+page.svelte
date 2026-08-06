@@ -98,8 +98,8 @@
     if (!presetApplied && data?.presetAssignment) {
       const assignment = data.presetAssignment;
       createdAssignment = assignment;
-      usernamePattern.schoolCode = deriveSchoolCode(assignment.school.name);
-      usernamePattern.testCode = deriveTestCode(assignment.category.slug);
+      usernamePattern.schoolCode = deriveSchoolCode(assignment.school?.name ?? '');
+      usernamePattern.testCode = deriveTestCode(assignment.category?.slug ?? '');
       currentStep = 2;
       presetApplied = true;
     }
@@ -266,13 +266,20 @@
         startDate: assignmentForm.startDate,
         endDate: assignmentForm.endDate
       });
-      
+
+      const school = data.schools.find(s => s.id === assignmentForm.schoolId);
+      const category = data.categories.find(c => c.id === assignmentForm.categoryId);
+      if (!school || !category) {
+        error = 'Data sekolah atau kategori tes tidak tersedia. Muat ulang halaman lalu coba lagi.';
+        return;
+      }
+
       createdAssignment = {
         id: response.id,
         schoolId: assignmentForm.schoolId!,
         categoryId: assignmentForm.categoryId!,
-        school: data.schools.find(s => s.id === assignmentForm.schoolId)!,
-        category: data.categories.find(c => c.id === assignmentForm.categoryId)!,
+        school,
+        category,
         status: 'aktif',
         startDate: assignmentForm.startDate,
         endDate: assignmentForm.endDate

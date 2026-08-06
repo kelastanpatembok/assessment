@@ -1,7 +1,7 @@
 import { env } from '$env/dynamic/private';
 import { json } from '@sveltejs/kit';
 
-const authBaseUrl = env.PUBLIC_AUTH_URL || 'http://127.0.0.1:3001/api';
+const authBaseUrl = env.PUBLIC_AUTH_URL || 'http://127.0.0.1:1007/api';
 export const prerender = false;
 
 export async function GET() {

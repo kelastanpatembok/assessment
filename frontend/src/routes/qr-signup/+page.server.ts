@@ -3,7 +3,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
 const PHONE_REGEX = /^(\+62|0|62)[0-9]{9,12}$/;
-const authBaseUrl = env.PUBLIC_AUTH_URL || 'http://127.0.0.1:3001/api';
+const authBaseUrl = env.PUBLIC_AUTH_URL || 'http://127.0.0.1:1007/api';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.user) {
