@@ -37,5 +37,17 @@ export const handle: Handle = async ({ event, resolve }) => {
     }
   }
 
-  return resolve(event);
+  const response = await resolve(event);
+
+  // Never cache HTML pages (or __data.json / actions). Immutable assets under
+  // /_app/ already carry far-future immutable cache headers; but the HTML shell
+  // must always be revalidated, otherwise a browser keeps serving a cached
+  // HTML page whose hashed asset references point at chunks a newer deploy has
+  // removed -> hydration fails -> the SvelteKit error page flashes after the
+  // page renders ("correct page then 500").
+  if (!event.url.pathname.startsWith('/_app/')) {
+    response.headers.set('Cache-Control', 'no-store');
+  }
+
+  return response;
 };
