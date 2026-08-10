@@ -56,6 +56,7 @@ impl FeeConfig {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct FeeConfigRequest {
     pub category_id: Option<i64>,
     pub student_fee: Decimal,

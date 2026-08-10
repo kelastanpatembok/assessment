@@ -16,6 +16,7 @@ use crate::{
 };
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateStudentRequest {
     pub username: String,
     pub email: String,
@@ -27,6 +28,7 @@ pub struct CreateStudentRequest {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateCounselorRequest {
     pub username: String,
     pub email: String,
@@ -36,6 +38,7 @@ pub struct CreateCounselorRequest {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateAfiliatorRequest {
     pub username: String,
     pub email: String,

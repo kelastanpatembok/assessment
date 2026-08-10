@@ -15,6 +15,7 @@ use crate::{
 const KNOWN_TESTS: [&str; 5] = ["disc", "holland", "papi", "cfit", "ist"];
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateCertificateRequest {
     pub test_type: String,
     pub storage_key: String,

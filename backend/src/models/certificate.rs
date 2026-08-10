@@ -35,6 +35,7 @@ impl CertificateView {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateCertificateRequest {
     pub test_type: String,
     pub storage_key: String,

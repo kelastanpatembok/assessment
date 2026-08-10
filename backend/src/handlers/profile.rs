@@ -9,6 +9,7 @@ use crate::{
 };
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ProvisionRequest {
     pub name: String,
     pub email: String,

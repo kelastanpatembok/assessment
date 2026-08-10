@@ -14,6 +14,7 @@ use crate::{
 };
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateUserRequest {
     pub username: String,
     pub email: String,
@@ -24,6 +25,7 @@ pub struct CreateUserRequest {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateUserRequest {
     pub name: Option<String>,
     pub email: Option<String>,

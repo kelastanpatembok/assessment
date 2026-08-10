@@ -54,6 +54,7 @@ impl TestAssignment {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateAssignmentRequest {
     pub category_id: i64,
     pub school_id: Option<i64>,
@@ -65,6 +66,7 @@ pub struct CreateAssignmentRequest {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateAssignmentRequest {
     pub start_date: Option<String>,
     pub end_date: Option<String>,

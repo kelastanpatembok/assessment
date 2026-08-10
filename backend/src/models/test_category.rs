@@ -46,6 +46,7 @@ impl TestCategory {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TestCategoryRequest {
     pub name: String,
     pub slug: String,

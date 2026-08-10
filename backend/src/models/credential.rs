@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::datetime::java_local_date_time;
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BulkCredentialRequest {
     pub test_assignment_id: i64,
     pub school_code: String,
