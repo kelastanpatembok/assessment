@@ -212,7 +212,7 @@ pub async fn submit(
           answers, completed_at) \
          VALUES ($1,$2,$3,$4, $5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16, \
                  $17,$18,$19,$20, $21,$22,$23,$24, $25,$26,$27,$28, \
-                 $29,$30,$31, $32,$33,$34,$35, $36,$37,$38,$39, \
+                 $29,$30,$31, $32,$33,$34::jsonb,$35, $36,$37::jsonb,$38,$39::jsonb, \
                  $40::jsonb, NOW()) \
          RETURNING id, auth_user_id, student_name, school_name, assignment_id, \
                  d_most, i_most, s_most, c_most, d_least, i_least, s_least, c_least, d_dif, i_dif, s_dif, c_dif, \
