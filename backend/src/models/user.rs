@@ -42,7 +42,7 @@ impl AssessmentUser {
     }
 
     pub fn as_json(&self) -> serde_json::Value {
-        crate::json_util::sorted(serde_json::json!({
+        serde_json::json!({
             "authUserId": self.auth_user_id,
             "name": self.name,
             "email": self.email,
@@ -52,6 +52,6 @@ impl AssessmentUser {
             "afiliatorId": self.afiliator_id,
             "createdAt": java_local_date_time(self.created_at),
             "updatedAt": java_local_date_time(self.updated_at),
-        }))
+        })
     }
 }

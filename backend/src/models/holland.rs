@@ -66,18 +66,12 @@ pub struct HollandResult {
 impl HollandResult {
     pub fn as_json(&self) -> serde_json::Value {
         let s = |v: &Option<String>| v.as_ref().map(|x| x.clone());
-        crate::json_util::sorted(serde_json::json!({
+        serde_json::json!({
             "id": self.id,
             "authUserId": self.auth_user_id,
             "studentName": self.student_name,
             "schoolName": self.school_name,
             "assignmentId": self.assignment_id,
-            "rscore": self.r_score,
-            "iscore": self.i_score,
-            "ascore": self.a_score,
-            "sscore": self.s_score,
-            "escore": self.e_score,
-            "cscore": self.c_score,
             "type1": self.type1,
             "type1Name": self.type1_name,
             "type1Description": self.type1_description,
@@ -95,6 +89,12 @@ impl HollandResult {
             "hollandCode": self.holland_code,
             "answers": s(&self.answers),
             "completedAt": java_local_date_time(self.completed_at),
-        }))
+            "rscore": self.r_score,
+            "iscore": self.i_score,
+            "ascore": self.a_score,
+            "sscore": self.s_score,
+            "escore": self.e_score,
+            "cscore": self.c_score,
+        })
     }
 }

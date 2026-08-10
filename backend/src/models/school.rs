@@ -18,7 +18,7 @@ pub struct School {
 
 impl School {
     pub fn as_json(&self) -> serde_json::Value {
-        crate::json_util::sorted(serde_json::json!({
+        serde_json::json!({
             "id": self.id,
             "name": self.name,
             "address": self.address,
@@ -28,6 +28,6 @@ impl School {
             "email": self.email,
             "createdAt": java_local_date_time(self.created_at),
             "updatedAt": java_local_date_time(self.updated_at),
-        }))
+        })
     }
 }

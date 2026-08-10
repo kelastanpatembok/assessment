@@ -39,7 +39,7 @@ pub struct TestAssignment {
 
 impl TestAssignment {
     pub fn as_json(&self) -> serde_json::Value {
-        crate::json_util::sorted(serde_json::json!({
+        serde_json::json!({
             "id": self.id,
             "category": self.category.as_ref().map(|c| c.as_json()),
             "school": self.school.as_ref().map(|s| s.as_json()),
@@ -49,7 +49,7 @@ impl TestAssignment {
             "windowEnd": self.window_end.map(java_local_date_time),
             "active": self.active,
             "createdAt": java_local_date_time(self.created_at),
-        }))
+        })
     }
 }
 

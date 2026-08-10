@@ -91,7 +91,7 @@ pub struct IstResult {
 
 impl IstResult {
     pub fn as_json(&self) -> serde_json::Value {
-        crate::json_util::sorted(serde_json::json!({
+        serde_json::json!({
             "id": self.id,
             "authUserId": self.auth_user_id,
             "studentName": self.student_name,
@@ -103,6 +103,6 @@ impl IstResult {
             "iqCategory": self.iq_category,
             "answers": self.answers,
             "completedAt": java_local_date_time(self.completed_at),
-        }))
+        })
     }
 }
