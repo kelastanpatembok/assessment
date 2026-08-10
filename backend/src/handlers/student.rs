@@ -248,14 +248,23 @@ pub async fn list(
 ) -> AppResult<Json<serde_json::Value>> {
     auth.require_role(&["SUPERADMIN", "GURUBK", "AFILIATOR", "PSIKOLOG"])?;
     // Build scoped WHERE.
-    let mut conds: Vec<String> = vec!["role = 'siswa'".to_string()];
-    let mut binds: Vec<String> = Vec::new();
+    let mut conds: Vec<String> = Vec::new();
     let mut idx = 1usize;
+    conds.push("role = 'siswa'".to_string());
+
+    // Build a single bind vector in order; school_id is bigint so it must be
+    // bound as i64, not a text string.
+    enum Bind {
+        Text(String),
+        Int(i64),
+    }
+    let mut binds: Vec<Bind> = Vec::new();
+
     if auth.is_role("gurubk") {
         match db::load_user(&state.pool, &auth.user_id).await? {
             Some(u) if u.school_id.is_some() => {
                 conds.push(format!("school_id = ${}", idx));
-                binds.push(u.school_id.unwrap().to_string());
+                binds.push(Bind::Int(u.school_id.unwrap()));
                 idx += 1;
             }
             _ => {
@@ -268,7 +277,7 @@ pub async fn list(
         }
     } else if auth.is_role("afiliator") {
         conds.push(format!("afiliator_id = ${}", idx));
-        binds.push(auth.user_id.clone());
+        binds.push(Bind::Text(auth.user_id.clone()));
         idx += 1;
     }
 
@@ -277,7 +286,7 @@ pub async fn list(
             "(LOWER(name) LIKE ${} OR LOWER(username) LIKE ${} OR LOWER(email) LIKE ${})",
             idx, idx, idx
         ));
-        binds.push(params.search_like());
+        binds.push(Bind::Text(params.search_like()));
         idx += 1;
     }
 
@@ -292,7 +301,10 @@ pub async fn list(
         let count_sql = format!("SELECT COUNT(*) FROM assessment_users{where_sql}");
         let mut cq = sqlx::query_scalar::<_, i64>(&count_sql);
         for b in &binds {
-            cq = cq.bind(b);
+            match b {
+                Bind::Text(s) => { cq = cq.bind(s); }
+                Bind::Int(i) => { cq = cq.bind(i); }
+            }
         }
         let total: i64 = cq
             .fetch_one(&state.pool)
@@ -309,7 +321,10 @@ pub async fn list(
         );
         let mut q = sqlx::query_as::<_, AssessmentUserRow>(&sql);
         for b in &binds {
-            q = q.bind(b);
+            match b {
+                Bind::Text(s) => { q = q.bind(s); }
+                Bind::Int(i) => { q = q.bind(i); }
+            }
         }
         let rows: Vec<AssessmentUserRow> = q
             .bind(size)
@@ -329,7 +344,10 @@ pub async fn list(
         );
         let mut q = sqlx::query_as::<_, AssessmentUserRow>(&sql);
         for b in &binds {
-            q = q.bind(b);
+            match b {
+                Bind::Text(s) => { q = q.bind(s); }
+                Bind::Int(i) => { q = q.bind(i); }
+            }
         }
         let rows: Vec<AssessmentUserRow> = q
             .fetch_all(&state.pool)
