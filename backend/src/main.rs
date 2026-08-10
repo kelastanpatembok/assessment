@@ -1,5 +1,6 @@
 #![recursion_limit = "256"]
 
+// Build 2026-08-10: dedicated rust builder on CT 1000.
 mod auth_client;
 mod auth_extractor;
 mod config;
