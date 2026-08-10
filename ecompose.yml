@@ -94,8 +94,7 @@ services:
   assessment-backend:
     path: assessment/backend
     runtimes:
-      - java@17
-      - maven
+      - rust
       - postgresql@15
 
   assessment-frontend:
