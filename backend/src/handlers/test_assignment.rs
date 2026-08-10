@@ -244,7 +244,7 @@ async fn my(
     State(state): State<AppState>,
     auth: AuthUser,
 ) -> AppResult<Json<serde_json::Value>> {
-    auth.require_role(&["SUPERADMIN", "GURUBK"])?;
+    auth.require_role(&["SISWA"])?;
     let rows: Vec<TestAssignmentRow> = sqlx::query_as(
         "SELECT id, category_id, school_id, student_id, assigned_by, window_start, window_end, is_active, created_at \
          FROM test_assignments WHERE student_id = $1",

@@ -250,7 +250,7 @@ pub async fn list(
     // Build scoped WHERE.
     let mut conds: Vec<String> = vec!["role = 'siswa'".to_string()];
     let mut binds: Vec<String> = Vec::new();
-    let mut idx = 2usize;
+    let mut idx = 1usize;
     if auth.is_role("gurubk") {
         match db::load_user(&state.pool, &auth.user_id).await? {
             Some(u) if u.school_id.is_some() => {
