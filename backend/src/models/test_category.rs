@@ -32,7 +32,7 @@ pub struct TestCategory {
 
 impl TestCategory {
     pub fn as_json(&self) -> serde_json::Value {
-        serde_json::json!({
+        crate::json_util::sorted(serde_json::json!({
             "id": self.id,
             "name": self.name,
             "slug": self.slug,
@@ -41,7 +41,7 @@ impl TestCategory {
             "price": serde_json::to_value(&self.price).unwrap_or(serde_json::json!(0)),
             "active": self.active,
             "createdAt": java_local_date_time(self.created_at),
-        })
+        }))
     }
 }
 

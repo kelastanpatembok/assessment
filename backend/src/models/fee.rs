@@ -43,7 +43,7 @@ impl FeeConfig {
         }
     }
     pub fn as_json(&self) -> serde_json::Value {
-        serde_json::json!({
+        crate::json_util::sorted(serde_json::json!({
             "id": self.id,
             "category": self.category.as_ref().map(|c| c.as_json()),
             "studentFee": self.student_fee,
@@ -51,7 +51,7 @@ impl FeeConfig {
             "gurubkSharePct": self.gurubk_share_pct,
             "platformSharePct": self.platform_share_pct,
             "updatedAt": java_local_date_time(self.updated_at),
-        })
+        }))
     }
 }
 
@@ -95,7 +95,7 @@ pub struct FeeShareView {
 
 impl FeeShareView {
     pub fn as_json(&self) -> serde_json::Value {
-        serde_json::json!({
+        crate::json_util::sorted(serde_json::json!({
             "id": self.id,
             "studentName": self.student_name,
             "schoolName": self.school_name,
@@ -105,6 +105,6 @@ impl FeeShareView {
             "gurubkShare": self.gurubk_share,
             "platformShare": self.platform_share,
             "createdAt": java_local_date_time(self.created_at),
-        })
+        }))
     }
 }

@@ -78,8 +78,7 @@ pub async fn list(
     } else {
         let sql = format!(
             "SELECT id, name, slug, description, tests, price, is_active, created_at \
-             FROM test_categories{where_sql} ORDER BY {} {}",
-            sort, order
+             FROM test_categories{where_sql}"
         );
         let mut q = sqlx::query_as::<_, TestCategoryRow>(&sql);
         for b in &binds {

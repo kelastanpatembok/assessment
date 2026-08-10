@@ -322,8 +322,7 @@ pub async fn list(
     } else {
         let sql = format!(
             "SELECT auth_user_id, name, email, username, role, school_id, afiliator_id, created_at, updated_at \
-             FROM assessment_users{where_sql} ORDER BY {} {}",
-            order_col, order
+             FROM assessment_users{where_sql}"
         );
         let mut q = sqlx::query_as::<_, AssessmentUserRow>(&sql);
         for b in &binds {

@@ -21,12 +21,12 @@ pub struct CredentialDto {
 
 impl CredentialDto {
     pub fn as_json(&self) -> serde_json::Value {
-        serde_json::json!({
+        crate::json_util::sorted(serde_json::json!({
             "username": self.username,
             "password": self.password,
             "authUserId": self.auth_user_id,
             "createdAt": java_local_date_time(self.created_at),
-        })
+        }))
     }
 }
 
@@ -43,7 +43,7 @@ pub struct BulkCredentialResponse {
 
 impl BulkCredentialResponse {
     pub fn as_json(&self) -> serde_json::Value {
-        serde_json::json!({
+        crate::json_util::sorted(serde_json::json!({
             "credentials": self.credentials.iter().map(|c| c.as_json()).collect::<Vec<_>>(),
             "schoolName": self.school_name,
             "testCategory": self.test_category,
@@ -51,7 +51,7 @@ impl BulkCredentialResponse {
             "createdBy": self.created_by,
             "createdAt": java_local_date_time(self.created_at),
             "credentialBatchId": self.credential_batch_id,
-        })
+        }))
     }
 }
 
@@ -97,7 +97,7 @@ impl CredentialBatch {
         }
     }
     pub fn as_json(&self) -> serde_json::Value {
-        serde_json::json!({
+        crate::json_util::sorted(serde_json::json!({
             "id": self.id,
             "testAssignmentId": self.test_assignment_id,
             "schoolId": self.school_id,
@@ -107,6 +107,6 @@ impl CredentialBatch {
             "pdfFilename": self.pdf_filename,
             "generatedBy": self.generated_by,
             "createdAt": java_local_date_time(self.created_at),
-        })
+        }))
     }
 }

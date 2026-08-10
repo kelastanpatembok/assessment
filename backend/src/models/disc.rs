@@ -85,24 +85,24 @@ pub struct DiscResult {
 impl DiscResult {
     pub fn as_json(&self) -> serde_json::Value {
         let opt_str = |v: &Option<String>| v.as_ref().map(|s| s.clone());
-        serde_json::json!({
+        crate::json_util::sorted(serde_json::json!({
             "id": self.id,
             "authUserId": self.auth_user_id,
             "studentName": self.student_name,
             "schoolName": self.school_name,
             "assignmentId": self.assignment_id,
-            "dMost": self.d_most,
-            "iMost": self.i_most,
-            "sMost": self.s_most,
-            "cMost": self.c_most,
-            "dLeast": self.d_least,
-            "iLeast": self.i_least,
-            "sLeast": self.s_least,
-            "cLeast": self.c_least,
-            "dDif": self.d_dif,
-            "iDif": self.i_dif,
-            "sDif": self.s_dif,
-            "cDif": self.c_dif,
+            "dmost": self.d_most,
+            "imost": self.i_most,
+            "smost": self.s_most,
+            "cmost": self.c_most,
+            "dleast": self.d_least,
+            "ileast": self.i_least,
+            "sleast": self.s_least,
+            "cleast": self.c_least,
+            "ddif": self.d_dif,
+            "idif": self.i_dif,
+            "sdif": self.s_dif,
+            "cdif": self.c_dif,
             "mostDConv": self.most_d_conv,
             "mostIConv": self.most_i_conv,
             "mostSConv": self.most_s_conv,
@@ -128,6 +128,6 @@ impl DiscResult {
             "leastProfileTraits": opt_str(&self.least_profile_traits),
             "answers": opt_str(&self.answers),
             "completedAt": java_local_date_time(self.completed_at),
-        })
+        }))
     }
 }

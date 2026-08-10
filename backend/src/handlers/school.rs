@@ -127,9 +127,7 @@ pub async fn list(
     } else {
         let sql = format!(
             "SELECT id, name, address, city, province, phone, email, created_at, updated_at \
-             FROM schools{where_sql} ORDER BY {} {}",
-            sort,
-            order
+             FROM schools{where_sql}"
         );
         let rows: Vec<(i64, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, chrono::NaiveDateTime, chrono::NaiveDateTime)> =
             if params.has_search() {
