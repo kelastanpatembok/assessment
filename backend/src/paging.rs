@@ -1,11 +1,46 @@
 use serde::{Deserialize, Serialize};
 
+pub fn de_i64_opt<'de, D>(d: D) -> Result<Option<i64>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let v = <Option<serde_json::Value>>::deserialize(d)?;
+    match v {
+        None => Ok(None),
+        Some(serde_json::Value::Number(n)) => n.as_i64().map(Some).ok_or_else(|| serde::de::Error::custom("expected integer")),
+        Some(serde_json::Value::String(s)) => s
+            .parse::<i64>()
+            .map(Some)
+            .map_err(|_| serde::de::Error::custom("expected integer")),
+        Some(_) => Err(serde::de::Error::custom("expected integer")),
+    }
+}
+
+pub fn de_bool_opt<'de, D>(d: D) -> Result<Option<bool>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let v = <Option<serde_json::Value>>::deserialize(d)?;
+    match v {
+        None => Ok(None),
+        Some(serde_json::Value::Bool(b)) => Ok(Some(b)),
+        Some(serde_json::Value::String(s)) => match s.to_ascii_lowercase().as_str() {
+            "true" | "1" => Ok(Some(true)),
+            "false" | "0" => Ok(Some(false)),
+            _ => Err(serde::de::Error::custom("expected boolean")),
+        },
+        Some(_) => Err(serde::de::Error::custom("expected boolean")),
+    }
+}
+
 /// Mirrors Spring Data pagination query params: page (0-based), size,
 /// search, sort, order. When neither page nor size is present the endpoint
 /// returns a plain list instead of the paged envelope.
 #[derive(Debug, Clone, Default, Deserialize)]
 pub struct PageParams {
+    #[serde(default, deserialize_with = "de_i64_opt")]
     pub page: Option<i64>,
+    #[serde(default, deserialize_with = "de_i64_opt")]
     pub size: Option<i64>,
     pub search: Option<String>,
     pub sort: Option<String>,

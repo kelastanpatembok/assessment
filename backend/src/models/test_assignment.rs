@@ -14,6 +14,7 @@ pub struct TestAssignmentRow {
     pub assigned_by: String,
     pub window_start: Option<NaiveDateTime>,
     pub window_end: Option<NaiveDateTime>,
+    #[sqlx(rename = "is_active")]
     pub active: bool,
     pub created_at: NaiveDateTime,
 }

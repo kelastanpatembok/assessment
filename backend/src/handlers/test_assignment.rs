@@ -20,6 +20,7 @@ const SORT_WHITELIST: [&str; 6] = ["school.name", "category.name", "windowStart"
 pub struct AssignmentListParams {
     #[serde(flatten)]
     pub page: PageParams,
+    #[serde(default, deserialize_with = "crate::paging::de_bool_opt")]
     pub active: Option<bool>,
 }
 

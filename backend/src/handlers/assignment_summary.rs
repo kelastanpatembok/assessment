@@ -16,6 +16,7 @@ use crate::{
 pub struct SummaryParams {
     #[serde(flatten)]
     pub page: PageParams,
+    #[serde(default, deserialize_with = "crate::paging::de_bool_opt")]
     pub active: Option<bool>,
 }
 

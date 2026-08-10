@@ -18,7 +18,9 @@ const SORT_WHITELIST: [&str; 4] = ["studentName", "schoolName", "completedAt", "
 
 #[derive(Deserialize)]
 pub struct CheckParams {
+    #[serde(default, deserialize_with = "crate::paging::de_i64_opt")]
     pub page: Option<i64>,
+    #[serde(default, deserialize_with = "crate::paging::de_i64_opt")]
     pub size: Option<i64>,
     pub search: Option<String>,
     pub sort: Option<String>,

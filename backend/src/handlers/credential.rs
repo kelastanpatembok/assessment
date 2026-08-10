@@ -133,6 +133,7 @@ async fn resolve_conflict(
 
 #[derive(Deserialize)]
 pub struct BatchParams {
+    #[serde(default, deserialize_with = "crate::paging::de_i64_opt")]
     pub test_assignment_id: Option<i64>,
     #[serde(flatten)]
     pub page: PageParams,

@@ -12,6 +12,7 @@ pub struct TestCategoryRow {
     pub description: Option<String>,
     pub tests: Vec<String>,
     pub price: Decimal,
+    #[sqlx(rename = "is_active")]
     pub active: bool,
     pub created_at: NaiveDateTime,
 }
