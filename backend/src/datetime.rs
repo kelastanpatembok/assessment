@@ -1,22 +1,19 @@
 use chrono::{Datelike, NaiveDateTime, Timelike, Utc};
 
 /// Replicates java.time.LocalDateTime.toString() formatting exactly:
-/// ISO-8601 "yyyy-MM-dd'T'HH:mm:ss" plus a fractional-second group of
-/// 3, 6, or 9 digits (Java picks the smallest group that represents the
-/// value exactly, and omits the fraction when nanos are zero).
+/// "yyyy-MM-dd'T'HH:mm:ss" plus a fractional-second part. Java prints the
+/// fraction in groups of 3 digits (minimum one group) with trailing zeros
+/// removed — e.g. .026820 -> .02682, .500000 -> .5, .000000 -> (none).
 pub fn java_local_date_time(dt: NaiveDateTime) -> String {
     let base = dt.format("%Y-%m-%dT%H:%M:%S").to_string();
     let nanos = dt.nanosecond();
     if nanos == 0 {
         return base;
     }
-    if nanos % 1_000_000 == 0 {
-        format!("{}.{:03}", base, nanos / 1_000_000)
-    } else if nanos % 1_000 == 0 {
-        format!("{}.{:06}", base, nanos / 1_000)
-    } else {
-        format!("{}.{:09}", base, nanos)
-    }
+    // Fractional part with leading zeros to 9 digits, then trim trailing zeros.
+    let frac = format!("{:09}", nanos);
+    let frac = frac.trim_end_matches('0');
+    format!("{base}.{frac}")
 }
 
 /// java.time.Instant.toString() for the error envelope timestamp (UTC,
