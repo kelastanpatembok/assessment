@@ -98,7 +98,7 @@ async fn get_active_assignment_id(
     let mut sql = String::from(
         "SELECT ta.id FROM test_assignments ta \
          JOIN test_categories tc ON tc.id = ta.category_id \
-         WHERE ta.is_active = true AND tc.tests @> $1 AND \
+         WHERE ta.is_active = true AND tc.tests @> ARRAY[$1]::text[] AND \
          (ta.window_start IS NULL OR ta.window_start <= NOW()) AND \
          (ta.window_end IS NULL OR ta.window_end >= NOW()) AND \
          (ta.student_id = $2",
@@ -109,9 +109,8 @@ async fn get_active_assignment_id(
     sql.push(')');
     sql.push_str(" LIMIT 1");
 
-    let tests = format!("[\"{}\"]", test_type);
     let mut q = sqlx::query_scalar::<_, i64>(&sql);
-    q = q.bind(tests).bind(student_id);
+    q = q.bind(test_type).bind(student_id);
     if school_id.is_some() {
         q = q.bind(school_id.unwrap());
     }
