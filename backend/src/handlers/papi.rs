@@ -236,21 +236,14 @@ async fn list_scoped(state: &AppState, params: &PageParams) -> AppResult<serde_j
         let mut q = sqlx::query_as::<_, PapiResult>(&sql);
         for b in &binds { q = q.bind(b); }
         let rows: Vec<PapiResult> = q.bind(size).bind(offset).fetch_all(&state.pool).await.map_err(|e| AppError::from_sqlx("list_papi", e))?;
-        let mut items = Vec::new();
-        for r in &rows {
-            items.push(build_view(&state, r).await?.as_json());
-        }
+        let items: Vec<serde_json::Value> = rows.iter().map(|r| r.as_json()).collect();
         Ok(serde_json::to_value(PageResponse::new(items, params.page_or_zero(), size, total)).unwrap())
     } else {
         let sql = format!("SELECT {SEL} FROM papi_results{where_sql} ORDER BY {} {}", order_col, order);
         let mut q = sqlx::query_as::<_, PapiResult>(&sql);
         for b in &binds { q = q.bind(b); }
         let rows: Vec<PapiResult> = q.fetch_all(&state.pool).await.map_err(|e| AppError::from_sqlx("list_papi", e))?;
-        let mut out = Vec::new();
-        for r in &rows {
-            out.push(build_view(&state, r).await?.as_json());
-        }
-        Ok(serde_json::json!(out))
+        Ok(serde_json::json!(rows.iter().map(|r| r.as_json()).collect::<Vec<_>>()))
     }
 }
 

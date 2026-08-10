@@ -75,7 +75,7 @@ pub async fn search(
     // Non-paginated: top 50 users whose username or name contains the query.
     let rows: Vec<AssessmentUserRow> = sqlx::query_as(
         "SELECT auth_user_id, name, email, username, role, school_id, afiliator_id, created_at, updated_at \
-         FROM assessment_users WHERE (LOWER(username) LIKE $1 OR LOWER(name) LIKE $1) ORDER BY name ASC LIMIT 50",
+         FROM assessment_users WHERE (LOWER(username) LIKE $1 OR LOWER(name) LIKE $1) LIMIT 50",
     )
     .bind(&like)
     .fetch_all(&state.pool)

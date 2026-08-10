@@ -109,7 +109,9 @@ pub struct PageResponse<T> {
     pub items: Vec<T>,
     pub page: i64,
     pub size: i64,
+    #[serde(rename = "totalElements")]
     pub total_elements: i64,
+    #[serde(rename = "totalPages")]
     pub total_pages: i64,
 }
 
