@@ -395,12 +395,7 @@ async fn list_results_scoped(
     let where_sql = if conds.is_empty() { String::new() } else { format!(" WHERE {}", conds.join(" AND ")) };
     let sort = params.sort_key(&SORT_WHITELIST, "completedAt");
     let order = params.order_dir();
-    let order_col = match sort {
-        "studentName" => "student_name",
-        "schoolName" => "school_name",
-        "id" => "id",
-        _ => "completed_at",
-    };
+        let order_col = params.sort_col(sort);
     let size = params.size_clamped();
     let offset = params.offset();
     let sel = "id, auth_user_id, student_name, school_name, assignment_id, \

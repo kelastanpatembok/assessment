@@ -281,10 +281,7 @@ pub async fn list(
     let where_sql = format!(" WHERE {}", conds.join(" AND "));
     let sort = params.sort_key(&SORT_WHITELIST, "createdAt");
     let order = params.order_dir();
-    let order_col = match sort {
-        "school.name" => "school_id",
-        s => s,
-    };
+        let order_col = params.sort_col(sort);
     let size = params.size_clamped();
     let offset = params.offset();
 

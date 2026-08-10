@@ -54,11 +54,7 @@ pub async fn list(
 
     let sort = params.page.sort_key(&SORT_WHITELIST, "windowStart");
     let order = params.page.order_dir();
-    let order_col = match sort {
-        "school.name" => "school_id",
-        "category.name" => "category_id",
-        s => s,
-    };
+        let order_col = params.page.sort_col(sort);
     let size = params.page.size_clamped();
     let offset = params.page.offset();
 

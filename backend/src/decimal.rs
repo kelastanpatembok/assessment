@@ -23,7 +23,15 @@ impl Decimal {
 
 impl Serialize for Decimal {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let n: Number = serde_json::from_str(&self.0.to_string()).map_err(serde::ser::Error::custom)?;
+        // The DB stores money as NUMERIC(14,2); render exactly 2 decimals
+        // (150000.00, 0.00) to match Jackson's BigDecimal output. bigdecimal's
+        // to_string() trims trailing zeros, so normalize with_scale first and
+        // append the decimals for integral values.
+        let v = self.0.with_scale(2);
+        let s = v.to_string();
+        let text = if s.contains('.') { s } else { format!("{}.00", s) };
+        let n: Number =
+            serde_json::from_str(&text).map_err(serde::ser::Error::custom)?;
         n.serialize(serializer)
     }
 }
@@ -58,8 +66,11 @@ impl<'r> sqlx::Decode<'r, sqlx::Postgres> for Decimal {
     fn decode(
         value: sqlx::postgres::PgValueRef<'r>,
     ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
+        // The Java Jackson/OpenPDF path always renders NUMERIC(14,2) money as
+        // a 2-decimal number (150000.00). Normalize to 2 decimals here so the
+        // JSON matches regardless of how the driver reports trailing zeros.
         let b = BigDecimal::decode(value)?;
-        Ok(Decimal(b))
+        Ok(Decimal(b.with_scale(2)))
     }
 }
 

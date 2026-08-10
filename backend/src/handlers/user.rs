@@ -125,10 +125,7 @@ pub async fn list(
     let size = params.page.size_clamped();
     let offset = params.page.offset();
 
-    let order_col = match sort {
-        "school.name" => "school_id",
-        s => s,
-    };
+        let order_col = params.page.sort_col(sort);
 
     let count_sql = format!("SELECT COUNT(*) FROM assessment_users{where_sql}");
     let mut cq = sqlx::query_scalar::<_, i64>(&count_sql);

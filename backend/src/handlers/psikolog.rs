@@ -49,6 +49,7 @@ pub async fn search(
         .map_err(|e| AppError::from_sqlx("psikolog_count", e))?;
         let _ = role_cond;
         let sort = params.page.sort_key(&SORT_WHITELIST, "name");
+        let sort = params.page.sort_col(sort);
         let order = params.page.order_dir();
         let size = params.page.size_clamped();
         let offset = params.page.offset();

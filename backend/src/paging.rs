@@ -76,6 +76,25 @@ impl PageParams {
             None => default,
         }
     }
+
+    /// Maps a whitelisted camelCase sort key to the actual SQL column name.
+    /// Keys are endpoint-specific but share these known shapes.
+    pub fn sort_col(&self, key: &'static str) -> &'static str {
+        match key {
+            "createdAt" => "created_at",
+            "updatedAt" => "updated_at",
+            "windowStart" => "window_start",
+            "windowEnd" => "window_end",
+            "school.name" => "school_id",
+            "category.name" => "category_id",
+            "studentName" => "student_name",
+            "schoolName" => "school_name",
+            "completedAt" => "completed_at",
+            "afiliatorShare" => "afiliator_share",
+            "testAssignmentId" => "test_assignment_id",
+            other => other,
+        }
+    }
     pub fn search_like(&self) -> String {
         format!("%{}%", self.search.as_deref().unwrap_or("").trim().to_lowercase())
     }

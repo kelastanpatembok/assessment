@@ -79,6 +79,7 @@ pub async fn list(
             .to_string();
     }
     let sort = params.sort_key(&SORT_WHITELIST, "name");
+    let sort = params.sort_col(sort);
     let order = params.order_dir();
 
     if params.is_paginated() {

@@ -43,6 +43,7 @@ pub async fn list(
     }
     let where_sql = format!(" WHERE {}", conds.join(" AND "));
     let sort = params.sort_key(&SORT_WHITELIST, "name");
+    let sort = params.sort_col(sort);
     let order = params.order_dir();
     let size = params.size_clamped();
     let offset = params.offset();
