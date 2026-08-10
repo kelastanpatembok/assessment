@@ -35,11 +35,9 @@ pub async fn list(
 ) -> AppResult<Json<serde_json::Value>> {
     let mut conds: Vec<String> = vec!["is_active = true".to_string()];
     let mut binds: Vec<String> = Vec::new();
-    let mut idx = 2usize;
     if params.has_search() {
-        conds.push(format!("(LOWER(name) LIKE ${} OR LOWER(slug) LIKE ${})", idx, idx));
+        conds.push(format!("(LOWER(name) LIKE $1 OR LOWER(slug) LIKE $1)"));
         binds.push(params.search_like());
-        idx += 1;
     }
     let where_sql = format!(" WHERE {}", conds.join(" AND "));
     let sort = params.sort_key(&SORT_WHITELIST, "name");
@@ -58,10 +56,11 @@ pub async fn list(
             .fetch_one(&state.pool)
             .await
             .map_err(|e| AppError::from_sqlx("count_categories", e))?;
+        let lim_idx = 1 + binds.len() as i32;
         let sql = format!(
             "SELECT id, name, slug, description, tests, price, is_active, created_at \
              FROM test_categories{where_sql} ORDER BY {} {} LIMIT ${} OFFSET ${}",
-            sort, order, idx, idx + 1
+            sort, order, lim_idx, lim_idx + 1
         );
         let mut q = sqlx::query_as::<_, TestCategoryRow>(&sql);
         for b in &binds {

@@ -99,11 +99,15 @@ pub async fn list(
                 .await
                 .map_err(|e| AppError::from_sqlx("count_schools", e))?
         };
+        // Bind indices: $1 is the search param when present, then size/offset.
+        let (lim_idx, off_idx) = if params.has_search() { (2i32, 3i32) } else { (1i32, 2i32) };
         let sql = format!(
             "SELECT id, name, address, city, province, phone, email, created_at, updated_at \
-             FROM schools{where_sql} ORDER BY {} {} LIMIT $2 OFFSET $3",
+             FROM schools{where_sql} ORDER BY {} {} LIMIT ${} OFFSET ${}",
             sort,
-            order
+            order,
+            lim_idx,
+            off_idx
         );
         let rows: Vec<(i64, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, chrono::NaiveDateTime, chrono::NaiveDateTime)> =
             if params.has_search() {
