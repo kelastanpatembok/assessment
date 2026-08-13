@@ -100,3 +100,10 @@ services:
       - node@20
       - npm
       - pm2
+
+# The estate core repo (this manifest's git). Required for remote deploys
+# (`eco up --remote`) and the deploy webhook, which resolve the project origin
+# from here when the source is shipped (no .git on the host/CT).
+composition:
+  git: git@github.com:kelastanpatembok/assessment.git
+  branch: main
