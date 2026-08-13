@@ -13,6 +13,7 @@ pub mod holland;
 pub mod papi;
 pub mod cfit;
 pub mod ist;
+pub mod epps;
 pub mod big5;
 pub mod fee;
 pub mod certificate;

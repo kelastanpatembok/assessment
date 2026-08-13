@@ -102,6 +102,11 @@ pub fn build_router(state: AppState) -> Router {
         .route("/ist/result/me", get(handlers::ist::result_me))
         .route("/ist/results", get(handlers::ist::results))
         .route("/ist/results/{authUserId}", get(handlers::ist::result_by_user))
+        .route("/epps/check", get(handlers::epps::check))
+        .route("/epps/submit", post(handlers::epps::submit))
+        .route("/epps/result/me", get(handlers::epps::result_me))
+        .route("/epps/results", get(handlers::epps::results))
+        .route("/epps/results/{authUserId}", get(handlers::epps::result_by_user))
         // ---- big5 (public funnel) ----
         .route("/big5/questions", get(handlers::big5::questions))
         .route("/big5/submit", post(handlers::big5::submit))

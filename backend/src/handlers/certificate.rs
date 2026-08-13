@@ -12,7 +12,7 @@ use crate::{
     state::AppState,
 };
 
-const KNOWN_TESTS: [&str; 5] = ["disc", "holland", "papi", "cfit", "ist"];
+const KNOWN_TESTS: [&str; 6] = ["disc", "holland", "papi", "cfit", "ist", "epps"];
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]

@@ -51,6 +51,11 @@ async fn main() -> anyhow::Result<()> {
         .await
         .context("failed to connect to PostgreSQL")?;
 
+    sqlx::migrate!("./migrations")
+        .run(&pool)
+        .await
+        .context("failed to run database migrations")?;
+
     let auth = auth_client::AuthClient::new(config.auth_base_url.clone());
 
     let state = state::AppState {

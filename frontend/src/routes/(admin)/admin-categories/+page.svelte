@@ -7,7 +7,7 @@
   import DataTable from '$lib/components/table/DataTable.svelte';
   import type { TableColumn } from '$lib/table/types';
 
-  const TEST_OPTIONS = ['disc', 'holland', 'papi', 'cfit', 'ist'];
+  const TEST_OPTIONS = ['disc', 'holland', 'papi', 'cfit', 'ist', 'epps'];
 
   let { data, form } = $props();
   let showModal = $state(false);

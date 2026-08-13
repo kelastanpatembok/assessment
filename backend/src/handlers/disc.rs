@@ -68,7 +68,9 @@ pub async fn check_for(
         "holland" => "holland_results",
         "papi" => "papi_results",
         "cfit" => "cfit_results",
-        _ => "ist_results",
+        "ist" => "ist_results",
+        "epps" => "epps_results",
+        _ => return Err(AppError::BadRequest(format!("Unknown test type: {test_type}"))),
     };
     let sql = format!("SELECT COUNT(*) FROM {table} WHERE auth_user_id = $1");
     let completed: i64 = sqlx::query_scalar(&sql)

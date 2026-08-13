@@ -20,6 +20,7 @@ pub async fn clear_result(
         "papi" => "papi_results",
         "cfit" => "cfit_results",
         "ist" => "ist_results",
+        "epps" => "epps_results",
         _ => return Err(AppError::BadRequest("Unknown test key".to_string())),
     };
     let sql = format!("DELETE FROM {table} WHERE auth_user_id = $1");

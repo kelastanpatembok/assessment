@@ -11,7 +11,8 @@
     holland: 'sage',
     papi: 'clay',
     cfit: 'cold',
-    ist: 'grey'
+    ist: 'grey',
+    epps: 'sage'
   };
 
   const testLabels: Record<string, string> = {
@@ -19,7 +20,8 @@
     holland: 'Tes Minat Karir Holland RIASEC',
     papi: 'Tes Kepribadian Kerja PAPI Kostick',
     cfit: 'Tes Kecerdasan IQ CFIT',
-    ist: 'Tes Kecerdasan IQ IST'
+    ist: 'Tes Kecerdasan IQ IST',
+    epps: 'Tes Kepribadian EPPS'
   };
 
   function formatWindow(windowStart: string | null, windowEnd: string | null): string | null {
