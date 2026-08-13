@@ -1,11 +1,11 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { PUBLIC_AUTH_URL, PUBLIC_PHOTOS_URL, PUBLIC_PROFILE_URL } from '$env/static/public';
+import { PUBLIC_AUTH_URL, PUBLIC_STORAGE_URL, PUBLIC_PROFILE_URL } from '$env/static/public';
 import { getProfile } from '$lib/server/profile';
 import type { Actions, PageServerLoad } from './$types';
 
 const AUTH_BASE = (PUBLIC_AUTH_URL || 'http://127.0.0.1:1007/api').replace(/\/+$/, '');
 const PROFILE_BASE = (PUBLIC_PROFILE_URL || 'http://127.0.0.1:1008/api').replace(/\/+$/, '');
-const PHOTOS_BASE = (PUBLIC_PHOTOS_URL || 'http://127.0.0.1:1009/api').replace(/\/+$/, '');
+const STORAGE_BASE = (PUBLIC_STORAGE_URL || 'http://127.0.0.1:1009/api/storage').replace(/\/+$/, '');
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) redirect(302, '/signin');
@@ -69,7 +69,7 @@ export const actions: Actions = {
 
 		let key: string;
 		try {
-			const up = await fetch(`${PHOTOS_BASE}/storage/objects`, { method: 'POST', body: fd });
+			const up = await fetch(`${STORAGE_BASE}/objects`, { method: 'POST', body: fd });
 			if (!up.ok) throw new Error('upload failed');
 			const body = await up.json();
 			key = body.key;
@@ -77,7 +77,7 @@ export const actions: Actions = {
 			return fail(500, { error: 'Gagal mengunggah foto profil. Silakan coba lagi.' });
 		}
 
-		const avatarUrl = `${PHOTOS_BASE}/storage/content/${key}`;
+		const avatarUrl = `${STORAGE_BASE}/content/${key}`;
 		const params = new URLSearchParams({ avatarUrl });
 		const res = await fetch(`${AUTH_BASE}/users/${encodeURIComponent(userId)}?${params}`, {
 			method: 'PUT',
