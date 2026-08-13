@@ -51,11 +51,11 @@ shared_tools:
   - jq
   - ca-certificates
 
-domains:
-  - auth
-  - email-manager
+domains: []
+  # auth / email-manager / storage / profile are consumed from the LXS
+  # registry (services declare `lxs:`), so no source repos are tracked.
   # Disabled temporarily: rag-backend hogged RAM/CPU and caused 524 timeouts.
-  # Remove comments to re-enable.
+  # Remove comments to re-enable rag (source-composed):
   # - rag:
   #     dev: optional
 
