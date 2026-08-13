@@ -114,7 +114,7 @@ up with GE needing tiered free-text scoring rather than exact-match MC (see belo
 
 ### GE tiered scoring — known gap, NOT fixed in this pass
 
-CLAUDE.md's own domain model (§7–§8) specifies Subtest 4 (GE) should be a **separate
+README.md's own domain model (§7–§8) specifies Subtest 4 (GE) should be a **separate
 tiered-scoring table** (`ist_subtest4_questions`, matching legacy `soal_ist_tes4s`:
 free-text answer, full credit / partial credit / zero credit via `jawaban`/`jawaban2`/
 `jawaban3`). The current implementation still treats GE as a plain multiple-choice

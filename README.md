@@ -1,4 +1,4 @@
-# Assessment Project — CLAUDE.md
+# Assessment Project — README.md
 
 Guidance for building the **Assessment** platform: a rebuild of the LEGACY Laravel "ODAS+IST" psychometric assessment system for Indonesian schools, implemented as a **Svelte frontend** (`frontend/`) + **Java Spring Boot backend** (`backend/`) sharing the workspace-level JWT auth server (`../auth`).
 

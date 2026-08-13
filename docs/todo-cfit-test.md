@@ -34,7 +34,7 @@ what to replace and where.
   now mirrors this (`option_images` as a JSONB array).
 - **Scoring algorithm** (`CfitScoringService`): sum of correct answers per
   subtest, confirmed against the legacy `ujianController::storeIQ` — matches
-  CLAUDE.md §8 exactly, except we score against `correct_answer`/
+  README.md §8 exactly, except we score against `correct_answer`/
   `correct_answer2` **server-side on submit**. The legacy app instead baked
   `isCorrect` into the HTML `value` attribute at render time, which leaked
   the answer key into the page source before submission — not carried over.

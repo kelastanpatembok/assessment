@@ -47,7 +47,7 @@ Bold values were increased during this testing session. The host has 7.3 GiB phy
 | frontend | Node.js | 109 MB | 16 |
 | gateway (Caddy) | Go | 38 MB | 16 |
 
-The assessment-backend has a massive restart count (14,613). The error log shows this is a shutdown-time logging issue (`ClassNotFoundException: ch.qos.logback.classic.spi.ThrowableProxy` during `SpringApplicationShutdownHook`), not a runtime crash. The backend is currently stable (28m uptime), but this restart history means it has been crash-looping in the past. See `eco/CLAUDE.md` "High-Load Crash Loops" for the `DATABASE_USERNAME` bug that was fixed.
+The assessment-backend has a massive restart count (14,613). The error log shows this is a shutdown-time logging issue (`ClassNotFoundException: ch.qos.logback.classic.spi.ThrowableProxy` during `SpringApplicationShutdownHook`), not a runtime crash. The backend is currently stable (28m uptime), but this restart history means it has been crash-looping in the past. See `eco/README.md` "High-Load Crash Loops" for the `DATABASE_USERNAME` bug that was fixed.
 
 ### cloudflared Processes (Proxmox Host)
 
