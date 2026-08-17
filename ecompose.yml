@@ -1,7 +1,9 @@
 # ecompose v2 — assessment
 # Assessment estate (assessment.jogjaitcamp.com): Vite+Svelte frontend +
 # Rust/Postgres backend composed from source (this repo). email-manager,
-# auth, storage, profile composed from the LXS registry.
+# storage, profile composed from the LXS registry. auth composed from source
+# (declarative roles). The estate front door is the gateway LXS (deny-by-default
+# ACL), replacing the generated Caddyfile.
 #
 # Builds happen on the developer machine; the server is executable-only.
 
@@ -14,6 +16,7 @@ estates:
     ingress: tunnel
     cloudflare_account: jogjaitcamp
     services:
+      - gateway
       - assessment-frontend
       - assessment-backend
       - email-manager-backend
@@ -22,27 +25,146 @@ estates:
       - profile-backend
 
 services:
+  gateway:
+    lxs: gateway@0.3.0
+
   assessment-frontend:
     path: frontend
     runtimes: [node@20]
+    access:
+      routes:
+        # The SPA shell is public (homepage, signin/signup, assets). Everything
+        # under a protected prefix below overrides this catch-all.
+        - path: /*
+          level: public
+        # Staff areas are role-gated at the edge (session cookie holds the JWT).
+        - path: /admin*
+          level: role:superadmin
+          cookie: assessment_token
+        - path: /counselor*
+          level: role:gurubk
+          cookie: assessment_token
+        - path: /afiliator*
+          level: role:afiliator
+          cookie: assessment_token
+        - path: /psikolog*
+          level: role:psikolog
+          cookie: assessment_token
+        # Authenticated areas (any logged-in user).
+        - path: /student*
+          level: auth
+          cookie: assessment_token
+        - path: /profil*
+          level: auth
+          cookie: assessment_token
+        - path: /credentials*
+          level: auth
+          cookie: assessment_token
+        - path: /assignment-modules*
+          level: auth
+          cookie: assessment_token
+        - path: /tes-gratis*
+          level: auth
+          cookie: assessment_token
 
   assessment-backend:
     path: backend
     binary: assessment-backend
     runtimes: [rust, postgresql@15]
+    access:
+      routes:
+        - path: /api/assessment-backend/*
+          level: auth
+        # The frontend's PUBLIC_API_URL points at /api/v1 (configgen default);
+        # the backend nests under /api. Rewrite so dashboard/API calls land.
+        - path: /api/v1/*
+          level: auth
+          strip: /api/v1
+          rewrite: /api
 
   email-manager-backend:
     lxs: email-manager@1.0.1
     grants: { secrets: [SERVER_PORT, API_BASE_PATH, MONGODB_URI, BREVO_API_KEY] }
 
   auth-backend:
-    lxs: auth@1.0.2
-    grants: { secrets: [JWT_SECRET, MONGODB_URI, SERVER_PORT] }
+    path: ../../lxs/auth/backend
+    runtimes:
+      - rust
+      - mongodb@7
+    binary: rwid-auth-service
+    access:
+      routes:
+        - path: /api/auth/login
+          level: public
+        - path: /api/auth/register
+          level: public
+        - path: /api/auth/register-with-profile
+          level: public
+        - path: /api/auth/verify-email
+          level: public
+        - path: /api/auth/users/check-existence
+          level: public
+        - path: /api/auth/*
+          level: auth
+        - path: /auth-api/auth/login
+          level: public
+          strip: /auth-api
+          rewrite: /api
+        - path: /auth-api/auth/register
+          level: public
+          strip: /auth-api
+          rewrite: /api
+        - path: /auth-api/auth/register-with-profile
+          level: public
+          strip: /auth-api
+          rewrite: /api
+        - path: /auth-api/auth/verify-email
+          level: public
+          strip: /auth-api
+          rewrite: /api
+        - path: /auth-api/auth/users/check-existence
+          level: public
+          strip: /auth-api
+          rewrite: /api
+        - path: /auth-api/*
+          level: auth
+          strip: /auth-api
+          rewrite: /api
 
   storage-backend:
-    lxs: storage@1.0.5
+    lxs: storage@1.0.6
     grants: { secrets: [SERVER_PORT, API_BASE_URL, S3_ENDPOINT, S3_REGION, S3_BUCKET, S3_ACCESS_KEY, S3_SECRET_KEY] }
+    access:
+      routes:
+        - path: /api/storage/*
+          level: auth
 
   profile-backend:
     lxs: profile@1.0.2
     grants: { secrets: [MONGODB_URI, JWT_SECRET, SERVER_PORT, API_BASE_URL] }
+    access:
+      routes:
+        # Frontend calls /api/profile/users/:id (PUBLIC_PROFILE_URL); the profile
+        # LXS nests under /api and serves /api/users/:id. Rewrite the prefix.
+        - path: /api/profile/*
+          level: auth
+          strip: /api/profile
+          rewrite: /api
+
+auth:
+  email_verification:
+    enabled: false
+  roles:
+    - name: public
+      level: public
+    - name: superadmin
+      level: auth
+    - name: gurubk
+      level: auth
+    - name: afiliator
+      level: auth
+    - name: psikolog
+      level: auth
+    - name: siswa
+      level: auth
+      default: true
