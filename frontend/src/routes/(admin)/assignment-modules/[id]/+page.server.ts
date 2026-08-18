@@ -7,7 +7,8 @@ const TEST_LABELS: Record<string, string> = {
 	holland: 'Holland RIASEC',
 	papi: 'PAPI Kostick',
 	cfit: 'IQ CFIT',
-	ist: 'IQ IST'
+	ist: 'IQ IST',
+	epps: 'EPPS'
 };
 
 function summarizeResult(testKey: string, result: Record<string, any>): string {
@@ -22,6 +23,10 @@ function summarizeResult(testKey: string, result: Record<string, any>): string {
 			return result.iqScore ? `IQ ${result.iqScore}` : result.totalScore ? `Skor ${result.totalScore}` : '-';
 		case 'ist':
 			return result.iqScore ? `IQ ${result.iqScore}` : result.totalWert ? `Wert ${result.totalWert}` : '-';
+		case 'epps':
+			return result.consistencyRaw !== undefined
+				? `Konsistensi ${result.consistencyRaw}/15`
+				: '-';
 		default:
 			return '-';
 	}
@@ -34,13 +39,14 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	}
 
 	const api = createApiClient(locals.token);
-	const [assignmentsRaw, discRaw, hollandRaw, papiRaw, cfitRaw, istRaw, credentialBatchesRaw] = await Promise.allSettled([
+	const [assignmentsRaw, discRaw, hollandRaw, papiRaw, cfitRaw, istRaw, eppsRaw, credentialBatchesRaw] = await Promise.allSettled([
 		api.get('/test-assignments'),
 		api.get('/disc/results'),
 		api.get('/holland/results'),
 		api.get('/papi/results'),
 		api.get('/cfit/results'),
 		api.get('/ist/results'),
+		api.get('/epps/results'),
 		api.get(`/credentials/batches?testAssignmentId=${assignmentId}`)
 	]);
 
@@ -56,7 +62,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		holland: hollandRaw.status === 'fulfilled' && Array.isArray(hollandRaw.value) ? hollandRaw.value : [],
 		papi: papiRaw.status === 'fulfilled' && Array.isArray(papiRaw.value) ? papiRaw.value : [],
 		cfit: cfitRaw.status === 'fulfilled' && Array.isArray(cfitRaw.value) ? cfitRaw.value : [],
-		ist: istRaw.status === 'fulfilled' && Array.isArray(istRaw.value) ? istRaw.value : []
+		ist: istRaw.status === 'fulfilled' && Array.isArray(istRaw.value) ? istRaw.value : [],
+		epps: eppsRaw.status === 'fulfilled' && Array.isArray(eppsRaw.value) ? eppsRaw.value : []
 	};
 
 	const tests: string[] = Array.isArray(assignment.category?.tests) ? assignment.category.tests : [];

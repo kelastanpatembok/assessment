@@ -169,7 +169,7 @@ async fn count_results_per_assignment(
     if ids.is_empty() {
         return Ok(counts);
     }
-    for table in ["disc_results", "holland_results", "papi_results", "cfit_results", "ist_results"] {
+    for table in ["disc_results", "holland_results", "papi_results", "cfit_results", "ist_results", "epps_results"] {
         let sql = format!(
             "SELECT assignment_id, COUNT(*) FROM {table} WHERE assignment_id = ANY($1) GROUP BY assignment_id"
         );

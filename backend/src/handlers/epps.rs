@@ -14,6 +14,30 @@ use std::collections::BTreeMap;
 
 const SEL: &str = "id, auth_user_id, student_name, school_name, assignment_id, gender, trait_scores::text, consistency_raw, consistency_percentile, answers::text, completed_at";
 
+pub async fn questions(
+    State(state): State<AppState>,
+    auth: AuthUser,
+) -> AppResult<Json<serde_json::Value>> {
+    auth.require_role(&["SISWA"])?;
+    let rows: Vec<(i64, i32, String, String)> = sqlx::query_as(
+        "SELECT id, item_no, statement_a, statement_b FROM epps_questions \
+         WHERE is_active = true ORDER BY item_no",
+    )
+    .fetch_all(&state.pool)
+    .await
+    .map_err(|e| AppError::from_sqlx("epps_questions", e))?;
+
+    Ok(Json(serde_json::json!(rows
+        .into_iter()
+        .map(|(id, no, statement_a, statement_b)| serde_json::json!({
+            "id": id,
+            "no": no,
+            "statementA": statement_a,
+            "statementB": statement_b,
+        }))
+        .collect::<Vec<_>>())))
+}
+
 pub async fn check(
     State(state): State<AppState>,
     auth: AuthUser,

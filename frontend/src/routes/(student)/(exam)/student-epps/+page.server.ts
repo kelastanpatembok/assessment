@@ -6,8 +6,11 @@ export const load: PageServerLoad = async ({ locals }) => {
   const api = createApiClient(locals.token);
   const check = await api.get('/epps/check').catch(() => null);
   if (check?.completed) redirect(302, '/student-epps/result');
-  if (!check?.canTake) return { unavailable: true, assignmentId: null };
-  return { unavailable: false, assignmentId: check.assignmentId ?? null };
+  if (!check?.canTake) return { questions: [], unavailable: true, assignmentId: null };
+
+  const response = await api.get('/epps/questions').catch(() => []);
+  const questions = Array.isArray(response) ? response : [];
+  return { questions, unavailable: false, assignmentId: check.assignmentId ?? null };
 };
 
 export const actions: Actions = {

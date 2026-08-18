@@ -9,7 +9,8 @@
 		holland: 'Holland RIASEC',
 		papi: 'PAPI Kostick',
 		cfit: 'IQ CFIT',
-		ist: 'IQ IST'
+		ist: 'IQ IST',
+		epps: 'EPPS'
 	};
 
 	let { data } = $props();

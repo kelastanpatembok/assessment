@@ -1,11 +1,10 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { PUBLIC_AUTH_URL, PUBLIC_STORAGE_URL, PUBLIC_PROFILE_URL } from '$env/static/public';
+import { PUBLIC_AUTH_URL, PUBLIC_PROFILE_URL } from '$env/static/public';
 import { getProfile } from '$lib/server/profile';
 import type { Actions, PageServerLoad } from './$types';
 
 const AUTH_BASE = (PUBLIC_AUTH_URL || 'http://127.0.0.1:1007/api').replace(/\/+$/, '');
 const PROFILE_BASE = (PUBLIC_PROFILE_URL || 'http://127.0.0.1:1008/api').replace(/\/+$/, '');
-const STORAGE_BASE = (PUBLIC_STORAGE_URL || 'http://127.0.0.1:1009/api/storage').replace(/\/+$/, '');
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) redirect(302, '/signin');
@@ -51,8 +50,9 @@ export const actions: Actions = {
 	},
 
 	/**
-	 * Upload the avatar file to the reusable `photos` domain, then record the
-	 * resulting URL as the user's avatar (auth owns the avatarUrl identity field).
+	 * Upload the avatar file to the reusable `profile` domain (which proxies
+	 * to the storage LXS), then profile stores the resulting URL. Profile owns
+	 * avatar/cover now — auth is pure identity and no longer accepts uploads.
 	 */
 	avatar: async ({ request, locals }) => {
 		if (!locals.user || !locals.token) return fail(401, { error: 'Sesi berakhir.' });
@@ -63,27 +63,13 @@ export const actions: Actions = {
 		const userId = locals.user.userId;
 		const fd = new FormData();
 		fd.append('file', file);
-		fd.append('owner_id', userId);
-		fd.append('namespace', 'avatars');
-		fd.append('reference_id', userId);
 
-		let key: string;
-		try {
-			const up = await fetch(`${STORAGE_BASE}/objects`, { method: 'POST', body: fd });
-			if (!up.ok) throw new Error('upload failed');
-			const body = await up.json();
-			key = body.key;
-		} catch {
-			return fail(500, { error: 'Gagal mengunggah foto profil. Silakan coba lagi.' });
-		}
-
-		const avatarUrl = `${STORAGE_BASE}/content/${key}`;
-		const params = new URLSearchParams({ avatarUrl });
-		const res = await fetch(`${AUTH_BASE}/users/${encodeURIComponent(userId)}?${params}`, {
-			method: 'PUT',
-			headers: { Authorization: `Bearer ${locals.token}` }
+		const res = await fetch(`${PROFILE_BASE}/users/${encodeURIComponent(userId)}/avatar`, {
+			method: 'POST',
+			headers: { Authorization: `Bearer ${locals.token}` },
+			body: fd
 		});
-		if (!res.ok) return fail(500, { error: 'Foto berhasil diunggah, tetapi avatar gagal diperbarui.' });
+		if (!res.ok) return fail(500, { error: 'Gagal mengunggah foto profil. Silakan coba lagi.' });
 
 		redirect(303, '/profil');
 	}

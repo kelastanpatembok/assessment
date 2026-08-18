@@ -102,6 +102,7 @@ pub fn build_router(state: AppState) -> Router {
         .route("/ist/result/me", get(handlers::ist::result_me))
         .route("/ist/results", get(handlers::ist::results))
         .route("/ist/results/{authUserId}", get(handlers::ist::result_by_user))
+        .route("/epps/questions", get(handlers::epps::questions))
         .route("/epps/check", get(handlers::epps::check))
         .route("/epps/submit", post(handlers::epps::submit))
         .route("/epps/result/me", get(handlers::epps::result_me))
