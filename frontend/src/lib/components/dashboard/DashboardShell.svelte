@@ -11,14 +11,17 @@
     children?: import('svelte').Snippet;
   }>();
 
-  const pathname = $page.url.pathname;
+  const pathname = $derived($page.url.pathname);
   const dashHref = $derived(navLinks[0]?.href);
 
-  function isActive(href: string): boolean {
-    if (href === pathname) return true;
-    if (href !== dashHref && pathname.startsWith(href + '/')) return true;
-    return false;
-  }
+  const links = $derived(
+    navLinks.map((link: { href: string; label: string }) => ({
+      ...link,
+      active:
+        link.href === pathname ||
+        (link.href !== dashHref && pathname.startsWith(link.href + '/')),
+    }))
+  );
 </script>
 
 <div class="dash">
@@ -28,8 +31,8 @@
     <aside class="dash-side">
       <p class="dash-role">{roleLabel}</p>
       <nav class="dash-nav" aria-label="Navigasi panel">
-        {#each navLinks as link}
-          <a href={link.href} class="dash-link" class:active={isActive(link.href)}>{link.label}</a>
+        {#each links as link}
+          <a href={link.href} class="dash-link" class:active={link.active}>{link.label}</a>
         {/each}
       </nav>
     </aside>
