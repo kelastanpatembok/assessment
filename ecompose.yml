@@ -9,7 +9,7 @@
 
 project: assessment
 main: assessment
-description: "Platform asesmen psikologi (assessment.jogjaitcamp.com): tes gratis & paket lengkap dengan peran guru BK, psikolog, dan afiliator."
+description: "Platform asesmen psikologi: tes gratis & paket lengkap dengan peran guru BK, psikolog, dan afiliator."
 
 ct:
   id: 201
@@ -99,7 +99,7 @@ services:
     grants: { secrets: [SERVER_PORT, API_BASE_PATH, MONGODB_URI, BREVO_API_KEY] }
 
   auth-backend:
-    lxs: auth@3.0.0
+    lxs: auth@3.0.1
     port: 2051
     config:
       EMAIL_VERIFICATION_REQUIRED: "false"
