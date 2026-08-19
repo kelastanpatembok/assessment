@@ -34,7 +34,7 @@ estates:
 
 services:
   gateway:
-    lxs: gateway@3.0.0
+    lxs: gateway@3.0.1
     port: 4902
 
   assessment-frontend:
@@ -94,7 +94,7 @@ services:
           rewrite: /api
 
   email-manager-backend:
-    lxs: email-manager@1.0.1
+    lxs: email-manager@1.0.2
     port: 3142
     grants: { secrets: [SERVER_PORT, API_BASE_PATH, MONGODB_URI, BREVO_API_KEY] }
 
@@ -143,7 +143,7 @@ services:
           rewrite: /api
 
   storage-backend:
-    lxs: storage@1.0.6
+    lxs: storage@1.0.7
     port: 4437
     grants: { secrets: [SERVER_PORT, API_BASE_URL, S3_ENDPOINT, S3_REGION, S3_BUCKET, S3_ACCESS_KEY, S3_SECRET_KEY] }
     access:
@@ -152,7 +152,7 @@ services:
           level: auth
 
   profile-backend:
-    lxs: profile@1.0.2
+    lxs: profile@1.0.3
     port: 4481
     grants: { secrets: [MONGODB_URI, JWT_SECRET, SERVER_PORT, API_BASE_URL] }
     access:
