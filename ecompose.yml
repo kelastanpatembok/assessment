@@ -9,10 +9,14 @@
 
 project: assessment
 main: assessment
+description: "Platform asesmen psikologi (assessment.jogjaitcamp.com): tes gratis & paket lengkap dengan peran guru BK, psikolog, dan afiliator."
+
+ct:
+  id: 201
 
 data:
-  postgres: 102
-  mongo: 102
+  postgres: 203
+  mongo: 203
 
 estates:
   assessment:
