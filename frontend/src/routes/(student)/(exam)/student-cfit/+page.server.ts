@@ -11,7 +11,11 @@ export const load: PageServerLoad = async ({ locals }) => {
     return { subtests: [], unavailable: true, assignmentId: null };
   }
 
-  const questions = await api.get('/cfit/questions').catch(() => []);
+  let questionLoadError = false;
+  const questions = await api.get('/cfit/questions').catch(() => {
+    questionLoadError = true;
+    return [];
+  });
   const arr = Array.isArray(questions) ? questions : [];
 
   const subtestMap: Record<string, any[]> = {};
@@ -28,7 +32,12 @@ export const load: PageServerLoad = async ({ locals }) => {
     questions: subtestMap[k] ?? [],
   }));
 
-  return { subtests, unavailable: false, assignmentId: check.assignmentId ?? null };
+  return {
+    subtests,
+    unavailable: false,
+    assignmentId: check.assignmentId ?? null,
+    questionLoadError,
+  };
 };
 
 export const actions: Actions = {

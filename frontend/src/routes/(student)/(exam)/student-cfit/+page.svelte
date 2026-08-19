@@ -139,6 +139,7 @@
   type Subtest = { key: string; label: string; subtestNo: number; questions: CfitQuestion[] };
   let subtests: Subtest[] = $derived(data.subtests ?? []);
   let total = $derived(subtests.length);
+  let questionCount = $derived(subtests.reduce((sum, subtest) => sum + subtest.questions.length, 0));
 
   function fieldKey(q: CfitQuestion): string {
     return `st${q.subtestNo}_q${q.itemNo}`;
@@ -296,7 +297,14 @@
     </div>
   {:else if form?.error}
     <div class="lp-error">{form.error}</div>
-  {:else if subtests.length === 0}
+  {:else if data.questionLoadError}
+    <div class="lp-error flex flex-col gap-3">
+      <p>Soal CFIT gagal dimuat. Silakan muat ulang halaman.</p>
+      <button type="button" class="lp-btn lp-btn-outline lp-btn-sm self-start" onclick={() => location.reload()}>
+        Muat Ulang
+      </button>
+    </div>
+  {:else if questionCount === 0}
     <div class="lp-card lp-card-pad"><p class="lp-lead text-sm">Tidak ada soal tersedia.</p></div>
   {:else}
     <!-- Progress — navigation is forward-only (timer-driven or manual Next),

@@ -1,5 +1,6 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
+use sqlx::types::Json;
 
 use crate::datetime::java_local_date_time;
 
@@ -14,7 +15,7 @@ pub struct CfitQuestionView {
     #[serde(rename = "stemImageUrl")]
     pub stem_image_url: Option<String>,
     #[serde(rename = "optionImages")]
-    pub option_images: Vec<String>,
+    pub option_images: Json<Vec<String>>,
 }
 
 /// cfit_questions full row (for scoring).
@@ -24,7 +25,7 @@ pub struct CfitQuestionRow {
     pub subtest_no: i32,
     pub item_no: i32,
     pub stem_image_url: Option<String>,
-    pub option_images: Vec<String>,
+    pub option_images: Json<Vec<String>>,
     pub correct_answer: String,
     pub correct_answer2: Option<String>,
 }
@@ -84,5 +85,28 @@ impl CfitResult {
             "answers": self.answers,
             "completedAt": java_local_date_time(self.completed_at),
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::CfitQuestionView;
+    use sqlx::types::Json;
+
+    #[test]
+    fn question_view_serializes_jsonb_options_as_an_array() {
+        let question = CfitQuestionView {
+            id: 1,
+            subtest_no: 1,
+            item_no: 1,
+            stem_image_url: Some("/cfit/question.png".to_string()),
+            option_images: Json(vec!["/cfit/a.png".to_string(), "/cfit/b.png".to_string()]),
+        };
+
+        let value = serde_json::to_value(question).expect("question should serialize");
+        assert_eq!(
+            value["optionImages"],
+            serde_json::json!(["/cfit/a.png", "/cfit/b.png"])
+        );
     }
 }
