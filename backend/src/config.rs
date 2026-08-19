@@ -101,9 +101,27 @@ fn build_database_url() -> anyhow::Result<String> {
     Ok(url)
 }
 
-/// jdbc:postgresql://localhost:5432/assessment  ->  (localhost, 5432, assessment)
+/// jdbc:postgresql://localhost:5432/assessment      ->  (localhost, 5432, assessment)
+/// postgresql://user:pass@host:5432/assessment     ->  (host, 5432, assessment)
+///
+/// Accepts both the legacy JDBC form (Spring Boot heritage) and the standard
+/// postgresql:// form Eco's configgen writes. The earlier version only handled
+/// `jdbc:postgresql://` and silently fell back to localhost for any other
+/// format — after the database moved off the app CT to a data-plane CT, that
+/// fallback pointed the whole estate at an empty localhost postgres (30s pool
+/// timeouts → 500s → pages that "eventually landed").
 fn parse_jdbc_url(raw: &str) -> Option<(String, u16, String)> {
-    let body = raw.strip_prefix("jdbc:postgresql://")?.split('?').next()?;
+    let body = raw
+        .strip_prefix("jdbc:postgresql://")
+        .or_else(|| raw.strip_prefix("postgresql://"))
+        .or_else(|| raw.strip_prefix("postgres://"))?
+        .split('?')
+        .next()?;
+    // Strip optional userinfo (user:pass@) when the URL carries credentials.
+    let body = match body.rsplit_once('@') {
+        Some((_, rest)) => rest,
+        None => body,
+    };
     let (host_port, db) = match body.rsplit_once('/') {
         Some((hp, d)) => (hp, d),
         None => (body, ""),
@@ -113,4 +131,35 @@ fn parse_jdbc_url(raw: &str) -> Option<(String, u16, String)> {
         None => (host_port.to_string(), 5432),
     };
     Some((host, port, db.to_string()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_jdbc_url;
+
+    #[test]
+    fn parses_legacy_jdbc_url() {
+        assert_eq!(
+            parse_jdbc_url("jdbc:postgresql://localhost:5432/assessment"),
+            Some(("localhost".to_string(), 5432, "assessment".to_string()))
+        );
+    }
+
+    #[test]
+    fn parses_standard_postgres_url_with_credentials() {
+        assert_eq!(
+            parse_jdbc_url("postgresql://assessment_user:secret@192.168.88.60:5432/assessment"),
+            Some(("192.168.88.60".to_string(), 5432, "assessment".to_string()))
+        );
+        assert_eq!(
+            parse_jdbc_url("postgres://user:pw@db:5432/x?sslmode=require"),
+            Some(("db".to_string(), 5432, "x".to_string()))
+        );
+    }
+
+    #[test]
+    fn does_not_fall_back_when_scheme_is_missing() {
+        // Anything that is not a postgres URL must not silently become localhost.
+        assert_eq!(parse_jdbc_url("mysql://host/db"), None);
+    }
 }
