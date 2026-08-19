@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+	import { Combobox } from 'bits-ui';
 
 	interface School {
 		id: number;
@@ -29,14 +30,67 @@
 
 	let { schools = [], categories = [], form = $bindable(), errors = {} }: Props = $props();
 
-	// School search state
-	let searchTerm = $state('');
-	let showDropdown = $state(false);
-	let filteredSchools = $derived(
-		schools.filter(school => 
-			school.name.toLowerCase().includes(searchTerm.toLowerCase())
-		)
+	// School combobox state: the input text drives filtering; the selection is
+	// form.schoolId (string for bits-ui, number in the form).
+	let inputText = $state('');
+	let open = $state(false);
+
+	const selectedSchool = $derived(schools.find((s) => s.id === form.schoolId) ?? null);
+
+	const filteredSchools = $derived(
+		schools.filter((s) => s.name.toLowerCase().includes(inputText.trim().toLowerCase()))
 	);
+
+	const comboboxItems = $derived(
+		filteredSchools.map((s) => ({ value: String(s.id), label: s.name }))
+	);
+
+	function handleInputChange(event: Event) {
+		const value = (event.currentTarget as HTMLInputElement).value;
+		inputText = value;
+		// Keep the form value honest: if the text no longer matches the selected
+		// school, drop the selection instead of submitting a stale school.
+		if (selectedSchool && !selectedSchool.name.toLowerCase().includes(value.trim().toLowerCase())) {
+			form.schoolId = null;
+		}
+	}
+
+	function handleOpen() {
+		// Fresh browse: if the input just shows a selected school's name, clear
+		// it so the full list is visible instead of a single filtered result.
+		if (selectedSchool && inputText === selectedSchool.name) {
+			inputText = '';
+		}
+		open = true;
+	}
+
+	function handleValueChange(value: string) {
+		if (value) {
+			const school = schools.find((s) => String(s.id) === value);
+			if (school) {
+				form.schoolId = school.id;
+				inputText = school.name;
+			}
+		} else {
+			form.schoolId = null;
+			inputText = '';
+		}
+		open = false;
+	}
+
+	function clearSchool() {
+		form.schoolId = null;
+		inputText = '';
+	}
+
+	function getSelectedSchoolName(): string {
+		return selectedSchool?.name ?? '';
+	}
+
+	function getSelectedCategoryName(): string {
+		const category = categories.find((c) => c.id === form.categoryId);
+		return category?.name || '';
+	}
 
 	// Auto-set default dates (today + 30 days from now)
 	$effect(() => {
@@ -50,85 +104,100 @@
 			form.endDate = future.toISOString().split('T')[0];
 		}
 	});
-
-	function getSelectedSchoolName(): string {
-		const school = schools.find(s => s.id === form.schoolId);
-		return school?.name || '';
-	}
-
-	function getSelectedCategoryName(): string {
-		const category = categories.find(c => c.id === form.categoryId);
-		return category?.name || '';
-	}
-
-	function handleSchoolInput(event: Event) {
-		const target = event.target as HTMLInputElement;
-		searchTerm = target.value;
-		showDropdown = true;
-		
-		// Clear selection if search term doesn't match selected school
-		if (form.schoolId) {
-			const selectedSchool = schools.find(s => s.id === form.schoolId);
-			if (selectedSchool && !selectedSchool.name.toLowerCase().includes(searchTerm.toLowerCase())) {
-				form.schoolId = null;
-			}
-		}
-	}
-
-	function selectSchool(school: School) {
-		form.schoolId = school.id;
-		searchTerm = school.name;
-		showDropdown = false;
-	}
-
-	function handleSchoolFocus() {
-		showDropdown = true;
-		// If there's a selected school, show its name in search
-		if (form.schoolId && !searchTerm) {
-			searchTerm = getSelectedSchoolName();
-		}
-	}
-
-	function handleSchoolBlur() {
-		// Delay hiding dropdown to allow click on option
-		setTimeout(() => {
-			showDropdown = false;
-			
-			// If no school is selected and search term exists, clear it
-			if (!form.schoolId) {
-				searchTerm = '';
-			}
-		}, 150);
-	}
 </script>
 
 <div class="space-y-6">
 	<!-- School Selection -->
-	<div class="space-y-2 relative">
+	<div class="space-y-2">
 		<Label for="school">Pilih Sekolah</Label>
-		<div class="relative">
-			<input 
-				id="school" 
-				type="text"
-				bind:value={searchTerm}
-				oninput={handleSchoolInput}
-				onfocus={handleSchoolFocus}
-				onblur={handleSchoolBlur}
-				placeholder="Cari sekolah..."
-				class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-			/>
-			
-			{#if showDropdown && searchTerm}
-				<div class="absolute z-10 w-full mt-1 bg-background border border-input rounded-md shadow-lg max-h-60 overflow-y-auto">
-					{#if filteredSchools.length > 0}
-						{#each filteredSchools as school (school.id)}
-							<button
-								type="button"
-								class="w-full px-3 py-2 text-left text-sm hover:bg-muted focus:bg-muted focus:outline-none border-b border-border last:border-b-0"
-								onclick={() => selectSchool(school)}
+		<Combobox.Root
+			type="single"
+			value={form.schoolId != null ? String(form.schoolId) : ''}
+			onValueChange={handleValueChange}
+			bind:open={open}
+			inputValue={inputText}
+			items={comboboxItems}
+			loop
+		>
+			<div class="relative">
+				<div class="relative">
+					<Combobox.Input
+						id="school"
+						placeholder="Cari atau pilih sekolah..."
+						oninput={handleInputChange}
+						onfocus={handleOpen}
+						onclick={handleOpen}
+						class="flex h-10 w-full rounded-md border border-input bg-background pl-9 pr-8 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+					/>
+					<svg
+						class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+						viewBox="0 0 20 20"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.6"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						aria-hidden="true"
+					>
+						<circle cx="9" cy="9" r="6" />
+						<line x1="14" y1="14" x2="17.5" y2="17.5" />
+					</svg>
+					{#if form.schoolId}
+						<button
+							type="button"
+							aria-label="Hapus pilihan sekolah"
+							onclick={clearSchool}
+							class="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+						>
+							<svg
+								class="h-3.5 w-3.5"
+								viewBox="0 0 20 20"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.8"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
 							>
-								{school.name}
-							</button>
+								<line x1="5" y1="5" x2="15" y2="15" />
+								<line x1="15" y1="5" x2="5" y2="15" />
+							</svg>
+						</button>
+					{/if}
+				</div>
+
+				<Combobox.ContentStatic class="absolute z-10 mt-1 w-full">
+				<div class="bg-card border-border rounded-md border shadow-lg max-h-60 overflow-y-auto py-1">
+					{#if filteredSchools.length > 0}
+						<p class="px-3 py-1 text-xs text-muted-foreground">
+							{filteredSchools.length} sekolah ditemukan
+						</p>
+						{#each filteredSchools as school (school.id)}
+							<Combobox.Item
+								value={String(school.id)}
+								label={school.name}
+								class="w-full px-3 py-2 text-left text-sm hover:bg-muted focus:bg-muted focus:outline-none"
+							>
+								{#snippet children({ selected })}
+									<span class="flex items-center justify-between gap-2">
+										<span class="truncate">{school.name}</span>
+										{#if selected}
+											<svg
+												class="h-4 w-4 shrink-0 text-foreground"
+												viewBox="0 0 20 20"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="2"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												aria-hidden="true"
+											>
+												<polyline points="4 10.5 8.5 15 16 6" />
+											</svg>
+										{/if}
+									</span>
+								{/snippet}
+							</Combobox.Item>
 						{/each}
 					{:else}
 						<div class="px-3 py-2 text-sm text-muted-foreground">
@@ -136,8 +205,9 @@
 						</div>
 					{/if}
 				</div>
-			{/if}
-		</div>
+			</Combobox.ContentStatic>
+			</div>
+		</Combobox.Root>
 		{#if errors.schoolId}
 			<p class="text-sm text-destructive">{errors.schoolId}</p>
 		{/if}
