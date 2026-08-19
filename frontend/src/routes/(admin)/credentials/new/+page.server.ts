@@ -17,7 +17,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
     : [];
 
   const categories = categoriesRaw.status === 'fulfilled' && Array.isArray(categoriesRaw.value)
-    ? categoriesRaw.value.map((c: any) => ({ id: c.id, name: c.name, slug: c.slug }))
+    ? categoriesRaw.value.map((c: any) => ({ id: c.id, name: c.name, slug: c.slug, tests: Array.isArray(c.tests) ? c.tests : [] }))
     : [];
 
   let presetAssignment = null;

@@ -2,6 +2,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Combobox } from 'bits-ui';
+	import { TEST_METHODS, TEST_METHOD_LABELS, methodLabel } from '$lib/test-methods';
 
 	interface School {
 		id: number;
@@ -12,11 +13,12 @@
 		id: number;
 		name: string;
 		slug: string;
+		tests: string[];
 	}
 
 	interface AssignmentForm {
 		schoolId: number | null;
-		categoryId: number | null;
+		tests: string[];
 		startDate: string;
 		endDate: string;
 	}
@@ -87,10 +89,50 @@
 		return selectedSchool?.name ?? '';
 	}
 
-	function getSelectedCategoryName(): string {
-		const category = categories.find((c) => c.id === form.categoryId);
-		return category?.name || '';
+	// Test method selection: canonical methods plus any extra test keys found in
+	// the estate's categories, in canonical display order.
+	const methodOptions = $derived.by(() => {
+		const keys = new Set<string>(TEST_METHODS.map((m) => m.key));
+		for (const c of categories) {
+			for (const t of c.tests ?? []) keys.add(t);
+		}
+		const canonical = TEST_METHODS.filter((m) => keys.has(m.key));
+		const extras = [...keys]
+			.filter((k) => !TEST_METHOD_LABELS[k])
+			.sort((a, b) => a.localeCompare(b))
+			.map((key) => ({ key, label: methodLabel(key) }));
+		return [...canonical, ...extras];
+	});
+
+	const allSelected = $derived(
+		methodOptions.length > 0 && form.tests.length === methodOptions.length
+	);
+
+	function toggleAll() {
+		form.tests = allSelected ? [] : methodOptions.map((m) => m.key);
 	}
+
+	function toggleMethod(key: string) {
+		if (form.tests.includes(key)) {
+			form.tests = form.tests.filter((k) => k !== key);
+		} else {
+			form.tests = [...form.tests, key];
+		}
+	}
+
+	const selectedMethodLabels = $derived(
+		form.tests.map((k) => methodLabel(k)).join(', ')
+	);
+
+	// Existing category whose tests exactly match the selection (used for a
+	// preview hint; the actual resolve/create happens on submit in the parent).
+	const matchedCategory = $derived.by(() => {
+		if (form.tests.length === 0) return null;
+		const sorted = [...form.tests].sort().join('|');
+		return (
+			categories.find((c) => [...(c.tests ?? [])].sort().join('|') === sorted) ?? null
+		);
+	});
 
 	// Auto-set default dates (today + 30 days from now)
 	$effect(() => {
@@ -213,21 +255,42 @@
 		{/if}
 	</div>
 
-	<!-- Test Category Selection -->
+	<!-- Test Methods Selection -->
 	<div class="space-y-2">
-		<Label for="category">Kategori Tes</Label>
-		<select 
-			id="category" 
-			bind:value={form.categoryId}
-			class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-		>
-			<option value={null}>-- Pilih Kategori Tes --</option>
-			{#each categories as category (category.id)}
-				<option value={category.id}>{category.name}</option>
-			{/each}
-		</select>
-		{#if errors.categoryId}
-			<p class="text-sm text-destructive">{errors.categoryId}</p>
+		<div class="flex items-center justify-between">
+			<Label>Metode Tes</Label>
+			{#if form.tests.length > 0}
+				<span class="text-xs text-muted-foreground">
+					{form.tests.length}/{methodOptions.length} dipilih
+				</span>
+			{/if}
+		</div>
+		<div class="border-input rounded-md border p-3">
+			<label class="flex cursor-pointer items-center gap-2.5 py-1">
+				<input
+					type="checkbox"
+					class="size-4 accent-primary"
+					checked={allSelected}
+					onchange={toggleAll}
+				/>
+				<span class="text-sm font-medium">Semua Metode</span>
+			</label>
+			<div class="border-t border-border mt-2 pt-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+				{#each methodOptions as method (method.key)}
+					<label class="flex cursor-pointer items-center gap-2.5 py-1">
+						<input
+							type="checkbox"
+							class="size-4 accent-primary"
+							checked={form.tests.includes(method.key)}
+							onchange={() => toggleMethod(method.key)}
+						/>
+						<span class="text-sm">{method.label}</span>
+					</label>
+				{/each}
+			</div>
+		</div>
+		{#if errors.tests}
+			<p class="text-sm text-destructive">{errors.tests}</p>
 		{/if}
 	</div>
 
@@ -259,12 +322,22 @@
 	</div>
 
 	<!-- Preview/Summary -->
-	{#if form.schoolId && form.categoryId}
+	{#if form.schoolId && form.tests.length > 0}
 		<div class="rounded-lg bg-muted p-4">
 			<h3 class="font-semibold text-sm mb-2">Ringkasan Penugasan</h3>
 			<div class="space-y-1 text-sm">
 				<p><span class="font-medium">Sekolah:</span> {getSelectedSchoolName()}</p>
-				<p><span class="font-medium">Kategori:</span> {getSelectedCategoryName()}</p>
+				<p><span class="font-medium">Metode:</span> {selectedMethodLabels}</p>
+				{#if matchedCategory}
+					<p>
+						<span class="font-medium">Kategori:</span> {matchedCategory.name}
+					</p>
+				{:else}
+					<p>
+						<span class="font-medium">Kategori:</span>
+						<span class="text-muted-foreground">kombinasi kustom — akan dibuat otomatis</span>
+					</p>
+				{/if}
 				<p><span class="font-medium">Periode:</span> {form.startDate} s/d {form.endDate}</p>
 			</div>
 		</div>

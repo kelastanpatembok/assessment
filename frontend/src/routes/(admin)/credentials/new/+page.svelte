@@ -9,6 +9,7 @@
   } from '$lib/components/wizard';
   import { downloadBlob } from '$lib/utils';
   import { PUBLIC_API_URL } from '$env/static/public';
+  import { methodLabel } from '$lib/test-methods';
 
   // ==================== TypeScript Interfaces ====================
 
@@ -60,7 +61,7 @@
   let currentStep = $state(1); // 1 = create assignment, 2 = configure, 3 = display
   let assignmentForm = $state({
     schoolId: null as number | null,
-    categoryId: null as number | null, 
+    tests: [] as string[],
     startDate: '',
     endDate: ''
   });
@@ -234,8 +235,8 @@
     if (!assignmentForm.schoolId) {
       assignmentErrors.schoolId = 'Pilih sekolah';
     }
-    if (!assignmentForm.categoryId) {
-      assignmentErrors.categoryId = 'Pilih kategori tes';
+    if (!assignmentForm.tests || assignmentForm.tests.length === 0) {
+      assignmentErrors.tests = 'Pilih minimal satu metode tes';
     }
     if (!assignmentForm.startDate) {
       assignmentErrors.startDate = 'Tanggal mulai diperlukan';
@@ -251,6 +252,32 @@
   }
 
   /**
+   * Resolves the selected test methods to an existing category whose tests
+   * match exactly, or creates a new category for a custom combination.
+   * Returns the category (with id/name/slug) to use for the assignment.
+   */
+  async function resolveCategory(tests: string[]): Promise<{ id: number; name: string; slug: string; tests: string[] }> {
+    const api = createApiClient(token);
+    const sorted = [...tests].sort();
+    const key = sorted.join('|');
+
+    const match = data.categories.find((c: any) => [...(c.tests ?? [])].sort().join('|') === key);
+    if (match) return match;
+
+    const name = sorted.map((k) => methodLabel(k)).join(' + ');
+    const slug = sorted.join('-');
+    const created = await api.post('/test-categories', {
+      name,
+      slug,
+      description: name,
+      tests: sorted,
+      price: 0,
+      active: true,
+    });
+    return { id: created.id, name: created.name, slug: created.slug, tests: created.tests ?? sorted };
+  }
+
+  /**
    * Creates a new test assignment and moves to step 2
    */
   async function handleCreateAssignment() {
@@ -259,25 +286,26 @@
     
     try {
       const api = createApiClient(token);
+
+      const category = await resolveCategory(assignmentForm.tests);
       
       const response = await api.post('/test-assignments', {
         schoolId: assignmentForm.schoolId,
-        categoryId: assignmentForm.categoryId,
+        categoryId: category.id,
         startDate: assignmentForm.startDate,
         endDate: assignmentForm.endDate
       });
 
       const school = data.schools.find(s => s.id === assignmentForm.schoolId);
-      const category = data.categories.find(c => c.id === assignmentForm.categoryId);
-      if (!school || !category) {
-        error = 'Data sekolah atau kategori tes tidak tersedia. Muat ulang halaman lalu coba lagi.';
+      if (!school) {
+        error = 'Data sekolah tidak tersedia. Muat ulang halaman lalu coba lagi.';
         return;
       }
 
       createdAssignment = {
         id: response.id,
         schoolId: assignmentForm.schoolId!,
-        categoryId: assignmentForm.categoryId!,
+        categoryId: category.id,
         school,
         category,
         status: 'aktif',
