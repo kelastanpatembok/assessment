@@ -30,7 +30,7 @@ estates:
 
 services:
   gateway:
-    lxs: gateway@0.3.0
+    lxs: gateway@0.4.0
     port: 4902
 
   assessment-frontend:
