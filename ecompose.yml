@@ -1,9 +1,9 @@
 # ecompose v2 — assessment
 # Assessment estate (assessment.jogjaitcamp.com): Vite+Svelte frontend +
 # Rust/Postgres backend composed from source (this repo). email-manager,
-# storage, profile composed from the LXS registry. auth composed from source
-# (declarative roles). The estate front door is the gateway LXS (deny-by-default
-# ACL), replacing the generated Caddyfile.
+# storage, profile, auth composed from the LXS registry. The estate front door
+# is the gateway LXS (deny-by-default ACL), replacing the generated Caddyfile.
+# auth@3.0.0 enforces a single active session per account at the edge.
 #
 # Builds happen on the developer machine; the server is executable-only.
 
@@ -30,7 +30,7 @@ estates:
 
 services:
   gateway:
-    lxs: gateway@0.4.0
+    lxs: gateway@3.0.0
     port: 4902
 
   assessment-frontend:
@@ -95,12 +95,10 @@ services:
     grants: { secrets: [SERVER_PORT, API_BASE_PATH, MONGODB_URI, BREVO_API_KEY] }
 
   auth-backend:
-    path: ../../lxs/auth/backend
+    lxs: auth@3.0.0
     port: 2051
-    runtimes:
-      - rust
-      - mongodb@7
-    binary: rwid-auth-service
+    config:
+      EMAIL_VERIFICATION_REQUIRED: "false"
     access:
       routes:
         - path: /api/auth/login
@@ -163,8 +161,6 @@ services:
           rewrite: /api
 
 auth:
-  email_verification:
-    enabled: false
   roles:
     - name: public
       level: public
