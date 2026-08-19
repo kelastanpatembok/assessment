@@ -2,8 +2,22 @@ import { redirect, fail } from '@sveltejs/kit';
 import { PUBLIC_AUTH_URL } from '$env/static/public';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
-  if (locals.user) redirect(302, '/');
+export const load: PageServerLoad = async ({ locals, fetch, cookies }) => {
+  if (locals.user && locals.token) {
+    // hooks.server.ts can only decode the cookie, not verify its signature, so
+    // a stale token (e.g. after a deploy rotated JWT_SECRET) still populates
+    // locals.user. Verify against the auth service before trusting it —
+    // otherwise a stale cookie bounces users off the login page forever.
+    try {
+      const res = await fetch(`${PUBLIC_AUTH_URL}/auth/session`, {
+        headers: { Authorization: `Bearer ${locals.token}` },
+      });
+      if (res.ok) redirect(302, '/');
+      cookies.delete('assessment_token', { path: '/' });
+    } catch {
+      // auth unreachable: show the login form rather than redirecting blindly.
+    }
+  }
   return {};
 };
 

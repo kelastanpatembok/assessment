@@ -5,8 +5,21 @@ import type { Actions, PageServerLoad } from './$types';
 const AUTH_BASE = (PUBLIC_AUTH_URL || 'http://127.0.0.1:1007/api').replace(/\/+$/, '');
 const PROFILE_BASE = (PUBLIC_PROFILE_URL || 'http://127.0.0.1:1008/api').replace(/\/+$/, '');
 
-export const load: PageServerLoad = async ({ locals }) => {
-  if (locals.user) redirect(302, '/tes-gratis');
+export const load: PageServerLoad = async ({ locals, fetch, cookies }) => {
+  if (locals.user && locals.token) {
+    // Same as signin: hooks can only decode the cookie, not verify the
+    // signature — verify against the auth service so a stale token (post-deploy
+    // JWT rotation) can't bounce users off the signup page forever.
+    try {
+      const res = await fetch(`${AUTH_BASE}/auth/session`, {
+        headers: { Authorization: `Bearer ${locals.token}` },
+      });
+      if (res.ok) redirect(302, '/tes-gratis');
+      cookies.delete('assessment_token', { path: '/' });
+    } catch {
+      // auth unreachable: show the signup form rather than redirecting blindly.
+    }
+  }
   return {};
 };
 
