@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Action } from 'svelte/action';
   import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, OG_IMAGE, OG_LOCALE } from '$lib/site.js';
+  import heroPhoto from '$lib/assets/psikolog.webp';
   import SiteFooter from '$lib/components/site/SiteFooter.svelte';
   import SiteHeader from '$lib/components/site/SiteHeader.svelte';
 
@@ -76,7 +77,7 @@
     <section class="hero" id="beranda">
       <img
         class="hero-photo"
-        src="/psikolog.webp"
+        src={heroPhoto}
         alt="Seorang psikolog profesional sedang tersenyum ramah"
         width="1536"
         height="1024"
