@@ -17,6 +17,7 @@ use crate::{
 #[derive(Deserialize)]
 pub struct SchoolRequest {
     pub name: String,
+    pub npsn: Option<String>,
     pub address: Option<String>,
     pub city: Option<String>,
     pub province: Option<String>,
@@ -38,12 +39,21 @@ pub async fn create(
             req.name
         )));
     }
-    let row = sqlx::query_as::<_, (i64, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, chrono::NaiveDateTime, chrono::NaiveDateTime)>(
-        "INSERT INTO schools (name, address, city, province, phone, email, created_at, updated_at) \
-         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) \
-         RETURNING id, name, address, city, province, phone, email, created_at, updated_at",
+    if let Some(npsn) = &req.npsn {
+        if db::find_school_by_npsn(&state.pool, npsn).await?.is_some() {
+            return Err(AppError::Conflict(format!(
+                "School with NPSN '{}' already exists",
+                npsn
+            )));
+        }
+    }
+    let row = sqlx::query_as::<_, (i64, Option<String>, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, chrono::NaiveDateTime, chrono::NaiveDateTime)>(
+        "INSERT INTO schools (name, npsn, address, city, province, phone, email, created_at, updated_at) \
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) \
+         RETURNING id, npsn, name, address, city, province, phone, email, created_at, updated_at",
     )
     .bind(&req.name)
+    .bind(&req.npsn)
     .bind(&req.address)
     .bind(&req.city)
     .bind(&req.province)
@@ -53,18 +63,7 @@ pub async fn create(
     .await
     .map_err(|e| AppError::from_sqlx("create_school", e))?;
 
-    let school = School {
-        id: row.0,
-        name: row.1,
-        address: row.2,
-        city: row.3,
-        province: row.4,
-        phone: row.5,
-        email: row.6,
-        created_at: row.7,
-        updated_at: row.8,
-    };
-    Ok(Json(school.as_json()))
+    Ok(Json(school_json(&row)))
 }
 
 pub async fn list(
@@ -75,7 +74,7 @@ pub async fn list(
     auth.require_role(&["SUPERADMIN", "GURUBK"])?;
     let mut where_sql = String::new();
     if params.has_search() {
-        where_sql = " WHERE LOWER(name) LIKE $1 OR LOWER(address) LIKE $1 OR LOWER(city) LIKE $1 OR LOWER(province) LIKE $1"
+        where_sql = " WHERE LOWER(name) LIKE $1 OR LOWER(npsn) LIKE $1 OR LOWER(address) LIKE $1 OR LOWER(city) LIKE $1 OR LOWER(province) LIKE $1"
             .to_string();
     }
     let sort = params.sort_key(&SORT_WHITELIST, "name");
@@ -102,14 +101,14 @@ pub async fn list(
         // Bind indices: $1 is the search param when present, then size/offset.
         let (lim_idx, off_idx) = if params.has_search() { (2i32, 3i32) } else { (1i32, 2i32) };
         let sql = format!(
-            "SELECT id, name, address, city, province, phone, email, created_at, updated_at \
+            "SELECT id, npsn, name, address, city, province, phone, email, created_at, updated_at \
              FROM schools{where_sql} ORDER BY {} {} LIMIT ${} OFFSET ${}",
             sort,
             order,
             lim_idx,
             off_idx
         );
-        let rows: Vec<(i64, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, chrono::NaiveDateTime, chrono::NaiveDateTime)> =
+        let rows: Vec<(i64, Option<String>, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, chrono::NaiveDateTime, chrono::NaiveDateTime)> =
             if params.has_search() {
                 sqlx::query_as(&sql)
                     .bind(params.search_like())
@@ -130,10 +129,10 @@ pub async fn list(
         Ok(Json(serde_json::to_value(PageResponse::new(items, params.page_or_zero(), size, total)).unwrap()))
     } else {
         let sql = format!(
-            "SELECT id, name, address, city, province, phone, email, created_at, updated_at \
+            "SELECT id, npsn, name, address, city, province, phone, email, created_at, updated_at \
              FROM schools{where_sql}"
         );
-        let rows: Vec<(i64, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, chrono::NaiveDateTime, chrono::NaiveDateTime)> =
+        let rows: Vec<(i64, Option<String>, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, chrono::NaiveDateTime, chrono::NaiveDateTime)> =
             if params.has_search() {
                 sqlx::query_as(&sql)
                     .bind(params.search_like())
@@ -176,12 +175,23 @@ pub async fn update(
             )));
         }
     }
-    let row = sqlx::query_as::<_, (i64, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, chrono::NaiveDateTime, chrono::NaiveDateTime)>(
-        "UPDATE schools SET name = $2, address = $3, city = $4, province = $5, phone = $6, email = $7, updated_at = NOW() \
-         WHERE id = $1 RETURNING id, name, address, city, province, phone, email, created_at, updated_at",
+    if let Some(npsn) = &req.npsn {
+        if let Some(existing) = db::find_school_by_npsn(&state.pool, npsn).await? {
+            if existing.id != id {
+                return Err(AppError::Conflict(format!(
+                    "School with NPSN '{}' already exists",
+                    npsn
+                )));
+            }
+        }
+    }
+    let row = sqlx::query_as::<_, (i64, Option<String>, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, chrono::NaiveDateTime, chrono::NaiveDateTime)>(
+        "UPDATE schools SET name = $2, npsn = $3, address = $4, city = $5, province = $6, phone = $7, email = $8, updated_at = NOW() \
+         WHERE id = $1 RETURNING id, npsn, name, address, city, province, phone, email, created_at, updated_at",
     )
     .bind(id)
     .bind(&req.name)
+    .bind(&req.npsn)
     .bind(&req.address)
     .bind(&req.city)
     .bind(&req.province)
@@ -212,18 +222,19 @@ pub async fn delete(
 }
 
 fn school_json(
-    r: &(i64, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, chrono::NaiveDateTime, chrono::NaiveDateTime),
+    r: &(i64, Option<String>, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, chrono::NaiveDateTime, chrono::NaiveDateTime),
 ) -> serde_json::Value {
     School {
         id: r.0,
-        name: r.1.clone(),
-        address: r.2.clone(),
-        city: r.3.clone(),
-        province: r.4.clone(),
-        phone: r.5.clone(),
-        email: r.6.clone(),
-        created_at: r.7,
-        updated_at: r.8,
+        npsn: r.1.clone(),
+        name: r.2.clone(),
+        address: r.3.clone(),
+        city: r.4.clone(),
+        province: r.5.clone(),
+        phone: r.6.clone(),
+        email: r.7.clone(),
+        created_at: r.8,
+        updated_at: r.9,
     }
     .as_json()
 }

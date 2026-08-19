@@ -9,16 +9,13 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   const role = url.searchParams.get('role') ?? '';
   const usersEndpoint = `/users?${buildQuery(params)}${role ? `&role=${encodeURIComponent(role)}` : ''}`;
 
-  const [usersRaw, schoolsRaw] = await Promise.allSettled([
-    api.get(usersEndpoint),
-    api.get('/schools'),
-  ]);
+  const usersRaw = await api.get(usersEndpoint).catch(() => null);
 
   return {
     base: url.pathname,
     role,
-    table: normalizePage(usersRaw.status === 'fulfilled' ? usersRaw.value : null, params.size),
-    schools: schoolsRaw.status === 'fulfilled' && Array.isArray(schoolsRaw.value) ? schoolsRaw.value : [],
+    table: normalizePage(usersRaw, params.size),
+    token: locals.token,
   };
 };
 

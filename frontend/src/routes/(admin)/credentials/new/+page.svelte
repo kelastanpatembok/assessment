@@ -61,6 +61,7 @@
   let currentStep = $state(1); // 1 = create assignment, 2 = configure, 3 = display
   let assignmentForm = $state({
     schoolId: null as number | null,
+    schoolName: '' as string,
     tests: [] as string[],
     startDate: '',
     endDate: ''
@@ -296,15 +297,18 @@
         endDate: assignmentForm.endDate
       });
 
-      const school = data.schools.find(s => s.id === assignmentForm.schoolId);
-      if (!school) {
-        error = 'Data sekolah tidak tersedia. Muat ulang halaman lalu coba lagi.';
+      const schoolId = assignmentForm.schoolId;
+      const schoolName = assignmentForm.schoolName;
+      if (!schoolId || !schoolName) {
+        error = 'Pilih sekolah terlebih dahulu.';
         return;
       }
 
+      const school = { id: schoolId, name: schoolName };
+
       createdAssignment = {
         id: response.id,
-        schoolId: assignmentForm.schoolId!,
+        schoolId,
         categoryId: category.id,
         school,
         category,
@@ -314,8 +318,9 @@
       };
       
       // Auto-derive username pattern from created assignment
-      usernamePattern.schoolCode = deriveSchoolCode(createdAssignment.school.name);
-      usernamePattern.testCode = deriveTestCode(createdAssignment.category.slug);
+      const created = createdAssignment;
+      usernamePattern.schoolCode = deriveSchoolCode(created.school.name);
+      usernamePattern.testCode = deriveTestCode(created.category.slug);
       
       currentStep = 2;
     } catch (e) {
@@ -504,11 +509,12 @@
   {#if currentStep === 1}
     <div class="bg-card border-border rounded-xl border p-6 shadow-sm">
       <h3 class="mb-4 text-lg font-semibold">Buat Penugasan Tes</h3>
-      <AssignmentCreationForm 
-        schools={data.schools}
+      <AssignmentCreationForm
+        {token}
         categories={data.categories}
         bind:form={assignmentForm}
         errors={assignmentErrors}
+        onselect={(school) => { assignmentForm.schoolName = school.name; }}
       />
     </div>
   {/if}

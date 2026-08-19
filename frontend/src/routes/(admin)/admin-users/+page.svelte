@@ -5,6 +5,7 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
+  import SchoolSearchSelect from '$lib/components/SchoolSearchSelect.svelte';
   import DataTable from '$lib/components/table/DataTable.svelte';
   import type { TableColumn } from '$lib/table/types';
 
@@ -134,12 +135,7 @@
           </div>
           <div class="flex flex-col gap-2">
             <Label for="edit-school">Sekolah</Label>
-            <select id="edit-school" name="schoolId" class="border-input bg-background flex h-10 w-full rounded-lg border px-3 text-sm">
-              <option value="">Tanpa sekolah</option>
-              {#each data.schools as s}
-                <option value={s.id} selected={editUser.schoolId === String(s.id)}>{s.name}</option>
-              {/each}
-            </select>
+            <SchoolSearchSelect token={data.token} name="schoolId" value={editUser.schoolId ? Number(editUser.schoolId) : null} placeholder="Cari sekolah (opsional)..." />
           </div>
           <div class="flex flex-col gap-2">
             <Label for="edit-password">Password</Label>
@@ -197,12 +193,7 @@
           </div>
           <div class="flex flex-col gap-2">
             <Label for="schoolId">Sekolah (opsional)</Label>
-            <select id="schoolId" name="schoolId" class="border-input bg-background flex h-10 w-full rounded-lg border px-3 text-sm">
-              <option value="">Tanpa sekolah</option>
-              {#each data.schools as s}
-                <option value={s.id}>{s.name}</option>
-              {/each}
-            </select>
+            <SchoolSearchSelect token={data.token} name="schoolId" placeholder="Cari sekolah (opsional)..." />
           </div>
           <div class="flex justify-end gap-2">
             <Button type="button" variant="outline" onclick={() => (showModal = false)}>Batal</Button>

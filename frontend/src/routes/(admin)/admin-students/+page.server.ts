@@ -6,16 +6,15 @@ import type { PageServerLoad, Actions } from './$types';
 export const load: PageServerLoad = async ({ locals, url }) => {
   const api = createApiClient(locals.token);
   const params = parseTableParams(url, { size: 10, sort: 'createdAt', order: 'desc' });
-  const [students, schools, categories] = await Promise.allSettled([
+  const [students, categories] = await Promise.allSettled([
     api.get(`/students?${buildQuery(params)}`),
-    api.get('/schools'),
     api.get('/test-categories'),
   ]);
   return {
     base: url.pathname,
     table: normalizePage(students.status === 'fulfilled' ? students.value : null, params.size),
-    schools: schools.status === 'fulfilled' && Array.isArray(schools.value) ? schools.value : [],
     categories: categories.status === 'fulfilled' && Array.isArray(categories.value) ? categories.value : [],
+    token: locals.token,
   };
 };
 

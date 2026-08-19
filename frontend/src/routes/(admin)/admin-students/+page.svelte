@@ -4,6 +4,7 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
+  import SchoolSearchSelect from '$lib/components/SchoolSearchSelect.svelte';
   import DataTable from '$lib/components/table/DataTable.svelte';
   import type { TableColumn } from '$lib/table/types';
 
@@ -101,12 +102,7 @@
           </div>
           <div class="flex flex-col gap-2">
             <Label for="schoolId">Sekolah</Label>
-            <select id="schoolId" name="schoolId" class="border-input bg-background flex h-10 w-full rounded-lg border px-3 text-sm" required>
-              <option value="">Pilih sekolah...</option>
-              {#each data.schools as s}
-                <option value={s.id}>{s.name}</option>
-              {/each}
-            </select>
+            <SchoolSearchSelect token={data.token} name="schoolId" placeholder="Cari sekolah..." required />
           </div>
           <div class="flex flex-col gap-2">
             <Label for="categoryId">Kategori Tes</Label>
@@ -152,12 +148,7 @@
           </div>
           <div class="flex flex-col gap-2">
             <Label for="editSchoolId">Sekolah</Label>
-            <select id="editSchoolId" name="schoolId" class="border-input bg-background flex h-10 w-full rounded-lg border px-3 text-sm">
-              <option value="">Pilih sekolah...</option>
-              {#each data.schools as s}
-                <option value={s.id} selected={String(s.id) === editTarget.schoolId}>{s.name}</option>
-              {/each}
-            </select>
+            <SchoolSearchSelect token={data.token} name="schoolId" value={editTarget.schoolId ? Number(editTarget.schoolId) : null} placeholder="Cari sekolah..." />
           </div>
           <div class="flex justify-end gap-2">
             <Button type="button" variant="outline" onclick={() => (editTarget = null)}>Batal</Button>

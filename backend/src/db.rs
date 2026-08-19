@@ -10,8 +10,8 @@ use crate::{
 
 /// Load a school by id.
 pub async fn load_school(pool: &PgPool, id: i64) -> AppResult<Option<School>> {
-    let row = sqlx::query_as::<_, (i64, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, chrono::NaiveDateTime, chrono::NaiveDateTime)>(
-        "SELECT id, name, address, city, province, phone, email, created_at, updated_at FROM schools WHERE id = $1",
+    let row = sqlx::query_as::<_, (i64, Option<String>, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, chrono::NaiveDateTime, chrono::NaiveDateTime)>(
+        "SELECT id, npsn, name, address, city, province, phone, email, created_at, updated_at FROM schools WHERE id = $1",
     )
     .bind(id)
     .fetch_optional(pool)
@@ -20,21 +20,22 @@ pub async fn load_school(pool: &PgPool, id: i64) -> AppResult<Option<School>> {
 
     Ok(row.map(|r| School {
         id: r.0,
-        name: r.1,
-        address: r.2,
-        city: r.3,
-        province: r.4,
-        phone: r.5,
-        email: r.6,
-        created_at: r.7,
-        updated_at: r.8,
+        npsn: r.1,
+        name: r.2,
+        address: r.3,
+        city: r.4,
+        province: r.5,
+        phone: r.6,
+        email: r.7,
+        created_at: r.8,
+        updated_at: r.9,
     }))
 }
 
 /// Load a school by name (for uniqueness checks).
 pub async fn find_school_by_name(pool: &PgPool, name: &str) -> AppResult<Option<School>> {
-    let row = sqlx::query_as::<_, (i64, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, chrono::NaiveDateTime, chrono::NaiveDateTime)>(
-        "SELECT id, name, address, city, province, phone, email, created_at, updated_at FROM schools WHERE name = $1",
+    let row = sqlx::query_as::<_, (i64, Option<String>, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, chrono::NaiveDateTime, chrono::NaiveDateTime)>(
+        "SELECT id, npsn, name, address, city, province, phone, email, created_at, updated_at FROM schools WHERE name = $1",
     )
     .bind(name)
     .fetch_optional(pool)
@@ -43,14 +44,39 @@ pub async fn find_school_by_name(pool: &PgPool, name: &str) -> AppResult<Option<
 
     Ok(row.map(|r| School {
         id: r.0,
-        name: r.1,
-        address: r.2,
-        city: r.3,
-        province: r.4,
-        phone: r.5,
-        email: r.6,
-        created_at: r.7,
-        updated_at: r.8,
+        npsn: r.1,
+        name: r.2,
+        address: r.3,
+        city: r.4,
+        province: r.5,
+        phone: r.6,
+        email: r.7,
+        created_at: r.8,
+        updated_at: r.9,
+    }))
+}
+
+/// Load a school by NPSN (for import upserts / dedup).
+pub async fn find_school_by_npsn(pool: &PgPool, npsn: &str) -> AppResult<Option<School>> {
+    let row = sqlx::query_as::<_, (i64, Option<String>, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, chrono::NaiveDateTime, chrono::NaiveDateTime)>(
+        "SELECT id, npsn, name, address, city, province, phone, email, created_at, updated_at FROM schools WHERE npsn = $1",
+    )
+    .bind(npsn)
+    .fetch_optional(pool)
+    .await
+    .map_err(|e| crate::error::AppError::from_sqlx("find_school_by_npsn", e))?;
+
+    Ok(row.map(|r| School {
+        id: r.0,
+        npsn: r.1,
+        name: r.2,
+        address: r.3,
+        city: r.4,
+        province: r.5,
+        phone: r.6,
+        email: r.7,
+        created_at: r.8,
+        updated_at: r.9,
     }))
 }
 

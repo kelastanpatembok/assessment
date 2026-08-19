@@ -6,15 +6,10 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
   const assignmentId = url.searchParams.get('assignmentId');
 
-  const [schoolsRaw, categoriesRaw, assignmentsRaw] = await Promise.allSettled([
-    api.get('/schools'),
+  const [categoriesRaw, assignmentsRaw] = await Promise.allSettled([
     api.get('/test-categories'),
     assignmentId ? api.get('/test-assignments') : Promise.resolve(null)
   ]);
-
-  const schools = schoolsRaw.status === 'fulfilled' && Array.isArray(schoolsRaw.value)
-    ? schoolsRaw.value.map((s: any) => ({ id: s.id, name: s.name }))
-    : [];
 
   const categories = categoriesRaw.status === 'fulfilled' && Array.isArray(categoriesRaw.value)
     ? categoriesRaw.value.map((c: any) => ({ id: c.id, name: c.name, slug: c.slug, tests: Array.isArray(c.tests) ? c.tests : [] }))
@@ -38,7 +33,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   }
 
   return {
-    schools,
     categories,
     presetAssignment,
     token: locals.token,

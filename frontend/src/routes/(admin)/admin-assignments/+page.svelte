@@ -5,6 +5,7 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
+  import SchoolSearchSelect from '$lib/components/SchoolSearchSelect.svelte';
   import DataTable from '$lib/components/table/DataTable.svelte';
   import type { TableColumn } from '$lib/table/types';
 
@@ -95,12 +96,7 @@
         >
           <div class="flex flex-col gap-2">
             <Label for="schoolId">Sekolah</Label>
-            <select id="schoolId" name="schoolId" class="border-input bg-background flex h-10 w-full rounded-lg border px-3 text-sm" required>
-              <option value="">Pilih sekolah...</option>
-              {#each data.schools as s}
-                <option value={s.id}>{s.name}</option>
-              {/each}
-            </select>
+            <SchoolSearchSelect token={data.token} name="schoolId" placeholder="Cari sekolah..." required />
           </div>
           <div class="flex flex-col gap-2">
             <Label for="categoryId">Kategori Tes</Label>
