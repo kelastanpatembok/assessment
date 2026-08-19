@@ -19,7 +19,7 @@
     { label: 'Arah Kerja', traits: ['N', 'G', 'A'] },
     { label: 'Kepemimpinan', traits: ['L', 'P', 'I'] },
     { label: 'Aktivitas', traits: ['T', 'V'] },
-    { label: 'Sifat Sosial', traits: ['X', 'S', 'B', 'O'] },
+    { label: 'Sikap Sosial', traits: ['X', 'S', 'B', 'O'] },
     { label: 'Gaya Kerja', traits: ['R', 'D', 'C'] },
     { label: 'Temperamen', traits: ['Z', 'E', 'K'] },
     { label: 'Kepengikutan', traits: ['F', 'W'] },
@@ -56,9 +56,9 @@
   <div class="lp-card lp-card-pad flex flex-col gap-3">
     <div class="flex flex-col gap-0.5">
       <h3 class="text-base font-semibold">Diagram Profil PAPI Kostick</h3>
-      <p class="lp-muted text-xs">Visualisasi 20 trait kepribadian dalam bentuk radar chart (skala 0-9)</p>
+      <p class="lp-muted text-xs">Psikogram 20 trait kepribadian pada skala 0–9, mengikuti susunan lembar PAPI Kostick.</p>
     </div>
-    <div class="mx-auto w-full max-w-xl">
+    <div class="mx-auto w-full max-w-2xl">
       <PapiRadarChart {traitDetails} />
     </div>
   </div>
