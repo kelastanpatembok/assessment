@@ -43,6 +43,11 @@ services:
         # under a protected prefix below overrides this catch-all.
         - path: /*
           level: public
+        # The homepage hero photo lives at /psikolog.webp, which would be caught
+        # by the /psikolog* role route below — pin it public so the exact match
+        # (higher score) wins over the wildcard.
+        - path: /psikolog.webp
+          level: public
         # Staff areas are role-gated at the edge (session cookie holds the JWT).
         - path: /admin*
           level: role:superadmin
