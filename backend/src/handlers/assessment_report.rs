@@ -429,7 +429,7 @@ async fn load_method_results(
         let map = match key.as_str() {
             "disc" => {
                 let rows: Vec<(String,Option<String>,Option<String>,Option<String>)> = sqlx::query_as(
-                    "SELECT auth_user_id,profile_title,dif_key,COALESCE(profile_desc,dif_profile_traits) FROM disc_results WHERE assignment_id=$1",
+                    "SELECT auth_user_id,profile_title,dif_key,COALESCE(profile_desc,dif_profile_traits::text) FROM disc_results WHERE assignment_id=$1",
                 ).bind(assignment_id).fetch_all(&state.pool).await?;
                 rows.into_iter()
                     .map(|row| {
