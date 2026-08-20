@@ -94,7 +94,7 @@ services:
           rewrite: /api
 
   email-manager-backend:
-    lxs: email-manager@2.1.0
+    lxs: email-manager@2.1.1
     port: 3142
     grants: { secrets: [SERVER_PORT, API_BASE_PATH, MONGODB_URI, BREVO_API_KEY, MAIL_FROM_EMAIL, MAIL_FROM_NAME] }
 
