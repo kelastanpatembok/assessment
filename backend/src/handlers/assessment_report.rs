@@ -625,6 +625,29 @@ fn method_label(key: &str) -> &'static str {
 
 fn top_json_scores(raw: &str, limit: usize) -> Vec<String> {
     let value = serde_json::from_str::<serde_json::Value>(raw).unwrap_or_default();
+    if let Some(items) = value.as_array() {
+        let mut scores = items
+            .iter()
+            .filter_map(|item| {
+                let object = item.as_object()?;
+                let code = object
+                    .get("code")
+                    .and_then(serde_json::Value::as_str)
+                    .or_else(|| object.get("label").and_then(serde_json::Value::as_str))?;
+                let score = object
+                    .get("percentile")
+                    .and_then(serde_json::Value::as_i64)
+                    .or_else(|| object.get("raw").and_then(serde_json::Value::as_i64))?;
+                Some((code.to_string(), score))
+            })
+            .collect::<Vec<_>>();
+        scores.sort_by(|left, right| right.1.cmp(&left.1).then_with(|| left.0.cmp(&right.0)));
+        return scores
+            .into_iter()
+            .take(limit)
+            .map(|(key, score)| format!("{} {}", key.to_uppercase(), score))
+            .collect();
+    }
     let mut scores = value
         .as_object()
         .map(|object| {
@@ -796,5 +819,14 @@ mod tests {
         assert_eq!(methods.len(), 2);
         assert_eq!(methods[0].key, "holland");
         assert_eq!(methods[1].key, "cfit");
+    }
+
+    #[test]
+    fn reads_top_epps_scores_from_array_payload() {
+        let scores = top_json_scores(
+            r#"[{"code":"ach","raw":12,"percentile":40},{"code":"ord","raw":18,"percentile":85}]"#,
+            2,
+        );
+        assert_eq!(scores, vec!["ORD 85", "ACH 40"]);
     }
 }
