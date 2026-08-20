@@ -327,8 +327,8 @@ pub fn routes() -> axum::Router<AppState> {
     use axum::routing::get;
     axum::Router::new()
         .route("/", get(list).post(create))
-        .route("/school/{schoolId}", get(by_school))
-        .route("/student/{studentId}", get(by_student))
+        .route("/school/:schoolId", get(by_school))
+        .route("/student/:studentId", get(by_student))
         .route("/my", get(my))
-        .route("/{id}", axum::routing::put(update).delete(delete))
+        .route("/:id", axum::routing::put(update).delete(delete))
 }
