@@ -1,11 +1,13 @@
 pub mod health;
 pub mod profile;
 pub mod school;
+pub mod school_pic;
 pub mod user;
 pub mod student;
 pub mod test_category;
 pub mod test_assignment;
 pub mod assignment_summary;
+pub mod assessment_report;
 pub mod dashboard;
 pub mod psikolog;
 pub mod disc;

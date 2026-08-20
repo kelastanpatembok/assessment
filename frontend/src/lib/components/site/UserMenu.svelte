@@ -26,6 +26,8 @@
           return '/psikolog-dashboard';
         case 'siswa':
           return '/student-dashboard';
+        case 'pic':
+          return '/profil';
         default:
           return null;
       }

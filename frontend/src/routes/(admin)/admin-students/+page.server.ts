@@ -28,6 +28,8 @@ export const actions: Actions = {
       password: data.get('password'),
       name: data.get('name'),
       schoolId: data.get('schoolId'),
+      dateOfBirth: data.get('dateOfBirth') || null,
+      gender: data.get('gender') || null,
       categoryId: data.get('categoryId'),
     };
     const result = await api.post('/students', body);

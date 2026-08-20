@@ -180,7 +180,7 @@ pub async fn create(
 ) -> AppResult<Json<serde_json::Value>> {
     auth.require_role(&["SUPERADMIN"])?;
     let user = match req.role.as_str() {
-        "gurubk" => {
+        "gurubk" | "pic" => {
             let school_id = req.school_id.ok_or_else(|| {
                 AppError::Internal(anyhow::anyhow!("schoolId required for gurubk"))
             })?;
@@ -191,10 +191,18 @@ pub async fn create(
                 &req.email,
                 &req.password,
                 &req.name,
-                "gurubk",
+                &req.role,
             )
             .await?;
             u.school = Some(db::require_school(&state.pool, school_id).await?);
+            sqlx::query(
+                "UPDATE assessment_users SET school_id = $2, updated_at = NOW() WHERE auth_user_id = $1",
+            )
+            .bind(&u.auth_user_id)
+            .bind(school_id)
+            .execute(&state.pool)
+            .await
+            .map_err(|e| AppError::from_sqlx("assign_staff_school", e))?;
             u
         }
         "afiliator" => {

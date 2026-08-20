@@ -96,6 +96,20 @@
             <Label for="email">Email</Label>
             <Input id="email" name="email" type="email" placeholder="email@contoh.com" />
           </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex flex-col gap-2">
+              <Label for="dateOfBirth">Tanggal lahir</Label>
+              <Input id="dateOfBirth" name="dateOfBirth" type="date" />
+            </div>
+            <div class="flex flex-col gap-2">
+              <Label for="gender">Jenis kelamin</Label>
+              <select id="gender" name="gender" class="border-input bg-background h-10 rounded-lg border px-3 text-sm">
+                <option value="">Pilih...</option>
+                <option value="L">Laki-laki</option>
+                <option value="P">Perempuan</option>
+              </select>
+            </div>
+          </div>
           <div class="flex flex-col gap-2">
             <Label for="password">Password</Label>
             <Input id="password" name="password" type="password" placeholder="Password" required />

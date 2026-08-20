@@ -15,6 +15,7 @@ mod models;
 mod paging;
 mod pdf;
 mod routes;
+mod report_pdf;
 mod scoring;
 mod state;
 
@@ -62,6 +63,7 @@ async fn main() -> anyhow::Result<()> {
         pool,
         config: config.clone(),
         auth,
+        http: reqwest::Client::new(),
     };
 
     let app = routes::build_router(state);

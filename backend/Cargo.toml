@@ -23,6 +23,8 @@ reqwest = { version = "0.13.4", default-features = false, features = ["json", "r
 futures-util = "0.3"
 async-trait = "0.1"
 rand = "0.8"
+base64 = "0.22"
+lopdf = { version = "0.38", default-features = false }
 
 # NOTE: the release profile (opt-level/lto) is defined at the eco-generated
 # workspace root; a per-member profile would be ignored anyway.

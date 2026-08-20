@@ -25,6 +25,8 @@ pub struct CreateStudentRequest {
     pub school_id: i64,
     pub afiliator_id: Option<String>,
     pub category_id: i64,
+    pub date_of_birth: Option<chrono::NaiveDate>,
+    pub gender: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -138,6 +140,19 @@ pub async fn create_student(
         .execute(&state.pool)
         .await
         .map_err(|e| AppError::from_sqlx("update_student_school", e))?;
+
+    if req.date_of_birth.is_some() || req.gender.as_deref().is_some_and(|value| !value.trim().is_empty()) {
+        sqlx::query(
+            "INSERT INTO student_profiles (auth_user_id,date_of_birth,gender,updated_at) VALUES ($1,$2,$3,NOW()) \
+             ON CONFLICT (auth_user_id) DO UPDATE SET date_of_birth=EXCLUDED.date_of_birth,gender=EXCLUDED.gender,updated_at=NOW()",
+        )
+        .bind(&user.auth_user_id)
+        .bind(req.date_of_birth)
+        .bind(req.gender.as_deref().map(str::trim).filter(|value| !value.is_empty()))
+        .execute(&state.pool)
+        .await
+        .map_err(|e| AppError::from_sqlx("save_student_profile", e))?;
+    }
 
     // Fee config: category-specific or global.
     let config_row = sqlx::query_as::<_, crate::models::fee::FeeConfigRow>(

@@ -23,13 +23,18 @@ export const actions: Actions = {
   create: async ({ request, locals }) => {
     const api = createApiClient(locals.token);
     const data = await request.formData();
+    const role = String(data.get('role') ?? '');
+    const schoolId = data.get('schoolId');
+    if ((role === 'gurubk' || role === 'pic') && !schoolId) {
+      return fail(400, { error: 'Sekolah wajib dipilih untuk Guru BK dan PIC sekolah' });
+    }
     const body = {
       username: data.get('username'),
       email: data.get('email'),
       password: data.get('password'),
       name: data.get('name'),
-      role: data.get('role'),
-      schoolId: data.get('schoolId') || null,
+      role,
+      schoolId: schoolId || null,
     };
     const result = await api.post('/users', body);
     if (result?.error) return fail(400, { error: result.error });

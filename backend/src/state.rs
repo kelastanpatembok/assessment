@@ -7,4 +7,5 @@ pub struct AppState {
     pub pool: PgPool,
     pub config: AppConfig,
     pub auth: AuthClient,
+    pub http: reqwest::Client,
 }

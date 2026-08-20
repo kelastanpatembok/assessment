@@ -13,6 +13,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	if (role === 'afiliator') redirect(302, '/afiliator-dashboard');
 	if (role === 'psikolog') redirect(302, '/psikolog-dashboard');
 	if (role === 'siswa') redirect(302, '/student-dashboard');
+	if (role === 'pic') redirect(302, '/profil');
 
 	// Free/member users get a personalized landing page.
 	const profile = await getProfile(locals.user.userId, locals.token ?? '');

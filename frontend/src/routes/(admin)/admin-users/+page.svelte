@@ -20,6 +20,7 @@
     gurubk: 'Guru BK',
     afiliator: 'Afiliator',
     psikolog: 'Psikolog',
+    pic: 'PIC Sekolah',
     siswa: 'Siswa',
   };
 
@@ -28,6 +29,7 @@
     { value: 'gurubk', label: 'Guru BK' },
     { value: 'afiliator', label: 'Afiliator' },
     { value: 'psikolog', label: 'Psikolog' },
+    { value: 'pic', label: 'PIC Sekolah' },
     { value: 'superadmin', label: 'Superadmin' },
   ];
 
@@ -188,11 +190,12 @@
               <option value="gurubk">Guru BK</option>
               <option value="afiliator">Afiliator</option>
               <option value="psikolog">Psikolog</option>
+              <option value="pic">PIC Sekolah</option>
               <option value="superadmin">Superadmin</option>
             </select>
           </div>
           <div class="flex flex-col gap-2">
-            <Label for="schoolId">Sekolah (opsional)</Label>
+            <Label for="schoolId">Sekolah (wajib untuk Guru BK/PIC)</Label>
             <SchoolSearchSelect token={data.token} name="schoolId" placeholder="Cari sekolah (opsional)..." />
           </div>
           <div class="flex justify-end gap-2">

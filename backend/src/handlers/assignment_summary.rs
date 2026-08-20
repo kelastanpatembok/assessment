@@ -31,7 +31,7 @@ pub async fn list(
     auth: AuthUser,
     Query(params): Query<SummaryParams>,
 ) -> AppResult<Json<serde_json::Value>> {
-    auth.require_role(&["SUPERADMIN", "GURUBK"])?;
+    auth.require_role(&["SUPERADMIN", "GURUBK", "PSIKOLOG"])?;
     let mut conds: Vec<String> = Vec::new();
     let mut binds: Vec<String> = Vec::new();
     let mut idx = 1usize;
@@ -110,7 +110,7 @@ pub async fn summary(
     State(state): State<AppState>,
     auth: AuthUser,
 ) -> AppResult<Json<serde_json::Value>> {
-    auth.require_role(&["SUPERADMIN", "GURUBK"])?;
+    auth.require_role(&["SUPERADMIN", "GURUBK", "PSIKOLOG"])?;
     let rows: Vec<TestAssignmentRow> = sqlx::query_as(
         "SELECT id, category_id, school_id, student_id, assigned_by, window_start, window_end, is_active, created_at FROM test_assignments",
     )

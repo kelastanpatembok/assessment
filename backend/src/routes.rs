@@ -47,6 +47,9 @@ pub fn build_router(state: AppState) -> Router {
         // ---- schools ----
         .route("/schools", get(handlers::school::list).post(handlers::school::create))
         .route("/schools/:id", get(handlers::school::get).put(handlers::school::update).delete(handlers::school::delete))
+        .route("/schools/:id/pics", get(handlers::school_pic::list).post(handlers::school_pic::add))
+        .route("/schools/:id/pics/:authUserId/primary", put(handlers::school_pic::set_primary))
+        .route("/schools/:id/pics/:authUserId", delete(handlers::school_pic::remove))
         // ---- users ----
         .route("/users", get(handlers::user::list).post(handlers::user::create))
         .route("/users/me", get(handlers::user::me))
@@ -67,6 +70,11 @@ pub fn build_router(state: AppState) -> Router {
         // ---- assignment summaries ----
         .route("/assignment-summaries", get(handlers::assignment_summary::list))
         .route("/assignment-summaries/summary", get(handlers::assignment_summary::summary))
+        // ---- official school assessment reports ----
+        .route("/assessment-reports", get(handlers::assessment_report::history))
+        .route("/assessment-reports/preview/:assignmentId", get(handlers::assessment_report::preview))
+        .route("/assessment-reports/send/:assignmentId", post(handlers::assessment_report::send))
+        .route("/assessment-reports/:id/download", get(handlers::assessment_report::download))
         // ---- dashboard ----
         .route("/dashboard/summary", get(handlers::dashboard::summary))
         // ---- psikolog ----

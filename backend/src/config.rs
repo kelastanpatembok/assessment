@@ -17,6 +17,7 @@ pub struct AppConfig {
     pub server_port: u16,
     pub cors_allowed_origins: Vec<String>,
     pub auth_base_url: String,
+    pub email_manager_url: String,
     pub credentials_storage_path: String,
     pub dev_tools_enabled: bool,
 }
@@ -68,6 +69,10 @@ impl AppConfig {
                 .collect(),
             auth_base_url: env::var("AUTH_BASE_URL")
                 .unwrap_or_else(|_| "http://localhost:2000/api".to_string()),
+            email_manager_url: env::var("EMAIL_MANAGER_URL")
+                .unwrap_or_else(|_| "http://localhost:3142/api/email".to_string())
+                .trim_end_matches('/')
+                .to_string(),
             credentials_storage_path: env::var("CREDENTIALS_STORAGE_PATH")
                 .unwrap_or_else(|_| "./storage/credentials".to_string()),
             dev_tools_enabled: env::var("DEV_TOOLS_ENABLED")

@@ -94,9 +94,9 @@ services:
           rewrite: /api
 
   email-manager-backend:
-    lxs: email-manager@1.0.2
+    lxs: email-manager@2.1.0
     port: 3142
-    grants: { secrets: [SERVER_PORT, API_BASE_PATH, MONGODB_URI, BREVO_API_KEY] }
+    grants: { secrets: [SERVER_PORT, API_BASE_PATH, MONGODB_URI, BREVO_API_KEY, MAIL_FROM_EMAIL, MAIL_FROM_NAME] }
 
   auth-backend:
     lxs: auth@3.0.1
@@ -175,6 +175,8 @@ auth:
     - name: afiliator
       level: auth
     - name: psikolog
+      level: auth
+    - name: pic
       level: auth
     - name: siswa
       level: auth
