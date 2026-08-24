@@ -34,9 +34,9 @@
 </script>
 
 <svelte:head>
-  <title>Asesmen — Platform Asesmen Psikometri</title>
+  <title>Asesmen — Platform Asesmen Psikometri - (c) 2026</title>
   <meta name="description" content={SITE_DESCRIPTION} />
-  <meta property="og:title" content="Asesmen — Platform Asesmen Psikometri" />
+  <meta property="og:title" content="Asesmen — Platform Asesmen Psikometri - (c) 2026" />
   <meta property="og:description" content={SITE_DESCRIPTION} />
   <meta property="og:url" content={SITE_URL} />
   <meta property="og:type" content="website" />
@@ -46,7 +46,7 @@
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Asesmen — Platform Asesmen Psikometri" />
+  <meta name="twitter:title" content="Asesmen — Platform Asesmen Psikometri - (c) 2026" />
   <meta name="twitter:description" content={SITE_DESCRIPTION} />
   <meta name="twitter:image" content={OG_IMAGE} />
 </svelte:head>
