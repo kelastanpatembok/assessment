@@ -104,7 +104,7 @@
     try {
       const res = await trackedFetch('/tes-gratis/soal?/save', {
         method: 'POST',
-        headers: { 'Content-Type: application/x-www-form-urlencoded' },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({ answers: JSON.stringify(answers) })
       });
       if (res.status === 401) {
