@@ -10,6 +10,7 @@ use crate::{
     db,
     error::{AppError, AppResult},
     paging::{PageParams, PageResponse},
+    permissions::{self, Permission},
     state::AppState,
 };
 
@@ -79,7 +80,7 @@ pub async fn list(
     auth: AuthUser,
     Query(params): Query<UserListParams>,
 ) -> AppResult<Json<serde_json::Value>> {
-    auth.require_role(&["SUPERADMIN"])?;
+    auth.require_permission(Permission::ReadUser)?;
     // Non-paginated branch in the Java code ignores all filters and returns findAll().
     if !params.page.is_paginated() {
         let rows: Vec<crate::models::user::AssessmentUserRow> = sqlx::query_as(
@@ -178,7 +179,7 @@ pub async fn create(
     auth: AuthUser,
     Json(req): Json<CreateUserRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
-    auth.require_role(&["SUPERADMIN"])?;
+    auth.require_permission(Permission::CreateUser)?;
     let user = match req.role.as_str() {
         "gurubk" | "pic" => {
             let school_id = req.school_id.ok_or_else(|| {
@@ -226,7 +227,7 @@ pub async fn update(
     Path(auth_user_id): Path<String>,
     Json(req): Json<UpdateUserRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
-    auth.require_role(&["SUPERADMIN"])?;
+    auth.require_permission(Permission::UpdateUser)?;
     let row = db::load_user(&state.pool, &auth_user_id)
         .await?
         .ok_or_else(|| AppError::NotFound(format!("User not found: {auth_user_id}")))?;
@@ -272,7 +273,7 @@ pub async fn delete(
     auth: AuthUser,
     Path(auth_user_id): Path<String>,
 ) -> AppResult<StatusCode> {
-    auth.require_role(&["SUPERADMIN"])?;
+    auth.require_permission(Permission::DeleteUser)?;
     let result = sqlx::query("DELETE FROM assessment_users WHERE auth_user_id = $1")
         .bind(&auth_user_id)
         .execute(&state.pool)
@@ -289,7 +290,7 @@ pub async fn by_role(
     auth: AuthUser,
     Path(role): Path<String>,
 ) -> AppResult<Json<serde_json::Value>> {
-    auth.require_role(&["SUPERADMIN", "GURUBK"])?;
+    auth.require_permission(Permission::ReadUser)?;
     let rows: Vec<crate::models::user::AssessmentUserRow> = sqlx::query_as(
         "SELECT auth_user_id, name, email, username, role, school_id, afiliator_id, created_at, updated_at \
          FROM assessment_users WHERE role = $1",
@@ -310,7 +311,7 @@ pub async fn by_school(
     auth: AuthUser,
     Path(school_id): Path<i64>,
 ) -> AppResult<Json<serde_json::Value>> {
-    auth.require_role(&["SUPERADMIN", "GURUBK"])?;
+    auth.require_permission(Permission::ReadUser)?;
     let rows: Vec<crate::models::user::AssessmentUserRow> = sqlx::query_as(
         "SELECT auth_user_id, name, email, username, role, school_id, afiliator_id, created_at, updated_at \
          FROM assessment_users WHERE school_id = $1",

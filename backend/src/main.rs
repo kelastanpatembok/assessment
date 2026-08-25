@@ -14,6 +14,7 @@ mod json_util;
 mod models;
 mod paging;
 mod pdf;
+mod permissions;
 mod routes;
 mod report_pdf;
 mod scoring;

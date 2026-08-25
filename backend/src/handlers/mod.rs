@@ -21,3 +21,4 @@ pub mod fee;
 pub mod certificate;
 pub mod credential;
 pub mod devtools;
+pub mod role_permissions;

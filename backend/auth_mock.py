@@ -15,15 +15,80 @@ app = Flask(__name__)
 # Use the same secret as in .env file
 JWT_SECRET = "test-jwt-secret-that-must-be-at-least-32-bytes-long-for-testing-123456"
 
-# In-memory user store for development
+# In-memory user store for development dengan roles lengkap
 users_db = {
+    "superadmin": {
+        "id": "superadmin-id-001",
+        "username": "superadmin",
+        "email": "superadmin@example.com",
+        "name": "Super Administrator",
+        "role": "SUPERADMIN",
+        "password": "superadmin123"
+    },
+    "psikolog1": {
+        "id": "psikolog-id-002",
+        "username": "psikolog1",
+        "email": "psikolog@example.com",
+        "name": "Dr. Psikolog Ahli",
+        "role": "PSIKOLOG",
+        "password": "psikolog123"
+    },
+    "gurubk1": {
+        "id": "gurubk-id-003",
+        "username": "gurubk1",
+        "email": "gurubk@example.com",
+        "name": "Guru BK Sekolah",
+        "role": "GURUBK",
+        "school_id": 1,
+        "password": "gurubk123"
+    },
+    "siswa1": {
+        "id": "siswa-id-004",
+        "username": "siswa1",
+        "email": "siswa@example.com",
+        "name": "Siswa Contoh",
+        "role": "SISWA",
+        "school_id": 1,
+        "class": "X IPA 1",
+        "password": "siswa123"
+    },
+    "afiliator1": {
+        "id": "afiliator-id-005",
+        "username": "afiliator1",
+        "email": "afiliator@example.com",
+        "name": "Afiliator Marketing",
+        "role": "AFILIATOR",
+        "password": "afiliator123"
+    },
+    "adminsekolah": {
+        "id": "adminsekolah-id-006",
+        "username": "adminsekolah",
+        "email": "admin@sekolah.com",
+        "name": "Admin Sekolah",
+        "role": "ADMIN_SEKOLAH",
+        "school_id": 1,
+        "password": "admin123"
+    },
+    "ortusiswa": {
+        "id": "ortusiswa-id-007",
+        "username": "ortusiswa",
+        "email": "ortu@example.com",
+        "name": "Orang Tua Siswa",
+        "role": "ORTU_SISWA",
+        "student_id": "siswa-id-004",  # ID siswa yang diwakili
+        "password": "ortu123"
+    }
+}
+
+# Simpan juga user lama untuk backward compatibility
+users_db.update({
     "testuser": {
         "id": "test-user-id-123",
         "username": "testuser",
         "email": "test@example.com",
         "name": "Test User",
         "role": "SUPERADMIN",
-        "password": "test123"  # In real app, use hashed passwords
+        "password": "test123"
     },
     "gurubk": {
         "id": "gurubk-id-456",
@@ -31,6 +96,7 @@ users_db = {
         "email": "gurubk@example.com",
         "name": "Guru BK",
         "role": "GURUBK",
+        "school_id": 1,
         "password": "gurubk123"
     },
     "student": {
@@ -39,9 +105,11 @@ users_db = {
         "email": "student@example.com",
         "name": "Student Test",
         "role": "SISWA",
+        "school_id": 1,
+        "class": "X IPA 1",
         "password": "student123"
     }
-}
+})
 
 def generate_token(user_id, username, role):
     """Generate JWT token for user"""

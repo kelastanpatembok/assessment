@@ -56,6 +56,8 @@ impl FromRequestParts<AppState> for AuthUser {
     }
 }
 
+use crate::permissions;
+
 impl AuthUser {
     /// 403 (not 401) when the role isn't permitted, mirroring Spring Security.
     pub fn require_role(&self, allowed: &[&str]) -> Result<(), AppError> {
@@ -67,7 +69,68 @@ impl AuthUser {
         }
     }
 
+    /// Check if user has specific permission
+    pub fn has_permission(&self, permission: permissions::Permission) -> bool {
+        permissions::check_permission(&self.role, permission)
+    }
+
+    /// Require specific permission
+    pub fn require_permission(&self, permission: permissions::Permission) -> Result<(), AppError> {
+        if self.has_permission(permission) {
+            Ok(())
+        } else {
+            Err(AppError::Forbidden(format!(
+                "Permission denied: user role {} cannot access this resource",
+                self.role
+            )))
+        }
+    }
+
+    /// Check if user can access specific endpoint
+    pub fn can_access_endpoint(&self, endpoint: &str, method: &str) -> bool {
+        if let Some(role) = permissions::Role::from_str(&self.role) {
+            permissions::RolePermissions::can_access_endpoint(role, endpoint, method)
+        } else {
+            false
+        }
+    }
+
     pub fn is_role(&self, role: &str) -> bool {
         self.role.eq_ignore_ascii_case(role)
+    }
+
+    /// Check if user is superadmin
+    pub fn is_superadmin(&self) -> bool {
+        self.is_role("SUPERADMIN")
+    }
+
+    /// Check if user is psikolog
+    pub fn is_psikolog(&self) -> bool {
+        self.is_role("PSIKOLOG")
+    }
+
+    /// Check if user is guru BK
+    pub fn is_gurubk(&self) -> bool {
+        self.is_role("GURUBK")
+    }
+
+    /// Check if user is siswa
+    pub fn is_siswa(&self) -> bool {
+        self.is_role("SISWA")
+    }
+
+    /// Check if user is afiliator
+    pub fn is_afiliator(&self) -> bool {
+        self.is_role("AFILIATOR")
+    }
+
+    /// Check if user is admin sekolah
+    pub fn is_admin_sekolah(&self) -> bool {
+        self.is_role("ADMIN_SEKOLAH")
+    }
+
+    /// Check if user is orang tua siswa
+    pub fn is_ortu_siswa(&self) -> bool {
+        self.is_role("ORTU_SISWA")
     }
 }
