@@ -86,6 +86,8 @@
         </button>
       </form>
 
+      <p class="signin-recovery"><a href="/forgot-password">Lupa kata sandi?</a></p>
+
       <p class="signin-alt">
         Belum punya akun? <a href="/signup">Daftar</a>
       </p>

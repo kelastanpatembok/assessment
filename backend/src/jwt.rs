@@ -6,6 +6,8 @@ pub struct Claims {
     pub sub: String,
     pub username: String,
     pub role: String,
+    #[serde(default)]
+    pub roles: Vec<String>,
     pub iat: i64,
     pub exp: i64,
 }

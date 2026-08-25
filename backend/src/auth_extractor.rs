@@ -12,6 +12,7 @@ pub struct AuthUser {
     pub user_id: String,
     pub username: String,
     pub role: String,
+    pub roles: Vec<String>,
 }
 
 pub struct AuthRejection(String);
@@ -52,6 +53,7 @@ impl FromRequestParts<AppState> for AuthUser {
             user_id: claims.sub,
             username: claims.username,
             role: claims.role,
+            roles: claims.roles,
         })
     }
 }
@@ -59,8 +61,7 @@ impl FromRequestParts<AppState> for AuthUser {
 impl AuthUser {
     /// 403 (not 401) when the role isn't permitted, mirroring Spring Security.
     pub fn require_role(&self, allowed: &[&str]) -> Result<(), AppError> {
-        let role_upper = self.role.to_uppercase();
-        if allowed.iter().any(|r| r.to_uppercase() == role_upper) {
+        if allowed.iter().any(|allowed_role| self.is_role(allowed_role)) {
             Ok(())
         } else {
             Err(AppError::Forbidden("Access denied".to_string()))
@@ -69,5 +70,6 @@ impl AuthUser {
 
     pub fn is_role(&self, role: &str) -> bool {
         self.role.eq_ignore_ascii_case(role)
+          || self.roles.iter().any(|value| value.eq_ignore_ascii_case(role))
     }
 }

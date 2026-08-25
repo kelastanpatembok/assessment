@@ -34,7 +34,7 @@ estates:
 
 services:
   gateway:
-    lxs: gateway@3.0.1
+    lxs: gateway@3.1.0
     port: 4902
 
   assessment-frontend:
@@ -99,7 +99,7 @@ services:
     grants: { secrets: [SERVER_PORT, API_BASE_PATH, MONGODB_URI, BREVO_API_KEY, MAIL_FROM_EMAIL, MAIL_FROM_NAME] }
 
   auth-backend:
-    lxs: auth@3.0.1
+    lxs: auth@3.5.0
     port: 2051
     config:
       EMAIL_VERIFICATION_REQUIRED: "false"
@@ -112,6 +112,10 @@ services:
         - path: /api/auth/register-with-profile
           level: public
         - path: /api/auth/verify-email
+          level: public
+        - path: /api/auth/forgot-password
+          level: public
+        - path: /api/auth/reset-password
           level: public
         - path: /api/auth/users/check-existence
           level: public
@@ -130,6 +134,14 @@ services:
           strip: /auth-api
           rewrite: /api
         - path: /auth-api/auth/verify-email
+          level: public
+          strip: /auth-api
+          rewrite: /api
+        - path: /auth-api/auth/forgot-password
+          level: public
+          strip: /auth-api
+          rewrite: /api
+        - path: /auth-api/auth/reset-password
           level: public
           strip: /auth-api
           rewrite: /api
