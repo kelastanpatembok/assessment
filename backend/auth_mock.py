@@ -211,7 +211,7 @@ def change_password():
     return jsonify({'message': 'Password changed successfully'})
 
 if __name__ == '__main__':
-    print("Starting Mock Auth Service on port 2000")
+    print("Starting Mock Auth Service on port 2001")
     print("Endpoints available:")
     print("  POST /api/auth/login")
     print("  POST /api/auth/register")
@@ -223,4 +223,4 @@ if __name__ == '__main__':
     for username, user in users_db.items():
         print(f"  {username}: {user['role']} (password: {user['password']})")
     
-    app.run(host='0.0.0.0', port=2000, debug=True)
+    app.run(host='0.0.0.0', port=2001, debug=True)
