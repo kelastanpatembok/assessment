@@ -3,7 +3,6 @@
   import { goto } from '$app/navigation';
   import { parse } from 'devalue';
   import { trackedFetch } from '$lib/loading.js';
-  import { onMount } from 'svelte';
 
   const BASE = (PUBLIC_API_URL || 'http://127.0.0.1:1005/api').replace(/\/+$/, '');
 
@@ -34,42 +33,17 @@
     loading = true;
     error = null;
     try {
-      console.log('Client fetching from:', `${BASE}/big5/questions`);
-      console.log('BASE URL:', BASE);
-      
-      // Test fetch dengan credentials
-      const res = await fetch(`${BASE}/big5/questions`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        mode: 'cors',
-        credentials: 'include'
-      });
-      
-      console.log('Response status:', res.status);
-      console.log('Response headers:', [...res.headers.entries()]);
-      
-      if (!res.ok) {
-        const text = await res.text();
-        console.error('Response error text:', text);
-        throw new Error(`Gagal memuat pertanyaan: ${res.status} ${res.statusText}`);
-      }
-      
+      const res = await trackedFetch(`${BASE}/big5/questions`);
+      if (!res.ok) throw new Error('Gagal memuat pertanyaan');
       questions = await res.json();
-      console.log('Success! Got questions:', questions.length);
     } catch (e) {
-      console.error('Load error:', e);
       error = e instanceof Error ? e.message : 'Terjadi kesalahan';
     } finally {
       loading = false;
     }
   }
 
-  onMount(() => {
-    load();
-  });
+  load();
 
   const current = $derived(questions[idx]);
   const progress = $derived(questions.length ? (idx / questions.length) * 100 : 0);
@@ -104,7 +78,7 @@
     try {
       const res = await trackedFetch('/tes-gratis/soal?/save', {
         method: 'POST',
-        headers: { 'Content-Type: application/x-www-form-urlencoded' },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({ answers: JSON.stringify(answers) })
       });
       if (res.status === 401) {
@@ -185,11 +159,6 @@
         <span class="quiz-back-spacer"></span>
       {/if}
       <span class="lp-muted quiz-hint">{answers[current.no] ? 'Jawaban tersimpan' : 'Pilih satu jawaban'}</span>
-    </div>
-  {:else if questions.length === 0}
-    <div class="quiz-err">
-      <p>Tidak ada pertanyaan yang tersedia</p>
-      <button class="lp-btn lp-btn-primary" onclick={load}>Coba Lagi</button>
     </div>
   {/if}
 </div>

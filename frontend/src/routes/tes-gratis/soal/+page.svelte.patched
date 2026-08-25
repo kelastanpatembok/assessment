@@ -34,31 +34,12 @@
     loading = true;
     error = null;
     try {
-      console.log('Client fetching from:', `${BASE}/big5/questions`);
-      console.log('BASE URL:', BASE);
-      
-      // Test fetch dengan credentials
-      const res = await fetch(`${BASE}/big5/questions`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        mode: 'cors',
-        credentials: 'include'
-      });
-      
+      console.log('Fetching from:', `${BASE}/big5/questions`);
+      const res = await trackedFetch(`${BASE}/big5/questions`);
       console.log('Response status:', res.status);
-      console.log('Response headers:', [...res.headers.entries()]);
-      
-      if (!res.ok) {
-        const text = await res.text();
-        console.error('Response error text:', text);
-        throw new Error(`Gagal memuat pertanyaan: ${res.status} ${res.statusText}`);
-      }
-      
+      if (!res.ok) throw new Error('Gagal memuat pertanyaan');
       questions = await res.json();
-      console.log('Success! Got questions:', questions.length);
+      console.log('Got questions:', questions.length);
     } catch (e) {
       console.error('Load error:', e);
       error = e instanceof Error ? e.message : 'Terjadi kesalahan';
@@ -104,7 +85,7 @@
     try {
       const res = await trackedFetch('/tes-gratis/soal?/save', {
         method: 'POST',
-        headers: { 'Content-Type: application/x-www-form-urlencoded' },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({ answers: JSON.stringify(answers) })
       });
       if (res.status === 401) {
@@ -185,11 +166,6 @@
         <span class="quiz-back-spacer"></span>
       {/if}
       <span class="lp-muted quiz-hint">{answers[current.no] ? 'Jawaban tersimpan' : 'Pilih satu jawaban'}</span>
-    </div>
-  {:else if questions.length === 0}
-    <div class="quiz-err">
-      <p>Tidak ada pertanyaan yang tersedia</p>
-      <button class="lp-btn lp-btn-primary" onclick={load}>Coba Lagi</button>
     </div>
   {/if}
 </div>
