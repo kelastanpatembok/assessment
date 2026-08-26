@@ -65,6 +65,15 @@ async fn main() -> anyhow::Result<()> {
             .run(&pool)
             .await
             .context("failed to run migrations")?;
+        // Existing/manual school rows may have been restored without advancing
+        // the serial sequence. Align it before the first upsert so an import
+        // never stops on an already-used primary-key value.
+        sqlx::query(
+            "SELECT setval(pg_get_serial_sequence('schools', 'id'), COALESCE((SELECT MAX(id) FROM schools), 1), true)",
+        )
+        .execute(&pool)
+        .await
+        .context("failed to align schools ID sequence")?;
         Some(pool)
     } else {
         None
