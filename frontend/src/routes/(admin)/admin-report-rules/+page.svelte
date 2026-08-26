@@ -1,0 +1,5 @@
+<script lang="ts">import { enhance } from '$app/forms'; let { data, form } = $props(); let saving = $state(false);</script>
+<svelte:head><title>Rubrik Laporan Psikologis</title></svelte:head>
+<div class="wrap"><h2>Rubrik Laporan Psikologis</h2><p>Versi {data.rules.version || 'draf'}. Konfigurasi ini menjadi versi resmi ketika disimpan; laporan PDF menyimpan nomor dan versi penerbitannya.</p>
+<form method="POST" action="?/save" use:enhance={() => { saving=true; return async ({update})=>{saving=false;await update();}; }}><textarea name="rules" rows="28">{JSON.stringify(data.rules.rules, null, 2)}</textarea>{#if form?.error}<p class="error">{form.error}</p>{/if}<button disabled={saving}>{saving ? 'Menyimpan…' : 'Simpan rubrik resmi'}</button></form></div>
+<style>.wrap{max-width:54rem}.wrap p{color:var(--lp-ink-2)}textarea{width:100%;font:12px ui-monospace,monospace;padding:1rem;border:1px solid var(--lp-rule);border-radius:.75rem}button{margin-top:1rem;background:var(--lp-accent-deep);color:#fff;border:0;border-radius:.5rem;padding:.7rem 1rem;font:inherit}.error{color:#b42318}</style>

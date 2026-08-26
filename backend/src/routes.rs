@@ -75,6 +75,13 @@ pub fn build_router(state: AppState) -> Router {
         .route("/assessment-reports/preview/:assignmentId", get(handlers::assessment_report::preview))
         .route("/assessment-reports/send/:assignmentId", post(handlers::assessment_report::send))
         .route("/assessment-reports/:id/download", get(handlers::assessment_report::download))
+        // Individual, role-scoped psychological reports.  The older school-wide
+        // assessment-reports endpoints remain intact for historic deliveries.
+        .route("/psychological-report-rules", get(handlers::psychological_report::rules).put(handlers::psychological_report::update_rules))
+        .route("/psychological-reports/mine", get(handlers::psychological_report::mine))
+        .route("/psychological-reports", get(handlers::psychological_report::list))
+        .route("/psychological-reports/:assignmentId/:studentId", get(handlers::psychological_report::view))
+        .route("/psychological-reports/:assignmentId/:studentId/download", get(handlers::psychological_report::download))
         // ---- dashboard ----
         .route("/dashboard/summary", get(handlers::dashboard::summary))
         // ---- psikolog ----

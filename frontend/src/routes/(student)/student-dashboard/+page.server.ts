@@ -5,7 +5,7 @@ import type { Actions, PageServerLoad } from './$types';
 export const load: PageServerLoad = async ({ locals }) => {
   const api = createApiClient(locals.token);
 
-  const [disc, holland, papi, cfit, ist, epps, certificates] = await Promise.allSettled([
+  const [disc, holland, papi, cfit, ist, epps, certificates, psychologicalReports] = await Promise.allSettled([
     api.get('/disc/check'),
     api.get('/holland/check'),
     api.get('/papi/check'),
@@ -13,6 +13,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     api.get('/ist/check'),
     api.get('/epps/check'),
     api.get('/certificates/mine'),
+    api.get('/psychological-reports/mine'),
   ]);
 
   function resolveStatus(result: PromiseSettledResult<any>) {
@@ -40,6 +41,10 @@ export const load: PageServerLoad = async ({ locals }) => {
     certificates:
       certificates.status === 'fulfilled' && Array.isArray(certificates.value)
         ? certificates.value
+        : [],
+    psychologicalReports:
+      psychologicalReports.status === 'fulfilled' && Array.isArray(psychologicalReports.value?.items)
+        ? psychologicalReports.value.items
         : [],
   };
 };

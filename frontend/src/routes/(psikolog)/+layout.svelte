@@ -6,7 +6,7 @@
   const navLinks = [
     { href: '/psikolog-dashboard', label: 'Dashboard' },
     { href: '/psikolog-dashboard', label: 'Cari Peserta' },
-    { href: '/psikolog-laporan', label: 'Laporan Sekolah' },
+    { href: '/psikolog-reports', label: 'Laporan Psikologis' },
   ];
 </script>
 

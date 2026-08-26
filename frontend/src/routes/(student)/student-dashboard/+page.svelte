@@ -91,6 +91,25 @@
     {/each}
   </div>
 
+  {#if data.psychologicalReports.length > 0}
+    <section class="stdash-certs">
+      <div class="certs-head">
+        <div>
+          <h3 class="lp-display stdash-sub">Hasil Laporan Psikologis</h3>
+          <p class="scard-desc">Laporan gabungan dari metode asesmen yang ditugaskan sekolah.</p>
+        </div>
+      </div>
+      <div class="certs-grid">
+        {#each data.psychologicalReports as report}
+          <a class="cert-item" href={`/student-report?assignment=${report.assignmentId}`}>
+            <span class="cert-item-name">{report.schoolName}</span>
+            <span class="cert-item-dl">Lihat laporan</span>
+          </a>
+        {/each}
+      </div>
+    </section>
+  {/if}
+
   {#if data.certificates.length > 0}
     <section class="stdash-certs">
       <div class="certs-head">

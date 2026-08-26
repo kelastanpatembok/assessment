@@ -12,6 +12,7 @@
     { href: '/admin-categories', label: 'Kategori Tes' },
     { href: '/admin-assignments', label: 'Penugasan' },
     { href: '/admin-fees', label: 'Biaya' },
+    { href: '/admin-report-rules', label: 'Rubrik Laporan' },
   ];
 </script>
 

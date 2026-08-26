@@ -45,6 +45,70 @@ pub struct ReportData {
     pub students: Vec<StudentReport>,
 }
 
+/// The individual report deliberately has its own data model.  The older
+/// school-wide report above remains available for historical deliveries.
+#[derive(Debug, Clone)]
+pub struct PsychologicalAspect {
+    pub label: String,
+    pub definition: String,
+    pub result: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct PsychologicalReport {
+    pub report_no: String,
+    pub issued_date: String,
+    pub printed_date: String,
+    pub school_name: String,
+    pub student_name: String,
+    pub student_identity: String,
+    pub aspects: Vec<PsychologicalAspect>,
+    pub holland: String,
+}
+
+pub fn build_psychological_report(data: &PsychologicalReport) -> anyhow::Result<Vec<u8>> {
+    let mut cover = PageCanvas::new(595.0, 842.0);
+    cover.centered(760.0, 11.0, "Yogyakarta, ", false);
+    cover.text(343.0, 760.0, 11.0, &data.issued_date, false);
+    cover.text(58.0, 712.0, 11.0, &format!("Nomor     : {}", data.report_no), false);
+    cover.text(58.0, 692.0, 11.0, "Perihal     : Surat Pengantar Hasil Asesmen Psikologis", false);
+    cover.text(58.0, 672.0, 11.0, "Lampiran : 1 Laporan", false);
+    cover.text(58.0, 625.0, 11.0, &format!("Yth. Pimpinan {}", data.school_name), false);
+    cover.text(58.0, 607.0, 11.0, "di Tempat", false);
+    cover.text(58.0, 565.0, 11.0, "Assalamualaikum Wr. Wb.", false);
+    let letter = format!("Bersama surat ini kami sampaikan hasil asesmen psikologis atas nama {}. Laporan ini disusun sebagai bahan pemahaman potensi dan pendampingan peserta didik, serta perlu dibaca dalam konteks profesional.", data.student_name);
+    let mut y = 535.0;
+    for line in wrap_text(&letter, 470.0, 10.5, false) { cover.text(58.0, y, 10.5, &line, false); y -= 17.0; }
+    cover.text(58.0, y - 18.0, 10.5, "Demikian surat pengantar ini disampaikan. Terima kasih atas perhatian dan kerja samanya.", false);
+    cover.text(58.0, 255.0, 11.0, "Wassalamualaikum Wr. Wb.", false);
+    cover.text(355.0, 205.0, 11.0, "Hormat kami,", false);
+    cover.text(318.0, 142.0, 11.0, "Dewi Handayani Harahap, S.Psi, M.Psi", true);
+    cover.text(385.0, 125.0, 10.0, "Direktur", false);
+
+    let mut page = PageCanvas::new(595.0, 842.0);
+    page.centered(780.0, 16.0, "HASIL LAPORAN PSIKOLOGIS", true);
+    page.centered(759.0, 9.0, &data.report_no, false);
+    page.text(48.0, 720.0, 10.0, &format!("Nama peserta : {}", data.student_name), false);
+    page.text(48.0, 702.0, 10.0, &format!("Identitas       : {}", data.student_identity), false);
+    page.text(48.0, 684.0, 10.0, &format!("Sekolah        : {}", data.school_name), false);
+    let mut y = 648.0;
+    for (i, aspect) in data.aspects.iter().enumerate() {
+        page.fill_rect(45.0, y - 18.0, 505.0, 20.0, LIGHT_PURPLE);
+        page.text(52.0, y - 4.0, 10.0, &format!("{}. {}", i + 1, aspect.label), true);
+        y -= 34.0;
+        for line in wrap_text(&format!("{} Hasil: {}", aspect.definition, aspect.result), 490.0, 9.0, false) {
+            page.text(55.0, y, 9.0, &line, false); y -= 14.0;
+        }
+        y -= 10.0;
+    }
+    page.fill_rect(45.0, y - 18.0, 505.0, 20.0, LIGHT_PURPLE);
+    page.text(52.0, y - 4.0, 10.0, "Minat karier (Holland RIASEC)", true);
+    y -= 34.0;
+    for line in wrap_text(&data.holland, 490.0, 9.0, false) { page.text(55.0, y, 9.0, &line, false); y -= 14.0; }
+    page.text(48.0, 48.0, 7.5, &format!("Dicetak pada {}. Dokumen rahasia; interpretasi memerlukan konteks profesional.", data.printed_date), false);
+    encode_encrypted_pdf(vec![cover, page], &data.report_no, "")
+}
+
 const PURPLE: (f32, f32, f32) = (0.39, 0.13, 0.65);
 const PURPLE_DARK: (f32, f32, f32) = (0.24, 0.08, 0.43);
 const LIGHT_PURPLE: (f32, f32, f32) = (0.96, 0.94, 0.98);

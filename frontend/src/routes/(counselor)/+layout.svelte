@@ -7,6 +7,7 @@
     { href: '/counselor-dashboard', label: 'Dashboard' },
     { href: '/counselor-students', label: 'Siswa' },
     { href: '/counselor-results', label: 'Hasil Tes' },
+    { href: '/counselor-reports', label: 'Laporan Psikologis' },
   ];
 </script>
 
