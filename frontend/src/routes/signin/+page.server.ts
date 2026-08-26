@@ -45,6 +45,11 @@ export const actions: Actions = {
     }
 
     if (!res.ok) {
+      if (res.status === 409) {
+        return fail(409, {
+          error: 'Akun masih aktif di perangkat lain. Keluar terlebih dahulu dari perangkat tersebut.'
+        });
+      }
       return fail(401, { error: 'Kredensial tidak valid' });
     }
 
