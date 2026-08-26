@@ -16,6 +16,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   if (status) params.set('status', status);
 
   const result = await api.get(`/registrations?${params}`).catch(() => ({ items: [], total: 0, page: 0, size: 25 }));
+  const schoolsResult = await api.get('/schools?size=1000').catch(() => ({ items: [] }));
 
   const profile = await import('$lib/server/profile').then(m =>
     m.getProfile(locals.user!.userId, locals.token ?? '')
@@ -25,6 +26,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
     user: locals.user,
     profile,
     registrations: result?.items ?? [],
+    schools: schoolsResult?.items ?? [],
     total: result?.total ?? 0,
     currentPage: Number(page),
     search,
@@ -64,4 +66,31 @@ export const actions: Actions = {
       return fail(422, { error: e.message || 'Gagal menghapus pendaftaran' });
     }
   },
+
+  provision: async ({ request, locals }) => {
+    requireRole(locals, 'superadmin');
+    const api = createApiClient(locals.token ?? null);
+    const data = await request.formData();
+    
+    const id = data.get('id')?.toString();
+    const username = data.get('username')?.toString();
+    const password = data.get('password')?.toString();
+    const role = data.get('role')?.toString();
+    const schoolIdStr = data.get('schoolId')?.toString();
+
+    if (!id || !username || !password || !role) {
+      return fail(400, { error: 'Data tidak lengkap' });
+    }
+
+    const payload: any = { username, password, role };
+    if (schoolIdStr) {
+      payload.schoolId = parseInt(schoolIdStr, 10);
+    }
+
+    try {
+      await api.post(`/registrations/${id}/provision`, payload);
+    } catch (e: any) {
+      return fail(422, { error: e.message || 'Gagal membuat akun' });
+    }
+  }
 };

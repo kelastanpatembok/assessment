@@ -59,6 +59,7 @@ pub fn build_router(state: AppState) -> Router {
         // ---- registrations (public submit + admin management) ----
         .route("/registrations", get(handlers::registration::list).post(handlers::registration::submit))
         .route("/registrations/:id", put(handlers::registration::update).delete(handlers::registration::delete))
+        .route("/registrations/:id/provision", post(handlers::registration::provision))
         // ---- students ----
         .route("/students", get(handlers::student::list).post(handlers::student::create_student))
         .route("/students/counselor", post(handlers::student::create_counselor))

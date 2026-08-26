@@ -26,6 +26,12 @@
   let editNotes = $state('');
   let editStatus = $state('');
 
+  let showProvision = $state(false);
+  let provUsername = $state('');
+  let provPassword = $state('');
+  let provRole = $state('siswa');
+  let provSchoolId = $state('');
+
   function openDetail(reg: any) {
     selectedReg = reg;
     editNotes = reg.notes || '';
@@ -35,6 +41,21 @@
 
   function closeDetail() {
     showDetail = false;
+    selectedReg = null;
+  }
+
+  function openProvision(reg: any) {
+    selectedReg = reg;
+    // Suggest username based on email
+    provUsername = reg.email.split('@')[0];
+    provPassword = Math.random().toString(36).slice(-8);
+    provRole = reg.role.toLowerCase() || 'siswa';
+    provSchoolId = '';
+    showProvision = true;
+  }
+
+  function closeProvision() {
+    showProvision = false;
     selectedReg = null;
   }
 
@@ -115,6 +136,9 @@
             <td class="td-date">{formatDate(reg.createdAt)}</td>
             <td class="td-actions">
               <button type="button" class="link-btn" onclick={() => openDetail(reg)}>Detail</button>
+              {#if !reg.authUserId && reg.status !== 'rejected'}
+                <button type="button" class="link-btn success" onclick={() => openProvision(reg)}>Buat Akun</button>
+              {/if}
               <form method="POST" action="?/delete" use:enhance class="inline">
                 <input type="hidden" name="id" value={reg.id} />
                 <button
@@ -219,6 +243,79 @@
         <div class="modal-actions">
           <button type="button" class="btn-outline" onclick={closeDetail}>Batal</button>
           <button type="submit" class="btn-primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+{/if}
+
+<!-- Provision Modal -->
+{#if showProvision && selectedReg}
+  <div class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Buat Akun">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>Buat Akun Baru</h2>
+        <button type="button" class="modal-close" onclick={closeProvision} aria-label="Tutup">✕</button>
+      </div>
+
+      <div class="prov-info">
+        <p>Anda akan membuat akun untuk <strong>{selectedReg.name}</strong> ({selectedReg.email}).</p>
+        <p>Pendaftaran ini akan otomatis ditandai sebagai <strong>Disetujui</strong>.</p>
+      </div>
+
+      <form
+        method="POST"
+        action="?/provision"
+        use:enhance={() => {
+          return async ({ result, update }) => {
+            if (result.type === 'success') {
+              alert('Akun berhasil dibuat!');
+            }
+            await update();
+            closeProvision();
+          };
+        }}
+        class="modal-form"
+      >
+        <input type="hidden" name="id" value={selectedReg.id} />
+
+        <div class="field">
+          <label class="field-label">Username</label>
+          <input type="text" name="username" class="modal-input" required bind:value={provUsername} />
+        </div>
+
+        <div class="field">
+          <label class="field-label">Kata Sandi Sementara</label>
+          <input type="text" name="password" class="modal-input" required bind:value={provPassword} />
+        </div>
+
+        <div class="field">
+          <label class="field-label">Role Akses</label>
+          <select name="role" class="modal-select" bind:value={provRole}>
+            <option value="siswa">Siswa (Akses Terbatas)</option>
+            <option value="gurubk">Guru BK (Akses Sekolah)</option>
+            <option value="psikolog">Psikolog (Akses Semua Siswa)</option>
+            <option value="afiliator">Afiliator (Akses Siswa Afiliasi)</option>
+            <option value="superadmin">Superadmin (Akses Penuh)</option>
+          </select>
+        </div>
+
+        {#if provRole === 'siswa' || provRole === 'gurubk'}
+          <div class="field">
+            <label class="field-label">Hubungkan ke Sekolah</label>
+            <select name="schoolId" class="modal-select" bind:value={provSchoolId}>
+              <option value="">-- Tanpa Sekolah --</option>
+              {#each data.schools as s}
+                <option value={s.id}>{s.name}</option>
+              {/each}
+            </select>
+            <span class="field-hint">Kosongkan jika tidak terikat sekolah mana pun.</span>
+          </div>
+        {/if}
+
+        <div class="modal-actions" style="margin-top: 1.5rem;">
+          <button type="button" class="btn-outline" onclick={closeProvision}>Batal</button>
+          <button type="submit" class="btn-primary">Buat Akun Sekarang</button>
         </div>
       </form>
     </div>
@@ -365,6 +462,7 @@
   }
 
   .link-btn.danger { color: oklch(0.55 0.18 25); }
+  .link-btn.success { color: oklch(0.4 0.12 145); }
   .inline { display: inline; }
 
   .badge {
@@ -483,10 +581,23 @@
 
   .detail-val { color: var(--lp-ink); word-break: break-word; }
 
-  .modal-form { display: grid; gap: 0.5rem; }
-  .field-label { font-size: 0.82rem; font-weight: 600; color: var(--lp-muted); }
+  .modal-form { display: grid; gap: 0.85rem; }
+  .field-label { font-size: 0.82rem; font-weight: 600; color: var(--lp-muted); display: block; margin-bottom: 0.25rem; }
+  .field-hint { font-size: 0.75rem; color: var(--lp-muted); display: block; margin-top: 0.25rem; }
+
+  .prov-info {
+    font-size: 0.88rem;
+    color: var(--lp-ink-2);
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 1rem;
+    background: var(--lp-paper-2);
+    border-radius: 0.6rem;
+  }
+  .prov-info p { margin: 0 0 0.4rem; }
+  .prov-info p:last-child { margin: 0; }
 
   .modal-select,
+  .modal-input,
   .modal-textarea {
     width: 100%;
     padding: 0.65rem 0.9rem;

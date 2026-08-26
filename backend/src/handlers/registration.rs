@@ -213,3 +213,94 @@ pub async fn delete(
     }
     Ok(StatusCode::NO_CONTENT)
 }
+
+// ─── Admin – provision account from registration ───────────────────────────
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProvisionRequest {
+    pub username: String,
+    pub password: String,
+    pub role: String,          // SISWA | GURUBK | PSIKOLOG | SUPERADMIN | AFILIATOR
+    pub school_id: Option<i64>,
+}
+
+pub async fn provision(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    Path(id): Path<i64>,
+    Json(req): Json<ProvisionRequest>,
+) -> AppResult<Json<serde_json::Value>> {
+    auth.require_role(&["SUPERADMIN"])?;
+
+    // Load the registration
+    let reg = sqlx::query_as::<_, Registration>(
+        "SELECT id, name, email, phone, school_name, school_address, role, status, notes, auth_user_id, created_at, updated_at \
+         FROM registrations WHERE id = $1",
+    )
+    .bind(id)
+    .fetch_optional(&state.pool)
+    .await
+    .map_err(|e| AppError::from_sqlx("load_registration", e))?
+    .ok_or_else(|| AppError::NotFound(format!("Registration not found: {id}")))?;
+
+    // Prevent double-provisioning
+    if reg.auth_user_id.is_some() {
+        return Err(AppError::Conflict(
+            "Akun sudah pernah dibuat untuk pendaftaran ini.".to_string(),
+        ));
+    }
+
+    let username = req.username.trim().to_string();
+    let role = req.role.trim().to_lowercase();
+    let allowed_roles = ["siswa", "gurubk", "psikolog", "superadmin", "afiliator"];
+    if !allowed_roles.contains(&role.as_str()) {
+        return Err(AppError::BadRequest(format!("Role tidak valid: {role}")));
+    }
+
+    // Validate school_id if provided
+    if let Some(sid) = req.school_id {
+        crate::db::require_school(&state.pool, sid).await?;
+    }
+
+    // Register in auth service
+    let resp = state
+        .auth
+        .register(&username, &reg.email, &req.password, &reg.name, &role)
+        .await
+        .map_err(|e| AppError::Internal(e))?;
+    let auth_user_id = resp.user.id;
+
+    // Provision assessment_users row
+    sqlx::query(
+        "INSERT INTO assessment_users (auth_user_id, name, email, username, role, phone, school_id, created_at, updated_at) \
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())",
+    )
+    .bind(&auth_user_id)
+    .bind(&reg.name)
+    .bind(&reg.email)
+    .bind(&username)
+    .bind(&role)
+    .bind(reg.phone.as_deref())
+    .bind(req.school_id)
+    .execute(&state.pool)
+    .await
+    .map_err(|e| AppError::from_sqlx("provision_user", e))?;
+
+    // Mark registration as approved and link auth_user_id
+    sqlx::query(
+        "UPDATE registrations SET status = 'approved', auth_user_id = $2, updated_at = NOW() WHERE id = $1",
+    )
+    .bind(id)
+    .bind(&auth_user_id)
+    .execute(&state.pool)
+    .await
+    .map_err(|e| AppError::from_sqlx("link_registration", e))?;
+
+    Ok(Json(serde_json::json!({
+        "message": "Akun berhasil dibuat.",
+        "authUserId": auth_user_id,
+        "username": username,
+        "role": role,
+    })))
+}
