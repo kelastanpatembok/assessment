@@ -2,7 +2,7 @@
   import type { Snippet } from 'svelte';
 
   let { user, profile, children } = $props<{
-    user?: { userId: string; username: string; role: string } | null;
+    user?: { userId: string; username: string; role: string; roles?: string[] } | null;
     profile?: { name: string; avatarUrl: string | null } | null;
     children?: Snippet;
   }>();
@@ -12,6 +12,8 @@
   const name = $derived(String(profile?.name?.trim() || user?.username || ''));
   const avatar = $derived(profile?.avatarUrl || null);
   const initial = $derived(name ? name.charAt(0).toUpperCase() : '?');
+  const hasRole = (role: string) =>
+    (user?.roles ?? [user?.role ?? '']).some((value) => value.toLowerCase() === role);
 
   const dash = $derived(
     (() => {
@@ -63,6 +65,9 @@
         <a href="/profil" role="menuitem" onclick={() => (open = false)}>Profil &amp; Pengaturan</a>
         {#if dash}
           <a href={dash} role="menuitem" onclick={() => (open = false)}>Panel Saya</a>
+        {/if}
+        {#if hasRole('superadmin') && user?.role !== 'superadmin'}
+          <a href="/admin-dashboard" role="menuitem" onclick={() => (open = false)}>Dashboard Admin</a>
         {/if}
         <a href="/logout" class="um-menu-logout" role="menuitem" onclick={() => (open = false)}>Keluar</a>
       </div>

@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies }) => {
     // signature — verify against the auth service so a stale token (post-deploy
     // JWT rotation) can't bounce users off the signup page forever.
     try {
-      const res = await fetch(`${AUTH_BASE}/auth/session`, {
+      const res = await fetch(`${AUTH_BASE}/auth/session-status`, {
         headers: { Authorization: `Bearer ${locals.token}` },
       });
       if (res.ok) redirect(302, '/tes-gratis');

@@ -27,8 +27,14 @@ export const handle: Handle = async ({ event, resolve }) => {
         const userId = payload['sub'] as string;
         const username = payload['username'] as string;
         const role = payload['role'] as string;
+        const claimedRoles = Array.isArray(payload['roles'])
+          ? payload['roles'].filter((value): value is string => typeof value === 'string')
+          : [];
+        const roles = claimedRoles.some((value) => value.toLowerCase() === role.toLowerCase())
+          ? claimedRoles
+          : [role, ...claimedRoles];
         if (userId && username && role) {
-          event.locals.user = { userId, username, role };
+          event.locals.user = { userId, username, role, roles };
           event.locals.token = token;
         }
       } else {

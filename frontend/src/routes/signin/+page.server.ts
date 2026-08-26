@@ -9,7 +9,7 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies }) => {
     // locals.user. Verify against the auth service before trusting it —
     // otherwise a stale cookie bounces users off the login page forever.
     try {
-      const res = await fetch(`${PUBLIC_AUTH_URL}/auth/session`, {
+      const res = await fetch(`${PUBLIC_AUTH_URL}/auth/session-status`, {
         headers: { Authorization: `Bearer ${locals.token}` },
       });
       if (res.ok) redirect(302, '/');
