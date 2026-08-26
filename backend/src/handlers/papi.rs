@@ -30,6 +30,7 @@ pub async fn questions(
     auth: AuthUser,
 ) -> AppResult<Json<serde_json::Value>> {
     auth.require_role(&["SISWA"])?;
+    super::disc::require_active_assignment(&state, &auth, "papi").await?;
     let rows: Vec<(i64, i32, String, String, String, bool)> = sqlx::query_as(
         "SELECT id, pair_no, item_letter, trait_code, statement, is_active FROM papi_questions \
          WHERE is_active = true ORDER BY pair_no, item_letter",
@@ -45,6 +46,7 @@ pub async fn check(
     auth: AuthUser,
 ) -> AppResult<Json<serde_json::Value>> {
     auth.require_role(&["SISWA"])?;
+    let assignment_id = super::disc::require_active_assignment(&state, &auth, "papi").await?;
     Ok(Json(super::disc::check_for(&state, &auth, "papi").await?))
 }
 
@@ -54,6 +56,7 @@ pub async fn submit(
     Json(req): Json<PapiSubmitRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
     auth.require_role(&["SISWA"])?;
+    let assignment_id = super::disc::require_active_assignment(&state, &auth, "papi").await?;
     let exists: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM papi_results WHERE auth_user_id = $1")
         .bind(&auth.user_id)
         .fetch_one(&state.pool)
@@ -113,7 +116,7 @@ pub async fn submit(
     .bind(&auth.user_id)
     .bind(&student_name)
     .bind(&school_name)
-    .bind(req.assignment_id)
+    .bind(assignment_id)
     .bind(trait_scores_text)
     .bind(answers_json)
     .fetch_one(&state.pool)

@@ -43,6 +43,7 @@ pub async fn questions(
     auth: AuthUser,
 ) -> AppResult<Json<serde_json::Value>> {
     auth.require_role(&["SISWA"])?;
+    require_active_assignment(&state, &auth, "disc").await?;
     let rows: Vec<(i64, i32, i32, String, String, bool)> = sqlx::query_as(
         "SELECT id, block_no, item_no, category, statement, is_active FROM disc_questions \
          WHERE is_active = true ORDER BY block_no, item_no",
@@ -119,11 +120,26 @@ async fn get_active_assignment_id(
     Ok(q.fetch_optional(&state.pool).await.map_err(|e| AppError::from_sqlx("active_assignment", e))?)
 }
 
+/// Enforce the credential's composed test set at the API boundary. Frontend
+/// visibility is convenience only; this is what prevents URL/API bypass.
+pub async fn require_active_assignment(
+    state: &AppState,
+    auth: &AuthUser,
+    test_type: &str,
+) -> AppResult<i64> {
+    let user = crate::db::load_user(&state.pool, &auth.user_id).await?;
+    let school_id = user.as_ref().and_then(|u| u.school_id);
+    get_active_assignment_id(state, school_id, &auth.user_id, test_type)
+        .await?
+        .ok_or_else(|| AppError::Forbidden("Tes ini tidak termasuk dalam kredensial Anda atau masa aksesnya telah berakhir.".to_string()))
+}
+
 pub async fn check(
     State(state): State<AppState>,
     auth: AuthUser,
 ) -> AppResult<Json<serde_json::Value>> {
     auth.require_role(&["SISWA"])?;
+    let assignment_id = require_active_assignment(&state, &auth, "disc").await?;
     Ok(Json(check_for(&state, &auth, "disc").await?))
 }
 
@@ -133,6 +149,7 @@ pub async fn submit(
     Json(req): Json<DiscSubmitRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
     auth.require_role(&["SISWA"])?;
+    let assignment_id = require_active_assignment(&state, &auth, "disc").await?;
     // Completeness guard: expected distinct blocks in the active question set.
     let expected: i64 = sqlx::query_scalar("SELECT COUNT(DISTINCT block_no) FROM disc_questions WHERE is_active = true")
         .fetch_one(&state.pool)
@@ -229,7 +246,7 @@ pub async fn submit(
     .bind(&auth.user_id)
     .bind(&student_name)
     .bind(&school_name)
-    .bind(req.assignment_id)
+    .bind(assignment_id)
     .bind(d_most).bind(i_most).bind(s_most).bind(c_most)
     .bind(d_least).bind(i_least).bind(s_least).bind(c_least)
     .bind(d_dif).bind(i_dif).bind(s_dif).bind(c_dif)

@@ -31,6 +31,7 @@ pub async fn questions(
     auth: AuthUser,
 ) -> AppResult<Json<serde_json::Value>> {
     auth.require_role(&["SISWA"])?;
+    super::disc::require_active_assignment(&state, &auth, "holland").await?;
     let rows: Vec<(i64, i32, String, i32, String, bool)> = sqlx::query_as(
         "SELECT id, round, riasec_type, item_no, statement, is_active FROM holland_questions \
          WHERE is_active = true ORDER BY round, riasec_type, item_no",
@@ -46,6 +47,7 @@ pub async fn check(
     auth: AuthUser,
 ) -> AppResult<Json<serde_json::Value>> {
     auth.require_role(&["SISWA"])?;
+    let assignment_id = super::disc::require_active_assignment(&state, &auth, "holland").await?;
     Ok(Json(super::disc::check_for(&state, &auth, "holland").await?))
 }
 
@@ -55,6 +57,7 @@ pub async fn submit(
     Json(req): Json<HollandSubmitRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
     auth.require_role(&["SISWA"])?;
+    let assignment_id = super::disc::require_active_assignment(&state, &auth, "holland").await?;
     let exists: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM holland_results WHERE auth_user_id = $1")
         .bind(&auth.user_id)
         .fetch_one(&state.pool)
@@ -117,7 +120,7 @@ pub async fn submit(
     .bind(&auth.user_id)
     .bind(&student_name)
     .bind(&school_name)
-    .bind(req.assignment_id)
+    .bind(assignment_id)
     .bind(totals.get(&'R').copied().unwrap_or(0) as i32)
     .bind(totals.get(&'I').copied().unwrap_or(0) as i32)
     .bind(totals.get(&'A').copied().unwrap_or(0) as i32)

@@ -19,6 +19,7 @@ pub async fn questions(
     auth: AuthUser,
 ) -> AppResult<Json<serde_json::Value>> {
     auth.require_role(&["SISWA"])?;
+    super::disc::require_active_assignment(&state, &auth, "epps").await?;
     let rows: Vec<(i64, i32, String, String)> = sqlx::query_as(
         "SELECT id, item_no, statement_a, statement_b FROM epps_questions \
          WHERE is_active = true ORDER BY item_no",
@@ -43,6 +44,7 @@ pub async fn check(
     auth: AuthUser,
 ) -> AppResult<Json<serde_json::Value>> {
     auth.require_role(&["SISWA"])?;
+    let assignment_id = super::disc::require_active_assignment(&state, &auth, "epps").await?;
     Ok(Json(super::disc::check_for(&state, &auth, "epps").await?))
 }
 
@@ -52,6 +54,7 @@ pub async fn submit(
     Json(req): Json<EppsSubmitRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
     auth.require_role(&["SISWA"])?;
+    let assignment_id = super::disc::require_active_assignment(&state, &auth, "epps").await?;
     let gender = req.gender.trim().to_uppercase();
     let female = match gender.as_str() {
         "PEREMPUAN" | "P" => true,
@@ -94,7 +97,7 @@ pub async fn submit(
     let score_json = serde_json::to_string(&scores.iter().map(|(code, score)| serde_json::json!({"code": code, "label": score.label, "raw": score.raw, "percentile": score.percentile})).collect::<Vec<_>>()).unwrap();
     let answer_json = serde_json::to_string(&answers).unwrap();
     let row = sqlx::query_as::<_, EppsResult>(&format!("INSERT INTO epps_results (auth_user_id, student_name, school_name, assignment_id, gender, trait_scores, consistency_raw, consistency_percentile, answers, completed_at) VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9::jsonb,NOW()) RETURNING {SEL}"))
-        .bind(&auth.user_id).bind(student_name).bind(school_name).bind(req.assignment_id).bind(gender).bind(score_json).bind(consistency_raw).bind(consistency_percentile).bind(answer_json).fetch_one(&state.pool).await.map_err(|e| AppError::from_sqlx("insert_epps_result", e))?;
+        .bind(&auth.user_id).bind(student_name).bind(school_name).bind(assignment_id).bind(gender).bind(score_json).bind(consistency_raw).bind(consistency_percentile).bind(answer_json).fetch_one(&state.pool).await.map_err(|e| AppError::from_sqlx("insert_epps_result", e))?;
     Ok(Json(row.as_json()))
 }
 

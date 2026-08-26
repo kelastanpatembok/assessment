@@ -16,12 +16,13 @@ export const load: PageServerLoad = async ({ locals }) => {
   ]);
 
   function resolveStatus(result: PromiseSettledResult<any>) {
-    if (result.status === 'rejected') return { available: false, completed: false, windowStart: null, windowEnd: null };
+    if (result.status === 'rejected') return { available: false, completed: false, assignmentId: 0, windowStart: null, windowEnd: null };
     const v = result.value;
-    if (!v || v.code) return { available: false, completed: false, windowStart: null, windowEnd: null };
+    if (!v || v.code) return { available: false, completed: false, assignmentId: 0, windowStart: null, windowEnd: null };
     return {
       available: v?.canTake ?? false,
       completed: v?.completed ?? false,
+      assignmentId: v?.assignmentId ?? 0,
       windowStart: v?.windowStart ?? null,
       windowEnd: v?.windowEnd ?? null,
     };
@@ -35,7 +36,7 @@ export const load: PageServerLoad = async ({ locals }) => {
       { key: 'cfit', label: 'IQ CFIT', href: '/student-cfit', ...resolveStatus(cfit) },
       { key: 'ist', label: 'IQ IST', href: '/student-ist', ...resolveStatus(ist) },
       { key: 'epps', label: 'EPPS', href: '/student-epps', ...resolveStatus(epps) },
-    ],
+    ].filter((test) => test.assignmentId > 0),
     certificates:
       certificates.status === 'fulfilled' && Array.isArray(certificates.value)
         ? certificates.value
