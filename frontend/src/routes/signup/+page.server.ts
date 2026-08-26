@@ -34,8 +34,8 @@ export const actions: Actions = {
     if (!name || !email || !password) {
       return fail(400, { error: 'Lengkapi seluruh kolom yang wajib diisi.' });
     }
-    if (password.length < 6) {
-      return fail(400, { error: 'Kata sandi minimal 6 karakter.' });
+    if (password.length < 8) {
+      return fail(400, { error: 'Kata sandi minimal 8 karakter.' });
     }
     if (agree !== 'yes') {
       return fail(400, { error: 'Anda harus menyetujui Syarat & Ketentuan untuk mendaftar.' });
@@ -45,14 +45,11 @@ export const actions: Actions = {
     let token: string;
     let userId: string;
     try {
-      const params = new URLSearchParams({
-        username: email,
-        email,
-        password,
-        name,
-        platformId: 'assessment'
+      const res = await fetch(`${AUTH_BASE}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: email, email, password, name })
       });
-      const res = await fetch(`${AUTH_BASE}/auth/register?${params.toString()}`, { method: 'POST' });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         throw new Error(

@@ -13,7 +13,7 @@
   let agree = $state(false);
 
   const canSubmit = $derived(
-    name.trim() !== '' && email.trim().includes('@') && password.length >= 6 && agree
+    name.trim() !== '' && email.trim().includes('@') && password.length >= 8 && agree
   );
 </script>
 
@@ -62,6 +62,7 @@
             placeholder="Kata Sandi"
             autocomplete="new-password"
             aria-label="Kata Sandi"
+            minlength="8"
             bind:value={password}
             required
           />
