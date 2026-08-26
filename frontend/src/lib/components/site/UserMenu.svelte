@@ -15,7 +15,7 @@
 
   const dash = $derived(
     (() => {
-      switch (user?.role) {
+      switch (user?.role?.toLowerCase()) {
         case 'superadmin':
           return '/admin-dashboard';
         case 'gurubk':
