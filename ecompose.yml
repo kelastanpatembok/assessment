@@ -82,10 +82,6 @@ services:
     binary: assessment-backend
     port: 7242
     runtimes: [rust, postgresql@15]
-    # Credential PDFs must survive release-directory rotation so admins can
-    # re-download every generated batch after later deployments.
-    config:
-      CREDENTIALS_STORAGE_PATH: /opt/eco/assessment/data/credentials
     access:
       routes:
         - path: /api/assessment-backend/*
