@@ -22,3 +22,4 @@ pub mod certificate;
 pub mod credential;
 pub mod devtools;
 pub mod role_permissions;
+pub mod registration;

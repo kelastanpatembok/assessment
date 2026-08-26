@@ -7,6 +7,7 @@
     { href: '/admin-dashboard', label: 'Dashboard' },
     { href: '/admin-schools', label: 'Sekolah' },
     { href: '/admin-users', label: 'Pengguna' },
+    { href: '/admin-registrations', label: 'Pendaftaran' },
     { href: '/admin-roles', label: 'Manajemen Role' },
     { href: '/admin-students', label: 'Siswa' },
     { href: '/assignment-modules', label: 'Modul Penugasan' },
