@@ -13,6 +13,9 @@ pub struct AuthUser {
     pub username: String,
     pub role: String,
     pub roles: Vec<String>,
+    /// Forwarded only to Auth's superadmin-only provisioning endpoint.
+    /// It never reaches a client response or application log.
+    pub token: String,
 }
 
 pub struct AuthRejection(String);
@@ -54,6 +57,7 @@ impl FromRequestParts<AppState> for AuthUser {
             username: claims.username,
             role: claims.role,
             roles: claims.roles,
+            token: token.to_string(),
         })
     }
 }

@@ -79,6 +79,23 @@ impl AuthClient {
         Ok(parsed)
     }
 
+    /// A classroom may contain dozens of accounts. This uses Auth's dedicated
+    /// superadmin-only lane rather than weakening the public signup limiter.
+    pub async fn register_as_superadmin(
+        &self,
+        bearer: &str,
+        username: &str,
+        email: &str,
+        password: &str,
+        name: &str,
+        role: &str,
+    ) -> anyhow::Result<AuthRegisterResponse> {
+        let url = format!("{}/auth/admin/register", self.base_url.trim_end_matches('/'));
+        let body = json!({"username": username, "email": email, "password": password, "name": name, "role": role});
+        let resp = self.client.post(&url).bearer_auth(bearer).json(&body).send().await?.error_for_status()?;
+        Ok(resp.json().await?)
+    }
+
     /// Batch username existence check against auth.
     pub async fn check_usernames_exist(
         &self,

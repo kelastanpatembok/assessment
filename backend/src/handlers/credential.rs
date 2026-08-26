@@ -186,7 +186,7 @@ pub async fn bulk_generate(
     for (i, (username, password)) in usernames.iter().zip(passwords.iter()).enumerate() {
         let email = format!("{username}@generated.local");
         let name = format!("Student {username}");
-        match state.auth.register(username, &email, password, &name, "siswa").await {
+        match state.auth.register_as_superadmin(&auth.token, username, &email, password, &name, "siswa").await {
             Ok(resp) => {
                 let auth_user_id = resp.user.id;
                 sqlx::query(
