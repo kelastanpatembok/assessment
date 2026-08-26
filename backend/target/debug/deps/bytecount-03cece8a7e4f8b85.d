@@ -1,0 +1,9 @@
+/Users/anggaadiwibowo/Documents/Antigravity/assessment/backend/target/debug/deps/bytecount-03cece8a7e4f8b85.d: /Users/anggaadiwibowo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytecount-0.6.9/src/lib.rs /Users/anggaadiwibowo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytecount-0.6.9/src/naive.rs /Users/anggaadiwibowo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytecount-0.6.9/src/integer_simd.rs /Users/anggaadiwibowo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytecount-0.6.9/src/simd/mod.rs /Users/anggaadiwibowo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytecount-0.6.9/src/simd/aarch64.rs
+
+/Users/anggaadiwibowo/Documents/Antigravity/assessment/backend/target/debug/deps/libbytecount-03cece8a7e4f8b85.rmeta: /Users/anggaadiwibowo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytecount-0.6.9/src/lib.rs /Users/anggaadiwibowo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytecount-0.6.9/src/naive.rs /Users/anggaadiwibowo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytecount-0.6.9/src/integer_simd.rs /Users/anggaadiwibowo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytecount-0.6.9/src/simd/mod.rs /Users/anggaadiwibowo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytecount-0.6.9/src/simd/aarch64.rs
+
+/Users/anggaadiwibowo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytecount-0.6.9/src/lib.rs:
+/Users/anggaadiwibowo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytecount-0.6.9/src/naive.rs:
+/Users/anggaadiwibowo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytecount-0.6.9/src/integer_simd.rs:
+/Users/anggaadiwibowo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytecount-0.6.9/src/simd/mod.rs:
+/Users/anggaadiwibowo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytecount-0.6.9/src/simd/aarch64.rs:

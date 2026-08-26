@@ -54,9 +54,19 @@
           {:else if column.key === 'windowEnd'}
             <span class="text-muted-foreground">{a.windowEnd?.split('T')[0] ?? '-'}</span>
           {:else if column.key === 'active'}
-            <Badge variant={a.active ? 'default' : 'secondary'}>{a.active ? 'aktif' : 'pasif'}</Badge>
+            <Badge variant={a.active ? 'default' : 'secondary'}>{a.active ? 'published' : 'draft'}</Badge>
           {:else if column.key === 'actions'}
             <div class="flex items-center justify-end gap-3 sm:justify-start">
+              <form method="POST" action="?/update" use:enhance class="inline">
+                <input type="hidden" name="id" value={a.id} />
+                <input type="hidden" name="startDate" value={a.windowStart?.split('T')[0] ?? ''} />
+                <input type="hidden" name="endDate" value={a.windowEnd?.split('T')[0] ?? ''} />
+                <input type="hidden" name="certificateEnabled" value={a.certificateEnabled ? 'on' : ''} />
+                <input type="hidden" name="active" value={!a.active ? 'on' : ''} />
+                <button type="submit" class="text-xs hover:underline {a.active ? 'text-orange-500' : 'text-green-600'}">
+                  {a.active ? 'Unpublish' : 'Publish'}
+                </button>
+              </form>
               <button
                 type="button"
                 class="text-primary text-xs hover:underline"
@@ -158,7 +168,7 @@
           </div>
           <div class="flex items-center gap-2">
             <input type="checkbox" id="editActive" name="active" checked={editTarget.active} class="size-4" />
-            <Label for="editActive">Aktif</Label>
+            <Label for="editActive">Publish (Aktifkan untuk siswa)</Label>
           </div>
           <div class="flex items-center gap-2">
             <input type="checkbox" id="editCertEnabled" name="certificateEnabled" checked={editTarget.certificateEnabled} class="size-4" />

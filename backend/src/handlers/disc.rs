@@ -375,7 +375,7 @@ async fn list_results_scoped(
     if auth.is_role("gurubk") {
         let school_id = crate::db::load_user(&state.pool, &auth.user_id).await?.and_then(|u| u.school_id);
         if let Some(sid) = school_id {
-            conds.push(format!("EXISTS (SELECT 1 FROM schools s WHERE s.id = $2 AND s.name = disc_results.school_name)"));
+            conds.push(format!("EXISTS (SELECT 1 FROM schools s WHERE s.id = ${} AND s.name = disc_results.school_name)", idx));
             binds.push(sid.to_string());
             idx += 1;
         }

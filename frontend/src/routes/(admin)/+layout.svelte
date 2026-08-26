@@ -7,6 +7,7 @@
     { href: '/admin-dashboard', label: 'Dashboard' },
     { href: '/admin-schools', label: 'Sekolah' },
     { href: '/admin-users', label: 'Pengguna' },
+    { href: '/admin-roles', label: 'Manajemen Role' },
     { href: '/admin-students', label: 'Siswa' },
     { href: '/assignment-modules', label: 'Modul Penugasan' },
     { href: '/admin-categories', label: 'Kategori Tes' },

@@ -120,31 +120,60 @@ pub async fn results(
     Query(params): Query<super::disc::CheckParams>,
 ) -> AppResult<Json<serde_json::Value>> {
     auth.require_role(&["SUPERADMIN", "GURUBK", "AFILIATOR", "PSIKOLOG"])?;
-    let p = PageParams {
-        page: params.page,
-        size: params.size,
-        search: params.search,
-        sort: params.sort,
-        order: params.order,
+    let pp = PageParams {
+        page: params.page, size: params.size, search: params.search, sort: params.sort, order: params.order,
     };
-    let rows: Vec<EppsResult> = sqlx::query_as(&format!(
-        "SELECT {SEL} FROM epps_results ORDER BY completed_at DESC"
-    ))
-    .fetch_all(&state.pool)
-    .await
-    .map_err(|e| AppError::from_sqlx("epps_results", e))?;
-    let items: Vec<_> = rows.iter().map(EppsResult::as_json).collect();
-    Ok(Json(if p.is_paginated() {
-        serde_json::to_value(PageResponse::new(
-            items,
-            p.page_or_zero(),
-            p.size_clamped(),
-            rows.len() as i64,
-        ))
-        .unwrap()
+    Ok(Json(list_scoped(&state, &auth, &pp).await?))
+}
+
+async fn list_scoped(state: &AppState, auth: &AuthUser, params: &PageParams) -> AppResult<serde_json::Value> {
+    let mut conds: Vec<String> = Vec::new();
+    let mut binds: Vec<String> = Vec::new();
+    let mut idx = 1usize;
+    if params.has_search() {
+        conds.push(format!("(LOWER(student_name) LIKE ${} OR LOWER(school_name) LIKE ${})", idx, idx));
+        binds.push(params.search_like());
+        idx += 1;
+    }
+    
+    if auth.is_role("gurubk") {
+        let school_id = crate::db::load_user(&state.pool, &auth.user_id).await?.and_then(|u| u.school_id);
+        if let Some(sid) = school_id {
+            conds.push(format!("EXISTS (SELECT 1 FROM schools s WHERE s.id = ${} AND s.name = epps_results.school_name)", idx));
+            binds.push(sid.to_string());
+            idx += 1;
+        }
+    } else if auth.is_role("afiliator") {
+        conds.push(format!("auth_user_id IN (SELECT auth_user_id FROM assessment_users WHERE afiliator_id = ${})", idx));
+        binds.push(auth.user_id.clone());
+        idx += 1;
+    }
+
+    let where_sql = if conds.is_empty() { String::new() } else { format!(" WHERE {}", conds.join(" AND ")) };
+    let sort = params.sort_key(&["studentName", "schoolName", "completedAt", "id"], "completedAt");
+    let order = params.order_dir();
+    let order_col = params.sort_col(sort);
+    let size = params.size_clamped();
+    let offset = params.offset();
+
+    if params.is_paginated() {
+        let count_sql = format!("SELECT COUNT(*) FROM epps_results{where_sql}");
+        let mut cq = sqlx::query_scalar::<_, i64>(&count_sql);
+        for b in &binds { cq = cq.bind(b); }
+        let total: i64 = cq.fetch_one(&state.pool).await.map_err(|e| AppError::from_sqlx("count_epps", e))?;
+        let sql = format!("SELECT {SEL} FROM epps_results{where_sql} ORDER BY {} {} LIMIT ${} OFFSET ${}", order_col, order, idx, idx + 1);
+        let mut q = sqlx::query_as::<_, EppsResult>(&sql);
+        for b in &binds { q = q.bind(b); }
+        let rows: Vec<EppsResult> = q.bind(size).bind(offset).fetch_all(&state.pool).await.map_err(|e| AppError::from_sqlx("list_epps", e))?;
+        let items: Vec<serde_json::Value> = rows.iter().map(|r| r.as_json()).collect();
+        Ok(serde_json::to_value(PageResponse::new(items, params.page_or_zero(), size, total)).unwrap())
     } else {
-        serde_json::json!(items)
-    }))
+        let sql = format!("SELECT {SEL} FROM epps_results{where_sql} ORDER BY {} {}", order_col, order);
+        let mut q = sqlx::query_as::<_, EppsResult>(&sql);
+        for b in &binds { q = q.bind(b); }
+        let rows: Vec<EppsResult> = q.fetch_all(&state.pool).await.map_err(|e| AppError::from_sqlx("list_epps", e))?;
+        Ok(serde_json::json!(rows.iter().map(|r| r.as_json()).collect::<Vec<_>>()))
+    }
 }
 
 pub async fn result_by_user(

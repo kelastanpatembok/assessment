@@ -203,7 +203,19 @@ async fn list_scoped(state: &AppState, auth: &AuthUser, params: &PageParams) -> 
     let sort = params.sort_key(&SORT_WHITELIST, "completedAt");
     let order = params.order_dir();
         let order_col = params.sort_col(sort);
-    let _ = auth;
+    if auth.is_role("gurubk") {
+        let school_id = crate::db::load_user(&state.pool, &auth.user_id).await?.and_then(|u| u.school_id);
+        if let Some(sid) = school_id {
+            conds.push(format!("EXISTS (SELECT 1 FROM schools s WHERE s.id = ${} AND s.name = holland_results.school_name)", idx));
+            binds.push(sid.to_string());
+            idx += 1;
+        }
+    } else if auth.is_role("afiliator") {
+        conds.push(format!("auth_user_id IN (SELECT auth_user_id FROM assessment_users WHERE afiliator_id = ${})", idx));
+        binds.push(auth.user_id.clone());
+        idx += 1;
+    }
+
     let size = params.size_clamped();
     let offset = params.offset();
 

@@ -135,6 +135,11 @@ pub fn build_router(state: AppState) -> Router {
         .route("/credentials/batches", get(handlers::credential::batches))
         .route("/credentials/batches/:id/download", get(handlers::credential::download))
         .route("/credentials/batches/:id", delete(handlers::credential::delete))
+        // ---- roles & permissions ----
+        .route("/roles", get(handlers::role_permissions::get_roles).post(handlers::role_permissions::create_role))
+        .route("/roles/:id", put(handlers::role_permissions::update_role).delete(handlers::role_permissions::delete_role))
+        .route("/roles/me", get(handlers::role_permissions::get_my_role_info))
+        .route("/roles/check/:permission", get(handlers::role_permissions::check_permission))
         // ---- dev tools ----
         .route("/dev/results/:testKey", delete(handlers::devtools::clear_result))
         .layer(RequestBodyLimitLayer::new(20 * 1024 * 1024))
