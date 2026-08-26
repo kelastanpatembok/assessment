@@ -271,6 +271,35 @@ def delete_user(user_id):
     # For mock, just return success
     return '', 204
 
+@app.route('/api/auth/session', methods=['GET'])
+def session():
+    """Validate JWT token and return user info"""
+    try:
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            return jsonify({'error': 'Unauthorized', 'message': 'Token required'}), 401
+
+        token = auth_header[7:]
+        payload = jwt.decode(token, JWT_SECRET, algorithms=['HS512'])
+
+        username = payload.get('username')
+        user = users_db.get(username)
+        if not user:
+            return jsonify({'error': 'Unauthorized', 'message': 'User not found'}), 401
+
+        return jsonify({
+            'id': payload.get('sub'),
+            'username': username,
+            'email': user['email'],
+            'name': user['name'],
+            'role': payload.get('role')
+        })
+    except jwt.ExpiredSignatureError:
+        return jsonify({'error': 'Unauthorized', 'message': 'Token expired'}), 401
+    except Exception as e:
+        return jsonify({'error': 'Unauthorized', 'message': str(e)}), 401
+
+
 @app.route('/api/auth/change-password', methods=['PUT'])
 def change_password():
     """Mock change password endpoint"""
