@@ -1,6 +1,5 @@
 <script lang="ts">
   import DiscLineChart from '$lib/components/disc-line-chart/DiscLineChart.svelte';
-  import CertificateCard from '$lib/components/certificate/CertificateCard.svelte';
 
   let { data } = $props();
   let r = $derived(data.result);
@@ -197,14 +196,4 @@
     </div>
   {/if}
 
-  <CertificateCard
-    testKey="disc"
-    testName="Tes Kepribadian DISC"
-    testDescription="Empat dimensi perilaku (D–I–S–C) yang mengungkap gaya komunikasi dan cara mengambil keputusan."
-    resultLabel="Profil Kepribadian"
-    resultLines={[r?.profileTitle ?? '—', difTraits.length > 0 ? difTraits.join(', ') : ''].filter(Boolean)}
-    studentId={data.user?.userId}
-    studentName={data.profile?.name ?? 'Peserta'}
-    avatarUrl={data.profile?.avatarUrl ?? null}
-  />
 </div>
