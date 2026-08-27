@@ -15,26 +15,13 @@
   const hasRole = (role: string) =>
     (user?.roles ?? [user?.role ?? '']).some((value: string) => value.toLowerCase() === role);
 
-  const dash = $derived(
-    (() => {
-      switch (user?.role) {
-        case 'superadmin':
-          return '/admin-dashboard';
-        case 'gurubk':
-          return '/counselor-dashboard';
-        case 'afiliator':
-          return '/afiliator-dashboard';
-        case 'psikolog':
-          return '/psikolog-dashboard';
-        case 'siswa':
-          return '/student-dashboard';
-        case 'pic':
-          return '/profil';
-        default:
-          return null;
-      }
-    })()
-  );
+  const dashboards = $derived([
+    hasRole('superadmin') && { href: '/admin-dashboard', label: 'Dashboard Admin' },
+    hasRole('gurubk') && { href: '/counselor-dashboard', label: 'Dashboard Guru BK' },
+    hasRole('psikolog') && { href: '/psikolog-dashboard', label: 'Dashboard Psikolog' },
+    hasRole('afiliator') && { href: '/afiliator-dashboard', label: 'Dashboard Afiliator' },
+    hasRole('siswa') && { href: '/student-dashboard', label: 'Dashboard Siswa' }
+  ].filter(Boolean) as { href: string; label: string }[]);
 </script>
 
 {#if user}
@@ -63,12 +50,9 @@
       <div class="um-menu" role="menu">
         <p class="um-menu-head">{user.username}</p>
         <a href="/profil" role="menuitem" onclick={() => (open = false)}>Profil &amp; Pengaturan</a>
-        {#if dash}
-          <a href={dash} role="menuitem" onclick={() => (open = false)}>Panel Saya</a>
-        {/if}
-        {#if hasRole('superadmin') && user?.role !== 'superadmin'}
-          <a href="/admin-dashboard" role="menuitem" onclick={() => (open = false)}>Dashboard Admin</a>
-        {/if}
+        {#each dashboards as dashboard}
+          <a href={dashboard.href} role="menuitem" onclick={() => (open = false)}>{dashboard.label}</a>
+        {/each}
         <a href="/logout" class="um-menu-logout" role="menuitem" onclick={() => (open = false)}>Keluar</a>
       </div>
     {/if}
