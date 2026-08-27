@@ -101,31 +101,31 @@
 
     <section class="instruments" id="instrumen">
       <ul class="inst-grid">
-        <li class="icard icard-amber">
+        <li><a href="/metode/disc" class="icard icard-amber">
           <span class="icode">DISC</span>
           <span class="iname">Profil kepribadian</span>
           <span class="idesc">Empat dimensi perilaku (D–I–S–C) yang mengungkap gaya komunikasi dan cara mengambil keputusan.</span>
-        </li>
-        <li class="icard icard-sage">
+        </a></li>
+        <li><a href="/metode/holland" class="icard icard-sage">
           <span class="icode">Holland RIASEC</span>
           <span class="iname">Minat karier</span>
           <span class="idesc">Enam tipe minat (R–I–A–S–E–C) untuk memetakan arah studi dan profesi yang paling sesuai.</span>
-        </li>
-        <li class="icard icard-clay">
+        </a></li>
+        <li><a href="/metode/papi" class="icard icard-clay">
           <span class="icode">PAPI Kostick</span>
           <span class="iname">Kepribadian kerja</span>
           <span class="idesc">Dua puluh dimensi karakteristik yang menggambarkan perilaku dan gaya bekerja seseorang.</span>
-        </li>
-        <li class="icard icard-cold">
+        </a></li>
+        <li><a href="/metode/cfit" class="icard icard-cold">
           <span class="icode">IQ CFIT</span>
           <span class="iname">Tes kecerdasan</span>
           <span class="idesc">Empat subtes bebas budaya yang mengukur kemampuan penalaran nonverbal.</span>
-        </li>
-        <li class="icard icard-grey">
+        </a></li>
+        <li><a href="/metode/ist" class="icard icard-grey">
           <span class="icode">IQ IST</span>
           <span class="iname">Tes kecerdasan</span>
           <span class="idesc">Sembilan subtes yang mengukur berbagai kemampuan intelektual secara menyeluruh.</span>
-        </li>
+        </a></li>
       </ul>
     </section>
 
