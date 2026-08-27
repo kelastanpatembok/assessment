@@ -16,6 +16,7 @@
     <nav class="site-nav" aria-label="Navigasi utama">
       <a href="/#layanan">Layanan</a>
       <a href="/#instrumen">Instrumen</a>
+      <a href="/peta">Peta</a>
       <a href="/#alur">Alur</a>
       <a href="/#faq">FAQ</a>
     </nav>

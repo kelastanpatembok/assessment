@@ -1,0 +1,4 @@
+import { createApiClient } from '$lib/api/index';
+import { fail } from '@sveltejs/kit';
+import type { Actions } from './$types';
+export const actions: Actions = { default: async ({ request, locals }) => { const form=await request.formData(); try { await createApiClient(locals.token ?? null).post('/public/school-registration-requests',{contactName:String(form.get('contactName')??''),contactEmail:String(form.get('contactEmail')??''),schoolName:String(form.get('schoolName')??''),npsn:String(form.get('npsn')??'')||null,address:String(form.get('address')??'')||null,city:String(form.get('city')??'')||null,province:String(form.get('province')??'')||null,phone:String(form.get('phone')??'')||null,note:String(form.get('note')??'')||null}); return {success:true}; } catch(error){return fail(400,{error:error instanceof Error?error.message:'Pendaftaran belum dapat dikirim.'});} } };

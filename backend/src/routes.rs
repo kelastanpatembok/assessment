@@ -51,6 +51,8 @@ pub fn build_router(state: AppState) -> Router {
         .route("/schools/:id/pics/:authUserId/primary", put(handlers::school_pic::set_primary))
         .route("/schools/:id/pics/:authUserId", delete(handlers::school_pic::remove))
         .route("/public/schools", get(handlers::school::public_search))
+        .route("/public/schools/map", get(handlers::school::public_map))
+        .route("/public/schools/:id", get(handlers::school::public_detail))
         // ---- users ----
         .route("/users", get(handlers::user::list).post(handlers::user::create))
         .route("/users/me", get(handlers::user::me))
