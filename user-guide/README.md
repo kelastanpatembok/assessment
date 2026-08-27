@@ -12,6 +12,7 @@ dirender setelah setiap alur yang disebut telah diuji di lingkungan produksi.
 5. `04-metode-dan-interpretasi.md`
 6. `05-studi-kasus-sma-3-yogyakarta.md`
 7. `06-referensi.md`
+8. `07-data-pilot-dan-kredensial.md`
 
 Folder `assets/` akan memuat logo resmi dan screenshot hasil uji, bukan gambar
 generatif. Screenshot diberi tanggal, URL, serta langkah uji agar dapat diaudit.
