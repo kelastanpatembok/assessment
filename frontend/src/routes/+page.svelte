@@ -127,6 +127,16 @@
           <span class="iname">Tes kecerdasan</span>
           <span class="idesc">Sembilan subtes yang mengukur berbagai kemampuan intelektual secara menyeluruh.</span>
         </a></li>
+        <li><a href="/metode/epps" class="icard icard-amber">
+          <span class="icode">EPPS</span>
+          <span class="iname">Preferensi personal</span>
+          <span class="idesc">Kebutuhan psikologis relatif untuk bahan refleksi diri, bukan peringkat antarsiswa.</span>
+        </a></li>
+        <li><a href="/metode/big5" class="icard icard-sage">
+          <span class="icode">Big Five</span>
+          <span class="iname">Eksplorasi kepribadian</span>
+          <span class="idesc">Lima dimensi kepribadian untuk refleksi awal yang tersedia melalui Tes Gratis.</span>
+        </a></li>
       </ul>
     </section>
 
