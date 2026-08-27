@@ -42,7 +42,7 @@
 <SiteHeader user={null} profile={null} />
 <main class="page">
   <nav class="crumb" aria-label="Breadcrumb"><a href="/">Beranda</a><span>/</span><span>Peta</span></nav>
-  <header><h1>Peta Sekolah</h1><p>Cari sekolah terdaftar dan lihat lokasi yang memiliki koordinat terverifikasi dalam data sekolah.</p></header>
+  <header><h1>Peta Sekolah</h1><p>Cari sekolah terdaftar. Bila lokasi persis belum tersedia, titik ditempatkan di pusat provinsi dan ditandai sebagai perkiraan.</p></header>
   <form class="search" method="GET"><label for="q">Cari nama atau NPSN</label><div><input id="q" name="q" value={data.search} placeholder="Contoh: SMA 3 Yogyakarta"/><button>Cari</button></div></form>
   <div class="layout">
     <section class="map-card"><div bind:this={host} class="map" aria-label="Peta sekolah Indonesia"></div><p class="attribution">Peta © OpenStreetMap contributors. {data.points.length} lokasi dimuat untuk pencarian ini.</p></section>
@@ -50,7 +50,7 @@
       <h2>Legenda</h2>
       {#each categories as category}<label class="legend"><input type="checkbox" bind:checked={enabled[category]}/><i class:smama={category==='SMA/MA'} class:smk={category==='SMK'} class:smp={category==='SMP/MTs'} class:sd={category==='SD/MI'}></i>{category}</label>{/each}
       <a class="register" href="/daftarkan-sekolah">Daftarkan Sekolah</a>
-      {#if selected}<section class="detail"><h2>{selected.name}</h2><p>{selected.type}{#if selected.npsn} · NPSN {selected.npsn}{/if}</p>{#if selected.address}<p>{selected.address}</p>{/if}{#if selected.city || selected.province}<p>{[selected.city, selected.province].filter(Boolean).join(', ')}</p>{/if}</section>{/if}
+      {#if selected}<section class="detail"><h2>{selected.name}</h2><p>{selected.type}{#if selected.npsn} · NPSN {selected.npsn}{/if}</p>{#if selected.precision==='provinsi'}<p><strong>Lokasi perkiraan:</strong> pusat provinsi.</p>{/if}{#if selected.address}<p>{selected.address}</p>{/if}{#if selected.city || selected.province}<p>{[selected.city, selected.province].filter(Boolean).join(', ')}</p>{/if}</section>{/if}
     </aside>
   </div>
 </main>

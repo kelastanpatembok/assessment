@@ -46,6 +46,12 @@ fn public_school_type(name: &str, configured: Option<String>) -> String {
     else { "Lainnya".into() }
 }
 
+fn province_center(province: Option<&str>) -> Option<(f64,f64)> {
+    let p=province?.to_ascii_uppercase();
+    let centers=[("ACEH",5.55,95.32),("SUMATERA UTARA",3.59,98.67),("SUMATERA BARAT",-0.95,100.35),("RIAU",0.51,101.44),("JAMBI",-1.61,103.61),("SUMATERA SELATAN",-2.99,104.76),("BENGKULU",-3.80,102.27),("LAMPUNG",-5.43,105.27),("KEP. BANGKA",-2.13,106.12),("KEPULAUAN RIAU",0.92,104.45),("DKI JAKARTA",-6.20,106.82),("JAWA BARAT",-6.91,107.60),("JAWA TENGAH",-7.15,110.14),("D.I. YOGYAKARTA",-7.80,110.37),("JAWA TIMUR",-7.25,112.75),("BANTEN",-6.12,106.15),("BALI",-8.65,115.22),("NUSA TENGGARA BARAT",-8.58,116.10),("NUSA TENGGARA TIMUR",-10.17,123.61),("KALIMANTAN BARAT",-0.03,109.34),("KALIMANTAN TENGAH",-2.21,113.92),("KALIMANTAN SELATAN",-3.32,114.59),("KALIMANTAN TIMUR",-0.50,117.15),("KALIMANTAN UTARA",3.30,116.20),("SULAWESI UTARA",1.49,124.84),("SULAWESI TENGAH",-0.90,119.87),("SULAWESI SELATAN",-5.14,119.41),("SULAWESI TENGGARA",-3.99,122.51),("GORONTALO",0.54,123.06),("SULAWESI BARAT",-2.67,118.89),("MALUKU",-3.65,128.19),("MALUKU UTARA",0.79,127.38),("PAPUA",-2.53,140.72),("PAPUA BARAT",-0.86,134.06)];
+    centers.iter().find(|(name,_,_)|p.contains(name)).map(|(_,lat,lng)|(*lat,*lng))
+}
+
 /// Safe, small selector used by onboarding and the public map search. Contact
 /// details are deliberately excluded from this public projection.
 pub async fn public_search(
@@ -68,10 +74,10 @@ pub async fn public_map(
     let (min_lat,max_lat,min_lng,max_lng)=(params.min_lat.unwrap_or(-11.1),params.max_lat.unwrap_or(6.3),params.min_lng.unwrap_or(94.6),params.max_lng.unwrap_or(141.1));
     if min_lat >= max_lat || min_lng >= max_lng || !(-90.0..=90.0).contains(&min_lat) || !(-90.0..=90.0).contains(&max_lat) || !(-180.0..=180.0).contains(&min_lng) || !(-180.0..=180.0).contains(&max_lng) { return Err(AppError::BadRequest("Batas peta tidak valid".into())); }
     let search=params.search.unwrap_or_default().trim().to_lowercase();
-    let rows:Vec<(i64,Option<String>,String,Option<String>,Option<String>,Option<String>,f64,f64,Option<String>)>=sqlx::query_as(
-        "SELECT id,npsn,name,address,city,province,latitude,longitude,school_type FROM schools WHERE latitude BETWEEN $1 AND $2 AND longitude BETWEEN $3 AND $4 AND ($5='' OR LOWER(name) LIKE '%' || $5 || '%' OR npsn ILIKE '%' || $5 || '%') ORDER BY name ASC LIMIT 1200"
-    ).bind(min_lat).bind(max_lat).bind(min_lng).bind(max_lng).bind(search).fetch_all(&state.pool).await.map_err(|e|AppError::from_sqlx("public_school_map",e))?;
-    let items=rows.into_iter().map(|r| {let kind=public_school_type(&r.2,r.8);serde_json::json!({"id":r.0,"npsn":r.1,"name":r.2,"address":r.3,"city":r.4,"province":r.5,"latitude":r.6,"longitude":r.7,"type":kind})}).collect::<Vec<_>>();
+    let rows:Vec<(i64,Option<String>,String,Option<String>,Option<String>,Option<String>,Option<f64>,Option<f64>,Option<String>)>=sqlx::query_as(
+        "SELECT id,npsn,name,address,city,province,latitude,longitude,school_type FROM schools WHERE ($1='' OR LOWER(name) LIKE '%' || $1 || '%' OR npsn ILIKE '%' || $1 || '%') ORDER BY name ASC LIMIT 1200"
+    ).bind(search).fetch_all(&state.pool).await.map_err(|e|AppError::from_sqlx("public_school_map",e))?;
+    let items=rows.into_iter().filter_map(|r| {let (lat,lng,precision)=match (r.6,r.7){(Some(lat),Some(lng))=>(lat,lng,"tepat"),( _,_ )=>{let (lat,lng)=province_center(r.5.as_deref())?;(lat,lng,"provinsi")}};if lat<min_lat||lat>max_lat||lng<min_lng||lng>max_lng{return None};let kind=public_school_type(&r.2,r.8);Some(serde_json::json!({"id":r.0,"npsn":r.1,"name":r.2,"address":r.3,"city":r.4,"province":r.5,"latitude":lat,"longitude":lng,"type":kind,"precision":precision}))}).collect::<Vec<_>>();
     Ok(Json(serde_json::json!({"items":items,"limit":1200})))
 }
 
