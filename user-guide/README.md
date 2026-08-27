@@ -1,7 +1,9 @@
 # Assessment Project — User Guide
 
 Sumber naskah untuk buku panduan pengguna berbahasa Indonesia. PDF hanya akan
-dirender setelah setiap alur yang disebut telah diuji di lingkungan produksi.
+memuat alur yang telah diuji pada lingkungan yang sesuai. Saat layanan publik
+sedang digunakan, tangkapan layar diuji secara lokal agar tidak mengganggu
+pengguna aktif; bukti uji dicatat pada caption gambar.
 
 ## Susunan naskah
 
