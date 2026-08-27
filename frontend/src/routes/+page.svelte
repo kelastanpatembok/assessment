@@ -95,6 +95,7 @@
             {signedIn ? 'Ikuti Tes Gratis' : 'Masuk ke Platform'}
           </a>
           <a href="#layanan" class="btn btn-ghost">Pelajari Layanan</a>
+          <a href="/documents/assessment-project-user-guide.pdf" class="guide-link" download>Unduh Panduan Pengguna (PDF)</a>
         </div>
       </div>
     </section>
