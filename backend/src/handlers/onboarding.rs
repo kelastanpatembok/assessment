@@ -48,6 +48,29 @@ pub async fn approve_access_request(State(state):State<AppState>,auth:AuthUser,P
 }
 pub async fn reject_access_request(State(state):State<AppState>,auth:AuthUser,Path(id):Path<i64>,Json(input):Json<ReviewInput>)->AppResult<Json<serde_json::Value>>{auth.require_role(&["SUPERADMIN"])?;let result=sqlx::query("UPDATE access_requests SET status='rejected',reviewed_by=$2,review_note=$3,reviewed_at=NOW(),updated_at=NOW() WHERE id=$1 AND status='pending'").bind(id).bind(&auth.user_id).bind(input.note.as_deref()).execute(&state.pool).await.map_err(|e|AppError::from_sqlx("reject_access_request",e))?;if result.rows_affected()==0{return Err(AppError::Conflict("Pengajuan tidak tersedia untuk ditolak".into()));}Ok(Json(serde_json::json!({"rejected":true})))}
 
+pub async fn admin_school_registration_requests(State(state):State<AppState>,auth:AuthUser,Query(q):Query<StatusQuery>)->AppResult<Json<serde_json::Value>>{
+ auth.require_role(&["SUPERADMIN"])?;
+ let status=q.status.unwrap_or_else(||"pending".into());
+ if !matches!(status.as_str(),"pending"|"approved"|"rejected"){return Err(AppError::BadRequest("Status pengajuan tidak valid".into()));}
+ let rows=sqlx::query("SELECT id,contact_name,contact_email,school_name,npsn,address,city,province,phone,note,status,school_id,review_note,created_at,reviewed_at FROM school_registration_requests WHERE status=$1 ORDER BY created_at ASC").bind(status).fetch_all(&state.pool).await.map_err(|e|AppError::from_sqlx("list_school_registration_requests",e))?;
+ Ok(Json(serde_json::json!({"items":rows.into_iter().map(|r|serde_json::json!({"id":r.get::<i64,_>("id"),"contactName":r.get::<String,_>("contact_name"),"contactEmail":r.get::<String,_>("contact_email"),"schoolName":r.get::<String,_>("school_name"),"npsn":r.get::<Option<String>,_>("npsn"),"address":r.get::<Option<String>,_>("address"),"city":r.get::<Option<String>,_>("city"),"province":r.get::<Option<String>,_>("province"),"phone":r.get::<Option<String>,_>("phone"),"note":r.get::<Option<String>,_>("note"),"status":r.get::<String,_>("status"),"schoolId":r.get::<Option<i64>,_>("school_id"),"reviewNote":r.get::<Option<String>,_>("review_note"),"createdAt":r.get::<chrono::NaiveDateTime,_>("created_at"),"reviewedAt":r.get::<Option<chrono::NaiveDateTime>,_>("reviewed_at")})).collect::<Vec<_>>() })))
+}
+
+pub async fn approve_school_registration(State(state):State<AppState>,auth:AuthUser,Path(id):Path<i64>,Json(input):Json<ReviewInput>)->AppResult<Json<serde_json::Value>>{
+ auth.require_role(&["SUPERADMIN"])?;
+ let mut tx=state.pool.begin().await.map_err(|e|AppError::from_sqlx("begin_school_approval",e))?;
+ let r=sqlx::query("SELECT school_name,npsn,address,city,province,phone,status FROM school_registration_requests WHERE id=$1 FOR UPDATE").bind(id).fetch_optional(&mut *tx).await.map_err(|e|AppError::from_sqlx("school_registration",e))?.ok_or_else(||AppError::NotFound("Pendaftaran sekolah tidak ditemukan".into()))?;
+ if r.get::<String,_>("status")!="pending" {return Err(AppError::Conflict("Pendaftaran sekolah sudah ditinjau".into()));}
+ let npsn:Option<String>=r.get("npsn");
+ if let Some(ref value)=npsn {let exists:bool=sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM schools WHERE npsn=$1)").bind(value).fetch_one(&mut *tx).await.map_err(|e|AppError::from_sqlx("check_approved_school_npsn",e))?;if exists{return Err(AppError::Conflict("NPSN sudah terdaftar; pendaftaran tidak dapat disetujui".into()));}}
+ let school_id:i64=sqlx::query_scalar("INSERT INTO schools(name,npsn,address,city,province,phone,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$6,NOW(),NOW()) RETURNING id").bind(r.get::<String,_>("school_name")).bind(npsn).bind(r.get::<Option<String>,_>("address")).bind(r.get::<Option<String>,_>("city")).bind(r.get::<Option<String>,_>("province")).bind(r.get::<Option<String>,_>("phone")).fetch_one(&mut *tx).await.map_err(|e|AppError::from_sqlx("approve_school_registration",e))?;
+ sqlx::query("UPDATE school_registration_requests SET status='approved',school_id=$2,reviewed_by=$3,review_note=$4,reviewed_at=NOW(),updated_at=NOW() WHERE id=$1").bind(id).bind(school_id).bind(&auth.user_id).bind(input.note.as_deref()).execute(&mut *tx).await.map_err(|e|AppError::from_sqlx("mark_school_registration_approved",e))?;
+ tx.commit().await.map_err(|e|AppError::from_sqlx("commit_school_approval",e))?;
+ Ok(Json(serde_json::json!({"approved":true,"schoolId":school_id})))
+}
+
+pub async fn reject_school_registration(State(state):State<AppState>,auth:AuthUser,Path(id):Path<i64>,Json(input):Json<ReviewInput>)->AppResult<Json<serde_json::Value>>{auth.require_role(&["SUPERADMIN"])?;let result=sqlx::query("UPDATE school_registration_requests SET status='rejected',reviewed_by=$2,review_note=$3,reviewed_at=NOW(),updated_at=NOW() WHERE id=$1 AND status='pending'").bind(id).bind(&auth.user_id).bind(input.note.as_deref()).execute(&state.pool).await.map_err(|e|AppError::from_sqlx("reject_school_registration",e))?;if result.rows_affected()==0{return Err(AppError::Conflict("Pendaftaran sekolah tidak tersedia untuk ditolak".into()));}Ok(Json(serde_json::json!({"rejected":true})))}
+
 pub async fn create_school_registration(State(state):State<AppState>,auth:Option<AuthUser>,Json(input):Json<SchoolRegistrationInput>)->AppResult<(StatusCode,Json<serde_json::Value>)>{
  if input.contact_name.trim().is_empty()||input.contact_email.trim().is_empty()||input.school_name.trim().is_empty(){return Err(AppError::BadRequest("Nama kontak, email, dan nama sekolah harus diisi".into()));}
  if let Some(npsn)=input.npsn.as_deref(){let exists:bool=sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM schools WHERE npsn=$1)").bind(npsn.trim()).fetch_one(&state.pool).await.map_err(|e|AppError::from_sqlx("check_school_npsn",e))?;if exists{return Err(AppError::Conflict("Sekolah dengan NPSN tersebut sudah terdaftar".into()));}}

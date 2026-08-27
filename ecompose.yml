@@ -76,6 +76,9 @@ services:
         - path: /tes-gratis*
           level: auth
           cookie: assessment_token
+        - path: /onboarding*
+          level: auth
+          cookie: assessment_token
 
   assessment-backend:
     path: backend

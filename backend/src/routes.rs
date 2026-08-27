@@ -89,6 +89,9 @@ pub fn build_router(state: AppState) -> Router {
         .route("/admin/access-requests/:id/approve", post(handlers::onboarding::approve_access_request))
         .route("/admin/access-requests/:id/reject", post(handlers::onboarding::reject_access_request))
         .route("/public/school-registration-requests", post(handlers::onboarding::create_school_registration))
+        .route("/admin/school-registration-requests", get(handlers::onboarding::admin_school_registration_requests))
+        .route("/admin/school-registration-requests/:id/approve", post(handlers::onboarding::approve_school_registration))
+        .route("/admin/school-registration-requests/:id/reject", post(handlers::onboarding::reject_school_registration))
         // ---- dashboard ----
         .route("/dashboard/summary", get(handlers::dashboard::summary))
         // ---- psikolog ----
