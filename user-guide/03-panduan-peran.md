@@ -32,6 +32,23 @@ memaksa pengguna masuk ulang agar sesi memuat kewenangan terbaru. Pendaftaran
 sekolah tidak membuat sekolah secara otomatis: record sekolah baru dibuat hanya
 setelah disetujui.
 
+### Mengajukan peran operasional
+
+1. Setelah masuk, buka `/onboarding`.
+2. Isi nama dan email aktif, lalu pilih **Siswa**, **Guru BK**, atau
+   **Psikolog**.
+3. Untuk Siswa dan Guru BK, cari lalu pilih sekolah. Psikolog tidak memilih
+   sekolah karena cakupan kerjanya tidak dibatasi satu sekolah.
+4. Kirim pengajuan dan pantau statusnya pada bagian **Status pengajuan**.
+5. Setelah superadmin menyetujui, keluar lalu masuk kembali agar sesi memuat
+   peran baru.
+
+![Halaman onboarding dengan pengajuan psikolog berstatus pending yang diuji secara lokal, 27 Agustus 2026.](screenshots/local/onboarding-teruji-lokal.png)
+
+*Gambar 3.2. Bukti uji: pengajuan Psikolog berhasil tersimpan dan tampil sebagai
+`pending`. Gateway lokal memeriksa sesi ke Auth sebelum meneruskan permintaan,
+sehingga tangkapan layar ini juga memverifikasi jalur sesi terlindungi.*
+
 ## Guru BK, psikolog, dan siswa
 
 Guru BK hanya melihat siswa dan hasil dalam sekolahnya. Psikolog dapat melihat

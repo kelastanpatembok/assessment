@@ -1,6 +1,7 @@
 import fs from "node:fs";
 
-const output = process.argv[2] || "user-guide/screenshots/local/tes-gratis-soal-teruji-lokal.png";
+const targetPath = process.argv[2] || "/tes-gratis/soal";
+const output = process.argv[3] || "user-guide/screenshots/local/tes-gratis-soal-teruji-lokal.png";
 const pages = await (await fetch("http://127.0.0.1:9222/json")).json();
 const page = pages.find((entry) => entry.type === "page");
 if (!page) throw new Error("Chrome page target unavailable");
@@ -43,7 +44,7 @@ try {
     deviceScaleFactor: 1,
     mobile: false,
   });
-  await call("Page.navigate", { url: "http://127.0.0.1:4902/tes-gratis/soal" });
+  await call("Page.navigate", { url: `http://127.0.0.1:4902${targetPath}` });
   await new Promise((resolve) => setTimeout(resolve, 3500));
   const image = await call("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
   fs.writeFileSync(output, Buffer.from(image.data, "base64"));
