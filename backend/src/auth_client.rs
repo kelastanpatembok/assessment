@@ -96,6 +96,17 @@ impl AuthClient {
         Ok(resp.json().await?)
     }
 
+    pub async fn replace_roles_as_superadmin(
+        &self,
+        bearer: &str,
+        user_id: &str,
+        roles: &[String],
+    ) -> anyhow::Result<()> {
+        let url = format!("{}/auth/admin/users/{}/roles", self.base_url.trim_end_matches('/'), user_id);
+        self.client.put(url).bearer_auth(bearer).json(&json!({"roles": roles})).send().await?.error_for_status()?;
+        Ok(())
+    }
+
     /// Batch username existence check against auth.
     pub async fn check_usernames_exist(
         &self,

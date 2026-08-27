@@ -13,7 +13,7 @@
   const avatar = $derived(profile?.avatarUrl || null);
   const initial = $derived(name ? name.charAt(0).toUpperCase() : '?');
   const hasRole = (role: string) =>
-    (user?.roles ?? [user?.role ?? '']).some((value) => value.toLowerCase() === role);
+    (user?.roles ?? [user?.role ?? '']).some((value: string) => value.toLowerCase() === role);
 
   const dash = $derived(
     (() => {

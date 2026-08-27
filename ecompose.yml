@@ -84,6 +84,17 @@ services:
     runtimes: [rust, postgresql@15]
     access:
       routes:
+        # The free Big Five questionnaire is intentionally readable without
+        # a bearer header. Its result is still saved through the Svelte server
+        # action, which forwards the signed-in user's token to /big5/save.
+        - path: /api/v1/big5/questions
+          level: public
+          strip: /api/v1
+          rewrite: /api
+        - path: /api/v1/public/*
+          level: public
+          strip: /api/v1
+          rewrite: /api
         - path: /api/assessment-backend/*
           level: auth
         # The frontend's PUBLIC_API_URL points at /api/v1 (configgen default);
@@ -99,7 +110,7 @@ services:
     grants: { secrets: [SERVER_PORT, API_BASE_PATH, MONGODB_URI, BREVO_API_KEY, MAIL_FROM_EMAIL, MAIL_FROM_NAME] }
 
   auth-backend:
-    lxs: auth@3.6.1
+    lxs: auth@3.7.0
     port: 2051
     config:
       EMAIL_VERIFICATION_REQUIRED: "false"

@@ -27,6 +27,23 @@ pub struct SchoolRequest {
 
 const SORT_WHITELIST: [&str; 4] = ["name", "city", "province", "createdAt"];
 
+#[derive(Deserialize)]
+pub struct PublicSchoolSearch { pub search: Option<String> }
+
+/// Safe, small selector used by onboarding and the public map search. Contact
+/// details are deliberately excluded from this public projection.
+pub async fn public_search(
+    State(state): State<AppState>,
+    Query(params): Query<PublicSchoolSearch>,
+) -> AppResult<Json<serde_json::Value>> {
+    let search = params.search.unwrap_or_default().trim().to_string();
+    if search.len() < 2 { return Ok(Json(serde_json::json!({"items":[]}))); }
+    let rows: Vec<(i64, Option<String>, String, Option<String>, Option<String>)> = sqlx::query_as(
+        "SELECT id,npsn,name,city,province FROM schools WHERE LOWER(name) LIKE $1 OR npsn ILIKE $1 ORDER BY name ASC LIMIT 20",
+    ).bind(format!("%{}%",search.to_lowercase())).fetch_all(&state.pool).await.map_err(|e| AppError::from_sqlx("public_school_search",e))?;
+    Ok(Json(serde_json::json!({"items":rows.into_iter().map(|r|serde_json::json!({"id":r.0,"npsn":r.1,"name":r.2,"city":r.3,"province":r.4})).collect::<Vec<_>>() })))
+}
+
 pub async fn create(
     State(state): State<AppState>,
     auth: AuthUser,

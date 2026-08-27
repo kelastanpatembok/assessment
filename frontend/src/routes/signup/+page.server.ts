@@ -87,6 +87,6 @@ export const actions: Actions = {
       sameSite: 'lax'
     });
 
-    redirect(302, '/tes-gratis');
+    redirect(302, '/onboarding');
   }
 };

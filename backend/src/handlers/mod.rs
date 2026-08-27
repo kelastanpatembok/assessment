@@ -9,6 +9,7 @@ pub mod test_assignment;
 pub mod assignment_summary;
 pub mod assessment_report;
 pub mod psychological_report;
+pub mod onboarding;
 pub mod dashboard;
 pub mod psikolog;
 pub mod disc;

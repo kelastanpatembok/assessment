@@ -50,6 +50,7 @@ pub fn build_router(state: AppState) -> Router {
         .route("/schools/:id/pics", get(handlers::school_pic::list).post(handlers::school_pic::add))
         .route("/schools/:id/pics/:authUserId/primary", put(handlers::school_pic::set_primary))
         .route("/schools/:id/pics/:authUserId", delete(handlers::school_pic::remove))
+        .route("/public/schools", get(handlers::school::public_search))
         // ---- users ----
         .route("/users", get(handlers::user::list).post(handlers::user::create))
         .route("/users/me", get(handlers::user::me))
@@ -82,6 +83,12 @@ pub fn build_router(state: AppState) -> Router {
         .route("/psychological-reports", get(handlers::psychological_report::list))
         .route("/psychological-reports/:assignmentId/:studentId", get(handlers::psychological_report::view))
         .route("/psychological-reports/:assignmentId/:studentId/download", get(handlers::psychological_report::download))
+        // ---- role and school onboarding ----
+        .route("/onboarding/access-requests", get(handlers::onboarding::my_access_requests).post(handlers::onboarding::create_access_request))
+        .route("/admin/access-requests", get(handlers::onboarding::admin_access_requests))
+        .route("/admin/access-requests/:id/approve", post(handlers::onboarding::approve_access_request))
+        .route("/admin/access-requests/:id/reject", post(handlers::onboarding::reject_access_request))
+        .route("/public/school-registration-requests", post(handlers::onboarding::create_school_registration))
         // ---- dashboard ----
         .route("/dashboard/summary", get(handlers::dashboard::summary))
         // ---- psikolog ----
