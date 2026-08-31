@@ -28,7 +28,7 @@ export const actions: Actions = {
     const password = data.get('password') as string;
 
     if (!username || !password) {
-      return fail(400, { error: 'Username dan password wajib diisi' });
+      return fail(400, { error: 'Username dan password wajib diisi', lockedOut: false });
     }
 
     let res;
@@ -41,22 +41,23 @@ export const actions: Actions = {
       });
     } catch (e) {
       console.error('Fetch error:', e);
-      return fail(500, { error: 'Terjadi kesalahan sistem' });
+      return fail(500, { error: 'Terjadi kesalahan sistem', lockedOut: false });
     }
 
     if (!res.ok) {
       if (res.status === 409) {
         return fail(409, {
-          error: 'Akun masih aktif di perangkat lain. Keluar terlebih dahulu dari perangkat tersebut.'
+          error: 'Akun masih aktif di perangkat lain. Keluar terlebih dahulu dari perangkat tersebut.',
+          lockedOut: true
         });
       }
-      return fail(401, { error: 'Kredensial tidak valid' });
+      return fail(401, { error: 'Kredensial tidak valid', lockedOut: false });
     }
 
     const json = await res.json();
     const token: string = json.token;
     if (!token) {
-      return fail(401, { error: 'Kredensial tidak valid' });
+      return fail(401, { error: 'Kredensial tidak valid', lockedOut: false });
     }
 
     cookies.set('assessment_token', token, {

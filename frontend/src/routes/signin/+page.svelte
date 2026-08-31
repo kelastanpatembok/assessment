@@ -39,6 +39,14 @@
         <p class="signin-fail">{error}</p>
       {/if}
 
+      {#if form?.lockedOut}
+        <p class="signin-lockout">
+          Kehilangan akses ke perangkat lama?
+          <a href="/login-link">Kirimkan tautan masuk ke email saya</a> untuk memindahkan sesi ke
+          perangkat ini.
+        </p>
+      {/if}
+
       <form
         method="POST"
         class="signin-form"
@@ -235,6 +243,22 @@
     padding: 0.8rem 1rem;
     font-size: 0.9rem;
     margin: 0 0 1.25rem;
+  }
+
+  .signin-lockout {
+    color: var(--lp-ink-2);
+    background: var(--lp-paper);
+    border: 1px solid var(--lp-accent-bg);
+    border-radius: 0.75rem;
+    padding: 0.8rem 1rem;
+    font-size: 0.9rem;
+    margin: 0 0 1.25rem;
+  }
+
+  .signin-lockout a {
+    color: var(--lp-accent-deep);
+    font-weight: 600;
+    text-decoration: underline;
   }
 
   .signin-alt {
